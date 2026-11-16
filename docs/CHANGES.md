@@ -419,3 +419,10 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Found the earlier clear-only hook ran without triggering fbcon takeover; Linux 6.17 ignores erase-only dummy-console output.
 - Use an invisible black-on-black non-space glyph followed by clear, before Plymouth; report actual bound status with a bounded check.
 - Add reversible repair installation and isolated fixture tests. No driver/Wi-Fi/GRUB changes in repair mode. Boot/logout visual confirmation remains pending.
+
+## GDM font-family parsing repair
+
+- GDM logged “Couldn't parse family in font property” despite installed SF desktop fonts. GNOME 46 st-theme-node.c rejects a quoted family after the first family in a list.
+- Keep the dotted clock family quoted, use bare fallback names, and apply the same correction to the SF Pro Text shell declaration. No font binaries are redistributed.
+- Rebuilt and inspected GDM resource CSS. No GDM restart or boot/input configuration changes. New greeter appearance still needs visual confirmation.
+- Parser reference: https://github.com/GNOME/gnome-shell/blob/46.0/src/st/st-theme-node.c (font_family_from_terms).
