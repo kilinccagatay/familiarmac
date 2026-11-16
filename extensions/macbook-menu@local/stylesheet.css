@@ -191,3 +191,9 @@
 .fm-battery-status { font-size: 10pt; color: #354149; }
 .fm-battery-settings { border-top: 1px solid rgba(30,40,50,0.20); padding: 10px 0 2px; color: #20262b; font-size: 10pt; }
 .fm-battery-settings:hover { background-color: rgba(255,255,255,0.35); }
+
+/* Compact adjacent status targets; override the base theme's 16px clock inset. */
+#panel .panel-button.clock-display { -natural-hpadding: 4px; -minimum-hpadding: 4px; }
+#panel .panel-button.clock-display .clock { padding: 0 6px !important; }
+#panel .panel-button.familiarmac-status { -natural-hpadding: 6px; -minimum-hpadding: 6px; }
+#panel .familiarmac-status .familiarmac-control-icon { margin-left: 0; padding: 2px; }

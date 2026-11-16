@@ -180,3 +180,10 @@ Round only the outer corners of the first and last hardware OSD segments. Interi
 ### Brightness-down visual feedback (2026-11-16)
 
 The zero-capable gmux brightness-down helper bypasses GNOME's native brightness key path and previously did not request an OSD. After a successful logind hardware change it now sends the normalized level to a narrowly scoped session-bus extension method. The extension invokes the same styled native OSD as other brightness controls, including zero. It ignores requests on the lock/greeter screens and clamps levels. An unavailable extension never prevents the hardware adjustment. Native brightness-up remains unchanged. No polling or persistent helper added. Endpoint tests cover zero, clamping, lock-screen suppression and teardown. A new login is required to load the extension method.
+
+### Startup layout, clock spacing and HUD placement (2026-11-16)
+
+- Override WhiteSur's 16px clock inset with 6px, and reduce adjacent Control Center padding.
+- Replace the one-second native-indicator readiness polling with a coalesced idle callback triggered by child insertion. Restore the small local panel-order preference before the first paint instead of asynchronously shuffling displayed icons. No login sleep or full-screen input overlay.
+- Shell still loads extensions as part of session startup; this removes our own delayed rearrangement but does not claim that every underlying GNOME startup frame is replaced. Verify the transition on a new login.
+- Position hardware HUDs horizontally centered with their bottom edge about 16% of monitor height above its bottom. This is an approximation measured from a [full macOS desktop reference](https://pbs.twimg.com/media/FcTFCrqXkAAYZ_O.jpg), not an Apple-published positioning specification. Recalculate per display and scale factor on each show; restore the original style when disabled.

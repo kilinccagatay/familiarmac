@@ -16,13 +16,13 @@ export class PanelOrder {
         this.file = Gio.File.new_for_path(`${GLib.get_user_config_dir()}/familiarmac-panel-order.json`);
         this.original = this.order();
         this.signal = global.stage.connect('captured-event', (_stage, event) => this.event(event));
-        this.file.load_contents_async(null, (file, result) => {
-            try {
-                const [, bytes] = file.load_contents_finish(result);
-                const ids = JSON.parse(new TextDecoder().decode(bytes));
-                if (!this.stopped && !this.touched && Array.isArray(ids) && ids.every(id => typeof id === 'string')) this.apply(ids);
-            } catch (_) { /* First installation has no saved order. */ }
-        });
+        // This small, local preference must be applied before the first paint.
+        // An async read otherwise visibly shuffles the already displayed icons.
+        try {
+            const [, bytes] = this.file.load_contents(null);
+            const ids = JSON.parse(new TextDecoder().decode(bytes));
+            if (Array.isArray(ids) && ids.every(id => typeof id === 'string')) this.apply(ids);
+        } catch (_) { /* First installation has no saved order. */ }
     }
     entries() {
         return Object.entries(Main.panel.statusArea).map(([id, button]) => ({id, button, actor: button.container}))

@@ -26,13 +26,14 @@ export class OsdStyle {
             Math.max(0, Math.min(1, level)), 1);
     }
     style(window) {
-        if (this.saved.has(window)) return;
+        if (this.saved.has(window)) { this.position(window); return; }
         const box = window._hbox;
         const row = new St.BoxLayout({style_class: 'fm-osd-segments'});
         const ticks = Array.from({length: 16}, () => new St.Widget({style_class: 'fm-osd-tick', x_expand: true}));
         ticks.forEach(tick => row.add_child(tick));
-        const saved = {vertical: box.vertical, style: window._level.get_style(), opacity: window._level.opacity, row};
+        const saved = {boxStyle: box.get_style(), vertical: box.vertical, style: window._level.get_style(), opacity: window._level.opacity, row};
         this.saved.set(window, saved);
+        this.position(window);
         box.vertical = true;
         box.add_style_class_name('fm-hardware-osd');
         window._level.set_style('height: 0; min-height: 0; width: 0; min-width: 0; margin: 0; padding: 0;');
@@ -48,12 +49,21 @@ export class OsdStyle {
         saved.destroy = window.connect('destroy', () => this.saved.delete(window));
         sync();
     }
+    position(window) {
+        const monitor = Main.layoutManager.monitors[window._monitorIndex];
+        if (!monitor) return;
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const bottom = Math.round(monitor.height * 0.16 / Math.max(1, scale));
+        const original = this.saved.get(window).boxStyle ?? '';
+        window._hbox.set_style(`${original}; margin-bottom: ${bottom}px;`);
+    }
     restore(window) {
         const saved = this.saved.get(window); if (!saved) return;
         window.disconnect(saved.destroy);
         window._level.disconnect(saved.value); window._level.disconnect(saved.visible);
         window._level.set_style(saved.style);
         window._level.opacity = saved.opacity;
+        window._hbox.set_style(saved.boxStyle);
         window._hbox.vertical = saved.vertical;
         window._hbox.remove_style_class_name('fm-hardware-osd'); saved.row.destroy();
         this.saved.delete(window);

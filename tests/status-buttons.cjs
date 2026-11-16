@@ -26,3 +26,12 @@ const manager=new ctx.C({panel:{menu:closeMenu,_system:{}},labels:[]});
 manager.active={};manager.restore=()=>order.push('restore');closeMenu.close(99);
 assert.deepEqual(order,['hide',0,'restore']);
 console.log('Wi-Fi expands with Ethernet active; close hides shared surface before restoration PASS');
+// Native indicators can arrive after extension enable: react immediately to
+// insertion, coalesce additions, and wait until the setup turn has completed.
+let childAdded,idle,installs=0,disconnections=0;
+ctx.GLib={PRIORITY_HIGH_IDLE:100,SOURCE_REMOVE:false,idle_add(_p,fn){idle=fn;return 9}};
+ctx.C.prototype.install=function(){installs++};
+const latePanel={menu:{close(){},connect(){return 1}},_indicators:{connect(_n,fn){childAdded=fn;return 2},disconnect(){disconnections++}}};
+const late=new ctx.C({panel:latePanel});childAdded();assert.equal(installs,0);
+latePanel._system={};idle();assert.equal(installs,1);assert.equal(disconnections,1);assert.equal(late.timer,0);
+console.log('Startup indicators install on readiness without a polling delay PASS');

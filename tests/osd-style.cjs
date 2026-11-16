@@ -5,13 +5,14 @@ class Actor {
  add_child(a){this.children.push(a)}add_style_class_name(s){this.classes.add(s)}remove_style_class_name(s){this.classes.delete(s)}
  get_style(){return this.style??null}set_style(s){this.style=s}destroy(){this.destroyed=true}
 }
-const window=new Actor({_hbox:new Actor({vertical:false}),_vbox:new Actor(),_level:new Actor({value:0.5})});
+const window=new Actor({_monitorIndex:0,_hbox:new Actor({vertical:false}),_vbox:new Actor(),_level:new Actor({value:0.5})});
 let shown=0;const original=()=>shown++;const manager={_osdWindows:[window],_showOsdWindow:original};
 let unexported=false,displayed;manager.show=(...args)=>{displayed=args};
-const ctx={Gio:{DBus:{session:{}},DBusExportedObject:{wrapJSObject:()=>({export(){},unexport(){unexported=true}})},ThemedIcon:{new:name=>name}},St:{BoxLayout:Actor,Widget:Actor},Main:{osdWindowManager:manager,sessionMode:{isLocked:false,isGreeter:false}}};
+const ctx={Gio:{DBus:{session:{}},DBusExportedObject:{wrapJSObject:()=>({export(){},unexport(){unexported=true}})},ThemedIcon:{new:name=>name}},global:{stage:{}},St:{ThemeContext:{get_for_stage:()=>({scale_factor:2})},BoxLayout:Actor,Widget:Actor},Main:{layoutManager:{monitors:[{height:1800}]},osdWindowManager:manager,sessionMode:{isLocked:false,isGreeter:false}}};
 const code=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/osdStyle.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 vm.runInNewContext(code+';globalThis.C=OsdStyle',ctx);const style=new ctx.C();
 for(const name of ['audio-volume-high-symbolic','display-brightness-symbolic','keyboard-brightness-symbolic'])manager._showOsdWindow(0,{to_string:()=>name});
+assert.match(window._hbox.style,/margin-bottom: 144px/);
 assert.equal(shown,3);assert.equal(style.saved.size,1);assert.equal(window._hbox.vertical,true);
 const ticks=window._vbox.children[0].children;assert.equal(ticks.length,16);assert.equal(ticks.filter(t=>t.classes.has('filled')).length,8);
 manager._showOsdWindow(0,{to_string:()=> 'other-symbolic'});assert.equal(style.saved.size,0);assert.equal(window._hbox.vertical,false);assert.equal(window._level.opacity,255);

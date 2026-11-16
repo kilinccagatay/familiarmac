@@ -26,15 +26,24 @@ export class StatusButtons {
         this.closedSignal = menu.connect('open-state-changed', (_m, open) => {
             if (!open) this.restore();
         });
-        let attempts = 0;
-        const ready = () => {
-            if (this.panel._system) { this.install(); return false; }
-            return ++attempts < 30;
-        };
-        if (ready()) this.timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            if (ready()) return GLib.SOURCE_CONTINUE;
-            this.timer = 0; return GLib.SOURCE_REMOVE;
-        });
+        if (this.panel._system) {
+            this.install();
+        } else {
+            // Native indicators are built asynchronously. Complete in the next
+            // idle turn after insertion, not on a one-second polling timer.
+            this.readySignal = this.panel._indicators.connect('child-added', () => {
+                if (this.timer) return;
+                this.timer = GLib.idle_add(GLib.PRIORITY_HIGH_IDLE, () => {
+                    this.timer = 0;
+                    if (this.panel._system) {
+                        this.panel._indicators.disconnect(this.readySignal);
+                        this.readySignal = 0;
+                        this.install();
+                    }
+                    return GLib.SOURCE_REMOVE;
+                });
+            });
+        }
     }
 
     install() {
@@ -158,6 +167,8 @@ export class StatusButtons {
     destroy() {
         this.panelOrder?.destroy();
         this.panelOrder = null;
+        if (this.readySignal) this.panel._indicators.disconnect(this.readySignal);
+        this.readySignal = 0;
         if (this.timer) GLib.source_remove(this.timer);
         this.timer = 0;
         this.panel.menu.close();
