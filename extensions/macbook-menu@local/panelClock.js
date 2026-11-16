@@ -3,9 +3,8 @@ import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 export function formatPanelDate(date) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${days[date.get_day_of_week() - 1]} ${date.get_day_of_month()} ${months[date.get_month() - 1]} ${date.format('%H:%M:%S')}`;
+    // GLib resolves abbreviated names through the session's LC_TIME locale.
+    return `${date.format('%a')} ${date.get_day_of_month()} ${date.format('%b')} ${date.format('%H:%M:%S')}`;
 }
 export class PanelClock {
     constructor() {

@@ -101,3 +101,6 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Command-drag reorders right-side status buttons; with this setup keyd exposes physical Command as Control, so Control-drag also works. Super is accepted for unmapped keyboards. Escape cancels; dropping outside the status buttons restores the previous order. Normal clicks keep opening menus. Order persists in `~/.config/familiarmac-panel-order.json`; stale/duplicate IDs are ignored. No polling or per-frame timer.
 - Date now uses English abbreviated day/month with seconds: `Mon 16 Nov 10:50:30`, using the system timezone and GNOME's native wall-clock updates. Other system locale preferences are unchanged.
 - Installed for next login. Automated order/format tests pass; physical dragging still needs post-login verification.
+
+### Localized panel date names
+- Removed fixed English weekday/month tables. GLib now supplies abbreviated names using the session's LC_TIME locale, matching system regional date settings. Order remains weekday, day number, abbreviated month, 24-hour time with seconds. No locale or timezone settings are changed.
