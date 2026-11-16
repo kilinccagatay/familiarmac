@@ -152,6 +152,7 @@ for version in ('3.0','4.0'):
         theme_css = (f'@import url("{(whitesur/"gtk-4.0/gtk.css").as_uri()}");\n' if version=='4.0' else '')
     else:
         theme_css = (ROOT/'config/traffic-lights.css').read_text()
+    if version == '3.0': theme_css += '\n' + (ROOT/'config/context-menu-spacing.css').read_text()
     if version == '4.0': theme_css += '\n' + (ROOT/'config/headerbar-spacing.css').read_text()
     write(css,marker+'\n'+theme_css+'\n/* END macbook-zorin */\n'+old.lstrip('\n'))
 

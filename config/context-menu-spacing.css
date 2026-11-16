@@ -1,0 +1,5 @@
+/* GTK3 context menus: compact outside inset and submenu-arrow column.
+ * Keep GTK's check/radio column and native accelerator layout intact. */
+menu { padding: 4px; }
+menu > menuitem { padding: 3px 4px; }
+menu > menuitem arrow { min-width: 12px; min-height: 12px; }

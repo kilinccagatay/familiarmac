@@ -316,3 +316,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Panel battery artwork uses neutral white/gray with transparent percentage cutouts over the filled portion, instead of fixed black digits or an opaque dark backing. White digits remain over the empty portion for legibility. Charging/low state calculation is unchanged.
 - Visually compared the percentage-inside-battery reference: https://www.iclarified.com/images/tutorials/102441/484749/484749-640.png (article: https://www.iclarified.com/102441/how-to-show-battery-percentage-on-mac-video). This is a GNOME adaptation, not a pixel-identical claim.
 - JS drawing updates take effect in a fresh Shell session.
+
+### GTK context-menu spacing and boot text follow-up
+- Reduced GTK3 menu outer padding from 6 to 4 logical pixels, item horizontal padding from 6 to 4, and submenu arrows from 16 to 12. Check/radio and accelerator columns remain native; applies to GTK3 context menus rather than one application.
+- Compared desktop context-menu layout with https://www.techradar.com/computing/software/how-to-right-click-on-a-mac . Parsed using the real GTK CSS provider; desktop-icons restarted to load the stylesheet. Final visual comparison remains user-verifiable.
+- User reports no pre-logo corruption on latest boot, but transient text. Current journal contains a Broadcom wl initialization warning ("Unpatched return thunk in use") and backtrace before the splash. This is a candidate source, not proven without seeing the text.
+- Removed temporary plymouth.debug via the existing restore helper and regenerated GRUB successfully. Early Nouveau, firmware timeout, and display-mode configuration remain unchanged. This removes diagnostic mode; it does not fix the wl warning or guarantee no text on the next boot.
