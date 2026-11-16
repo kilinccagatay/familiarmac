@@ -284,3 +284,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Fixed Wi-Fi/sound/battery custom detail opening hiding every native Quick Settings grid child. GNOME 46 computes row spacing as `(rows.length - 1) * row_spacing`; zero rows produced a negative minimum height and a fatal Clutter warning (observed twice immediately before `gnome-shell` trapped in GLib).
 - Custom detail surfaces now hide only the native grid parent and retain its rows; ordinary filtered native details keep their existing behavior.
 - Added regression coverage for all three custom details. Full test suite passed. Installed into the user extension and recovered GNOME's crash-disabled user extensions without logging out; physical menu-click verification remains separate.
+
+### Compact status menus and slider contrast
+
+- Reduced detail-popover outer padding from 12 to 8 logical px and nested Wi-Fi/sound/battery padding to 2 px; compact rows retain a minimum readable height.
+- Battery Settings gets explicit button and label minimum heights and hover/focus text contrast to prevent a collapsed blank action row.
+- Unified sound, display and keyboard-brightness sliders within Control Center: darker empty track, light fill, outlined white handle, visible keyboard-focus border, 24px minimum height. Native value/drag handling and the empty-grid crash fix are unchanged.
+- Reference: [Apple's sound-menu screenshot](https://support.apple.com/de-de/105092) and [Control Center guidance](https://support.apple.com/guide/mac-help/quickly-change-settings-with-control-center-mchlc9d0e1f2/mac). These are visual adaptations to GNOME, not a claim of pixel-identical macOS rendering.
