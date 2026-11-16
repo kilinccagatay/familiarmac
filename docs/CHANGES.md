@@ -322,3 +322,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Compared desktop context-menu layout with https://www.techradar.com/computing/software/how-to-right-click-on-a-mac . Parsed using the real GTK CSS provider; desktop-icons restarted to load the stylesheet. Final visual comparison remains user-verifiable.
 - User reports no pre-logo corruption on latest boot, but transient text. Current journal contains a Broadcom wl initialization warning ("Unpatched return thunk in use") and backtrace before the splash. This is a candidate source, not proven without seeing the text.
 - Removed temporary plymouth.debug via the existing restore helper and regenerated GRUB successfully. Early Nouveau, firmware timeout, and display-mode configuration remain unchanged. This removes diagnostic mode; it does not fix the wl warning or guarantee no text on the next boot.
+
+### Broadcom return-site metadata and update guard
+- Diagnosed missing wrapper .return_sites in installed wl, independent of the opaque blob's generic limitations. Added per-wrapper objtool processing; rebuilt signed module has 220 return relocations including osl_strlen's return.
+- Installed with original module/source/DKMS/initramfs backup; Wi-Fi remains connected. Runtime warning removal still requires reboot verification.
+- Added persistent /etc/dkms build wrapper; exact known sources are patched in the disposable build tree, already-fixed sources are not duplicated, unfamiliar sources remain untouched and modules missing required metadata fail validation.
+- Verified a second DKMS build through the persistent guard after restoring pristine vendor /usr/src. No changes to graphics, GRUB, kernel mitigation settings or active network modules. See BROADCOM-RETURN-SITES.md for sources, limitations and rollback.

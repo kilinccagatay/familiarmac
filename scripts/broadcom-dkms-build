@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Invoked only in DKMS's temporary build directory. Never changes /usr/src.
+set -euo pipefail
+python3 - <<'PY'
+from pathlib import Path
+import hashlib
+p=Path('Makefile')
+s=p.read_text()
+rule='$(addprefix $(obj)/,$(wl-objs)): override objtool-enabled = y'
+original='f50bf08837501cca8ef60fc61fe2f8e7ce187d5cb0bd56e2da534bad7aae46ce'
+if rule not in s:
+    if hashlib.sha256(p.read_bytes()).hexdigest()==original:
+        p.write_text(s+'\n# FamiliarMac: annotate wrappers before linking opaque blob.\n'+rule+'\n')
+        print('FamiliarMac: applied verified wrapper return-site fix.')
+    else:
+        print('FamiliarMac: unfamiliar/upstream-updated Makefile; leaving vendor source unchanged.')
+PY
+"$@"
+# A successful build must provide metadata for compiler-generated return thunks.
+# No masking: reject an unsafe result rather than install it as "fixed".
+if nm -u wl.ko | grep -q '__x86_return_thunk'; then
+    readelf -SW wl.ko > .familiarmac-sections
+    grep -q ' .return_sites ' .familiarmac-sections || {
+        echo 'FamiliarMac: return thunks lack metadata; module will not be installed.' >&2
+        exit 1
+    }
+fi
