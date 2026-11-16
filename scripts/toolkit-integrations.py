@@ -3,6 +3,7 @@
 Does not fabricate menus or patch application binaries. Runs only on events.
 """
 from pathlib import Path
+import importlib.util
 import configparser
 import json
 import shutil
@@ -13,6 +14,9 @@ from gi.repository import Gio, GLib
 HOME = Path.home()
 STATE = HOME / '.local/state/familiarmac/toolkits'
 REGISTRAR = 'com.canonical.AppMenu.Registrar'
+spec = importlib.util.spec_from_file_location('flatpak_appearance', Path(__file__).with_name('flatpak-appearance.py'))
+appearance = importlib.util.module_from_spec(spec); spec.loader.exec_module(appearance)
+
 
 
 def output(*args):
@@ -29,6 +33,7 @@ def qt_capable(metadata, files):
 
 
 def restore():
+    appearance.restore(HOME)
     record = STATE / 'gtk.json'
     if record.exists():
         s = Gio.Settings.new('org.gnome.settings-daemon.plugins.xsettings')
@@ -40,7 +45,7 @@ def restore():
             s.set_value(key, GLib.Variant.parse(None, pair['before'], None, None))
         Gio.Settings.sync()
         record.unlink()
-    for record in STATE.glob('flatpak-*.json'):
+    for record in list(STATE.glob('flatpak-*.json')) + list(STATE.glob('global-flatpak.json')):
         data = json.loads(record.read_text())
         target = HOME / '.local/share/flatpak/overrides' / data['id']
         if not target.exists() or target.read_text() != data['installed']:
@@ -79,7 +84,35 @@ def apply():
     Gio.Settings.sync()
     report = []
     if shutil.which('flatpak'):
-        for app in output('flatpak', 'list', '--app', '--columns=application').splitlines():
+        target = HOME / '.local/share/flatpak/overrides/global'
+        record = STATE / 'global-flatpak.json'
+        data = json.loads(record.read_text()) if record.exists() else {'id':'global', 'before':target.read_text() if target.exists() else None}
+        # GTK looks in the user's theme directories, not the host /usr/share
+        # hidden by Flatpak's runtime. Mirror distro themes without overwriting
+        # user-owned themes; expose theme files read-only to all Flatpaks.
+        mirrors_record = STATE / 'theme-mirrors.json'
+        mirrors = json.loads(mirrors_record.read_text()) if mirrors_record.exists() else []
+        for source in Path('/usr/share/themes').iterdir():
+            if not (source/'gtk-3.0/gtk.css').is_file(): continue
+            destination = HOME / '.themes' / source.name
+            if destination.exists() and str(destination) not in mirrors: continue
+            import filecmp
+            for source_file in source.rglob('*'):
+                if not source_file.is_file(): continue
+                target_file = destination / source_file.relative_to(source)
+                target_file.parent.mkdir(parents=True,exist_ok=True)
+                if not target_file.exists() or not filecmp.cmp(source_file,target_file,shallow=False):
+                    shutil.copy2(source_file,target_file)
+            if str(destination) not in mirrors: mirrors.append(str(destination))
+        mirrors_record.write_text(json.dumps(mirrors,indent=2))
+        subprocess.run(['flatpak','override','--user','--talk-name='+REGISTRAR,
+                        '--filesystem=~/.themes:ro','--filesystem=xdg-data/themes:ro'],check=True)
+        data['installed']=target.read_text();record.write_text(json.dumps(data,indent=2))
+        apps = output('flatpak', 'list', '--app', '--columns=application').splitlines()
+        config = Path(__file__).with_name('appearance-config')
+        if not config.exists(): config = Path(__file__).resolve().parents[1]/'config'
+        appearance.apply(HOME, apps, config)
+        for app in apps:
             try:
                 cfg = configparser.ConfigParser(interpolation=None)
                 cfg.read_string(output('flatpak', 'info', '--show-metadata', app))
@@ -98,7 +131,7 @@ def apply():
                     record.write_text(json.dumps(data, indent=2))
                     status = 'Qt Widgets: X11/menu permission configured; runtime menu needs verification'
                 else:
-                    status = 'no verified generic adapter; native controls/menu preserved'
+                    status = 'shared GTK3/GTK4 controls and theme access installed; menu export depends on toolkit'
                 report.append({'id': app, 'package': 'flatpak', 'status': status})
             except (subprocess.CalledProcessError, OSError, configparser.Error) as e:
                 report.append({'id': app, 'package': 'flatpak', 'status': 'error: ' + str(e)})

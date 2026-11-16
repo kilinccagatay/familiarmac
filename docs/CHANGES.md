@@ -577,3 +577,13 @@ Added a separate GNOME 46 extension for user and unlock-dialog session modes. It
 ### Duplicate unlock clocks
 
 Keep the native clock labels hidden independently of their parent transition animation. Guard the panel clock against late visibility changes and scope the CSS fallback to the unlock screen. Restore prior desktop visibility when leaving lock mode. Regression tests cover late panel rebuilds and restoration.
+
+### Shared Flatpak controls, theme access and Chromium integration
+
+Fixed the installation gap exposed by Chrome and Blanket. Shared GTK3/GTK4 styles now reach every installed Flatpak and later installations through the existing event watcher. Theme files are exposed read-only; the menu registrar permission is shared. Added a reversible Chromium-family launcher/profile adapter and regression coverage for fresh profiles, locked-profile safety, CSS preservation and restoration. Live-checked Chrome dark appearance/menu/decorations and Blanket/Eyedropper GTK4 controls. Existing Wi-Fi, boot and graphics configuration is unchanged.
+
+Control size follow-up: shared fixed-size 14px SVG backgrounds replace allocation-dependent GTK controls. Measured Eyedropper at 28×28 physical pixels on the 2x display, matching the existing ChatGPT/system buttons.
+
+Spacing verification: GTK4 controls use 22 logical pixels center-to-center. Live Eyedropper capture measured 28px diameter and 44px centers at 2x, matching ChatGPT.
+
+GTK4 header bars use a compact 32px minimum height, with centered titles and controls; verified in Eyedropper after restart.

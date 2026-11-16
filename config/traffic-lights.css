@@ -9,3 +9,7 @@ headerbar button.titlebutton.close, windowcontrols button.close { background-col
 headerbar button.titlebutton.minimize, windowcontrols button.minimize { background-color: #febc2e; color: #795b13; }
 headerbar button.titlebutton.maximize, windowcontrols button.maximize { background-color: #28c840; color: #116b20; }
 windowcontrols button image { background: transparent; padding: 0; }
+
+/* libadwaita draws the control glyph in a child node. */
+windowcontrols button image { min-width: 16px; min-height: 16px; opacity: 0; }
+windowcontrols:hover button image { opacity: 1; }

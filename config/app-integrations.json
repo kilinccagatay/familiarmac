@@ -1,4 +1,32 @@
 [
-  {"id":"org.mozilla.firefox", "kind":"flatpak", "adapter":"firefox-global-menu.py"},
-  {"id":"brave-browser", "kind":"native", "adapter":"install-brave-global-menu.py"}
+  {
+    "id": "org.mozilla.firefox",
+    "kind": "flatpak",
+    "adapter": "firefox-global-menu.py"
+  },
+  {
+    "id": "brave-browser",
+    "kind": "native",
+    "adapter": "install-brave-global-menu.py"
+  },
+  {
+    "id": "com.google.Chrome",
+    "kind": "flatpak",
+    "adapter": "chromium-integrations.py"
+  },
+  {
+    "id": "org.chromium.Chromium",
+    "kind": "flatpak",
+    "adapter": "chromium-integrations.py"
+  },
+  {
+    "id": "com.brave.Browser",
+    "kind": "flatpak",
+    "adapter": "chromium-integrations.py"
+  },
+  {
+    "id": "io.github.ungoogled_software.ungoogled_chromium",
+    "kind": "flatpak",
+    "adapter": "chromium-integrations.py"
+  }
 ]

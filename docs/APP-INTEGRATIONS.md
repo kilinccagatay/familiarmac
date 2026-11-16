@@ -93,3 +93,11 @@ Additional sources (runtime dependencies are distro-provided, not copied into th
 - https://docs.flatpak.org/en/latest/sandbox-permissions.html
 
 The overridden realMenuManager.js derives from the pinned AppMenu source in vendor/appmenu-5.7.1.tar.gz; its upstream license/source attribution in THIRD_PARTY.md continues to apply.
+
+## Shared Flatpak appearance and Chromium adapters
+
+All installed Flatpaks receive the same managed GTK3/GTK4 control stylesheet, preserving existing application CSS. Controls paint a shared 14-logical-pixel SVG background (28 physical pixels at 2x), independent of headerbar/button allocations and icon theme sizes. This matches the existing system/ChatGPT controls. Native GTK themes are mirrored into the user theme directory and made available read-only to Flatpak, alongside the shared `com.canonical.AppMenu.Registrar` talk permission. No blanket session-bus or home-directory access is granted. Theme mirrors remain as a reusable cache after restoring permissions.
+
+The event-driven inventory also prepares Chrome, Chromium, Brave and Ungoogled Chromium Flatpak launchers using one Chromium-family adapter. It preserves desktop actions and URL forwarding, selects X11 for native menu export, and sets system window decorations before starting an unlocked profile. Locked profiles are left unchanged. A fresh profile is prepared before first launch; existing unrelated preferences are preserved. Restore refuses to overwrite externally modified launchers.
+
+Validated locally: Chrome system decorations, global menu and dark GTK theme; Blanket and Eyedropper GTK4 controls. The inventory currently contains 98 visible launchers, including 37 Flatpaks; every Flatpak receives the shared appearance configuration. This is not a claim that every application was opened or supports a traditional exported menu. Custom-rendered interfaces and applications without an exported menu remain toolkit-dependent. Restart an already-running application to load new sandbox permissions and CSS.
