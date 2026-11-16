@@ -38,11 +38,65 @@ Ayrı son/sık kullanılanlar satırı, arama ve kategoriler içeren beş sütun
 
 ## Control Center / Denetim Merkezi
 
-System controls follow dark/light appearance. The capture shows connectivity, Do Not Disturb, keyboard backlight, display brightness, volume and media controls.
+System controls follow dark/light appearance. The network name is redacted. The capture shows connectivity, Do Not Disturb, keyboard backlight, display brightness, volume and media controls.
 
 Sistem denetimleri koyu/açık görünümü izler. Bağlantılar, Rahatsız Etmeyin, klavye ışığı, ekran parlaklığı, ses ve medya denetimleri gösterilir.
 
 ![Control Center in dark appearance](screenshots/control-center.png)
+
+## Wi-Fi and sound / Wi-Fi ve ses
+
+Network selection and audio output controls. Network names are covered in the published image for privacy; the menu itself is unchanged.
+
+Ağ seçimi ve ses çıkışı denetimleri. Yayımlanan görüntüde ağ adları gizlilik için kapatılmıştır; menünün kendisi değiştirilmemiştir.
+
+![Wi-Fi menu with network names redacted](screenshots/wifi.png)
+
+![Sound slider and output devices](screenshots/sound.png)
+
+## Keyboard brightness / Klavye parlaklığı
+
+A compact detail view using the native hardware control, without the old nested toggle/submenu layout.
+
+Eski iç içe menü düzeni yerine, donanımın kendi kontrolünü kullanan sade klavye parlaklığı görünümü.
+
+![Keyboard backlight detail](screenshots/keyboard.png)
+
+## On-screen indicators / Ekran göstergeleri
+
+Actual display brightness, volume and keyboard-backlight indicators. These captures are cropped below the top menu bar; the indicator position relative to the Dock is retained. Original audio/backlight levels were restored after capture.
+
+Gerçek ekran parlaklığı, ses ve klavye ışığı göstergeleri. Görüntüler üst menü çubuğunun altından kırpılmıştır; göstergenin Dock’a göre konumu korunur. Çekim sonrası ses ve klavye ışığı eski seviyelerine döndürülmüştür.
+
+![Display brightness indicator](screenshots/brightness-osd.png)
+
+![Volume indicator](screenshots/sound-osd.png)
+
+![Keyboard brightness indicator](screenshots/keyboard-osd.png)
+
+## Notification Center / Bildirim Merkezi
+
+Date, an empty-notifications card and calendar. Existing notifications were not cleared for this capture.
+
+Tarih, boş bildirim kartı ve takvim. Çekim için mevcut bildirimler silinmemiştir.
+
+![Notification Center and calendar](screenshots/notifications.png)
+
+## Power menu and confirmation / Güç menüsü ve onay ekranı
+
+The system menu and restart confirmation with countdown. The account name is redacted in the menu screenshot. The restart was cancelled immediately after capture; the computer was not restarted.
+
+Sistem menüsü ve geri sayımlı yeniden başlatma onayı. Menü görüntüsünde hesap adı gizlenmiştir. Çekimden hemen sonra işlem iptal edilmiştir; bilgisayar yeniden başlatılmamıştır.
+
+![System and power menu](screenshots/power-menu.png)
+
+![Restart confirmation](screenshots/restart-dialog.png)
+
+## Login screen / Giriş ekranı
+
+Pending a separate capture from the GDM greeter session. The lock screen is not substituted for the actual login screen.
+
+GDM giriş oturumundan ayrıca çekim bekleniyor. Kilit ekranı, gerçek giriş ekranı yerine kullanılmamıştır.
 
 ## Sources / Kaynaklar
 
