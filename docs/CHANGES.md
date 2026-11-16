@@ -407,3 +407,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Keep Options subtly gray while its child menu is open, with distinct light/dark colors; clear the state when either menu closes.
 - Remove inherited content margins only for Dock context menus. WhiteSur added 12px side margins that obscured the intended 6px overlap.
 - Regression coverage includes state cleanup, single-click/Escape dismissal and overlap at 1x/2x scale. Full tests passed; visual verification requires a new session.
+
+## Apps list alignment and persistent suggestion grid
+
+- List rows fill available width with left-aligned icons and names instead of centered content.
+- Suggested/recently installed apps retain the five-column tile row in both views; only the main application collection switches to a list.
+- Up/down keyboard navigation follows the mixed rows. Tests cover both view modes and suggestion/list layout; full suite passed. Installed JavaScript takes effect next login; live visual verification remains pending.

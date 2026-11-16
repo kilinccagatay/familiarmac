@@ -36,3 +36,35 @@ const dock=new order.DockOrder();dock.trackSeparator(sep);dock.trackSeparator(se
 
 const css=fs.readFileSync('extensions/macbook-menu@local/stylesheet.css','utf8');
 assert.match(css,/\.modal-dialog\.familiarmac-apps \.modal-dialog-content-box \{ margin: 0; padding: 0; max-width: 560px;/);
+
+// Mixed layout: suggestions stay as a five-tile row, app list fills from left.
+class Actor {
+ constructor(props={}) {Object.assign(this,props);this.children=[];}
+ add_child(child){this.children.push(child)} set_child(child){this.child=child}
+ connect(){} destroy_all_children(){this.children=[]}
+}
+const layout=load('extensions/macbook-menu@local/appsBrowser.js',{
+ GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}},
+ St:{BoxLayout:Actor,Label:Actor,Widget:Actor},Clutter:{ActorAlign:{START:0,CENTER:1,FILL:2}},
+ Shell:{AppUsage:{get_default:()=>({get_most_used:()=>renderApps})}},
+ launcherAppButton:(_app,_dialog,props)=>new Actor(props),
+},'AppsDialog');
+const renderApps=Array.from({length:6},(_,i)=>({get_id:()=>String(i),get_name:()=>`App ${i}`,get_description:()=>'',get_app_info:()=>null,create_icon_texture:size=>new Actor({size})}));
+const dialog=Object.create(layout.AppsDialog.prototype);
+Object.assign(dialog,{_apps:renderApps,_added:{},_list:true,_category:'',_categoryButtons:[],_entry:{get_text:()=>''},_results:new Actor(),_scroll:{vadjustment:{}}});
+dialog._render();
+assert.equal(dialog._rows[0].length,5);
+assert.equal(dialog._rows.length,7);
+for(const tile of dialog._rows[0]) {
+ assert.equal(tile.style_class,'familiarmac-apps-tile');assert.equal(tile.child.vertical,true);
+ assert.equal(tile.child.children[0].size,48);
+}
+for(const row of dialog._rows.slice(1)) {
+ assert.equal(row.length,1);const item=row[0];
+ assert.equal(item.style_class,'familiarmac-apps-list-item');assert.equal(item.x_expand,true);
+ assert.equal(item.child.x_expand,true);assert.equal(item.child.x_align,2);
+ assert.equal(item.child.children[1].x_align,0);
+}
+dialog._list=false;dialog._render();
+assert.deepEqual(Array.from(dialog._rows,row=>row.length),[5,5,1]);
+console.log('Apps mixed view: suggestions retain grid, list content fills left, grid toggle preserved PASS');

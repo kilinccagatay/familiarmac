@@ -79,7 +79,7 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
             const key = event.get_key_symbol();
             if (key === Clutter.KEY_Escape) {this.close();return Clutter.EVENT_STOP;}
             const steps = new Map([[Clutter.KEY_Right,1],[Clutter.KEY_Left,-1],[Clutter.KEY_Down,this._list ? 1 : COLUMNS],[Clutter.KEY_Up,this._list ? -1 : -COLUMNS]]);
-            if ([Clutter.KEY_Down,Clutter.KEY_Up].includes(key) && this._buttons.length && !this._list) {
+            if ([Clutter.KEY_Down,Clutter.KEY_Up].includes(key) && this._buttons.length) {
                 const current = this._buttons[Math.max(0,this._index)];
                 const row = this._rows.findIndex(buttons=>buttons.includes(current));
                 const column = this._rows[row].indexOf(current);
@@ -109,22 +109,22 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
         const suggestions = !this._entry.get_text().trim() && !this._category
             ? suggestedApps(this._apps, this._added, Shell.AppUsage.get_default().get_most_used(), Date.now()/1000) : [];
         if (suggestions.length) {
-            this._addApps(suggestions);
+            this._addApps(suggestions, false);
             this._results.add_child(new St.Widget({style_class:'familiarmac-apps-divider'}));
         }
         this._addApps(apps);
         if (!apps.length) this._results.add_child(new St.Label({text:'No applications found',style_class:'familiarmac-apps-empty'}));
         this._scroll.vadjustment.value=0;
     }
-    _addApps(apps) {
+    _addApps(apps, list = this._list) {
         let row, rowButtons;
         for (const [index,app] of apps.entries()) {
-            if (this._list || index%COLUMNS===0) {row=new St.BoxLayout({style_class:'familiarmac-apps-row'});this._results.add_child(row);rowButtons=[];this._rows.push(rowButtons);}
-            const button=launcherAppButton(app,this,{can_focus:true,track_hover:true,x_expand:this._list,style_class:this._list?'familiarmac-apps-list-item':'familiarmac-apps-tile'});
-            const box=new St.BoxLayout({vertical:!this._list,style_class:'familiarmac-apps-item-content'});
-            const dragIcon=app.create_icon_texture(this._list?28:48);
+            if (list || index%COLUMNS===0) {row=new St.BoxLayout({style_class:'familiarmac-apps-row'});this._results.add_child(row);rowButtons=[];this._rows.push(rowButtons);}
+            const button=launcherAppButton(app,this,{can_focus:true,track_hover:true,x_expand:list,style_class:list?'familiarmac-apps-list-item':'familiarmac-apps-tile'});
+            const box=new St.BoxLayout({vertical:!list,x_expand:list,x_align:list?Clutter.ActorAlign.FILL:Clutter.ActorAlign.CENTER,style_class:'familiarmac-apps-item-content'});
+            const dragIcon=app.create_icon_texture(list?28:48);
             box.add_child(dragIcon);button.getDragActorSource=()=>dragIcon;
-            const label=new St.Label({text:app.get_name(),x_expand:true,x_align:this._list?Clutter.ActorAlign.START:Clutter.ActorAlign.CENTER});
+            const label=new St.Label({text:app.get_name(),x_expand:true,y_align:Clutter.ActorAlign.CENTER,x_align:list?Clutter.ActorAlign.START:Clutter.ActorAlign.CENTER});
             box.add_child(label);button.set_child(box);
             row.add_child(button);this._buttons.push(button);rowButtons.push(button);
             button.connect('key-focus-in',()=>{this._index=this._buttons.indexOf(button);});
