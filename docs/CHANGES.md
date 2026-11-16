@@ -12,6 +12,7 @@ This inventory covers project behavior, not every typo or intermediate experimen
 | Brave integration | X11 launcher for exported menus; supported shortcuts and command-based quit mapping | `scripts/install-brave-global-menu.py`, `config/app.conf` |
 | ChatGPT integration | Version-guarded native window frame, Electron→Dbusmenu bridge, removal of duplicate HTML menu | `scripts/chatgpt-*`, `bridges/` |
 | Dock | Bottom centered fixed dock, reserved work area, reduced corner radius/top gutter, mount/trash visibility | desktop settings, Shell CSS |
+| Dock icon alignment | One-time favorite icon artwork normalization to an 84/96 visible square, original aspect ratio and inherited theme preserved; no runtime polling | `scripts/install-dock-icons.py` |
 | Running indicators | Finder uses native dock dot; tracked process identity keeps a dot while an observed app process lives; PID reuse/exit checks | `processTracker.js`, `extension.js` |
 | Dock reopen | One pending launch while last window exits; repeated clicks coalesce; bounded wait for background process | `dockLaunch.js` |
 | Window rounding | Pinned outer-actor shader, 12px/.2 profile, maximized padding/inset fixes, texture signal lifecycle cleanup | `scripts/install-rounded-corners.py`, `overrides/rounded-window-corners/` |

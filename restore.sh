@@ -9,6 +9,7 @@ if [[ -f "$state/smooth-scrolling.json" ]]; then python3 scripts/install-smooth-
 if [[ -f "$state/brave-launcher.json" ]]; then python3 scripts/install-brave-global-menu.py --restore; fi
 if [[ -f "$HOME/.config/systemd/user/org.gnome.Shell@wayland.service.d/90-macbook-scroll.conf" ]]; then bash scripts/install-scroll-speed.sh --restore; fi
 if [[ -f "$state/rounded-corners.json" ]]; then python3 scripts/install-rounded-corners.py --restore; fi
+if [[ -f "$state/dock-icons.json" ]]; then python3 scripts/install-dock-icons.py --restore; fi
 if [[ -f "$state/desktop.json" ]]; then python3 scripts/desktop.py restore; fi
 if [[ ${1:-} == --system ]]; then
   sudo bash scripts/install-login-layout.sh --restore

@@ -100,3 +100,6 @@ This restores managed presentation, not user accounts/passwords. A GNOME package
 ## Individual components
 
 Installers under `scripts/` are available for targeted work, but many have prerequisites and historical names. Prefer `install.sh`. `finish-v3.sh` and `fix-touchpad.sh` are historical repair utilities, **not** fresh-install entry points. `install-chromium-corners.py` is an unsuccessful experimental workaround retained as history; the public installer does not apply it.
+
+## Dock icon alignment
+The installer generates a user-local inherited icon theme from installed favorite application icons. It measures alpha bounds and normalizes the longest visible dimension to 84/96, centering artwork without stretching. It does not bundle proprietary app artwork or run a background icon watcher. After changing favorites or updating app icons, rerun `python3 scripts/install-dock-icons.py`. Other icons inherit the original theme. Restore with `python3 scripts/install-dock-icons.py --restore`. Application-supplied absolute icons are skipped.
