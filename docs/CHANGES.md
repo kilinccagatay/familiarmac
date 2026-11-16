@@ -304,3 +304,11 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Physical timing benefit remains unverified; pre-logo display corruption is still unresolved.
 
 - Focus/Do Not Disturb card now uses 14px horizontal inset (was 6px), moving its icon and label together away from the left edge; other cards retain their spacing.
+
+### Persistent panel application placement
+
+- AppIndicator order now uses its stable StatusNotifier Id instead of the session-specific D-Bus name.
+- Coalesced child-added idle handling reapplies saved order when tray applications arrive after Shell startup; the handler is disconnected on disable.
+- Unplaced application indicators default before system controls/date. Saved positions for temporarily absent apps are retained when another item is moved.
+- Old ephemeral bus-name entries are ignored; they cannot reliably identify the app in a new session. Users can reposition once to store the stable identity.
+- Regression tests cover changing bus names, distinct apps, late arrival and an explicit position. Installed code requires a fresh Shell session to avoid cached JS modules.

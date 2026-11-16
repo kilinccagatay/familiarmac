@@ -10,22 +10,43 @@ export function moveBefore(order, source, target, after) {
     return result;
 }
 
+export function panelItemId(id, button) {
+    if (!id.startsWith('appindicator-')) return id;
+    // D-Bus names (:1.101 etc.) change on every session/application launch.
+    const indicator = button._indicator;
+    const stable = indicator?.id;
+    return stable ? `appindicator-stable:${stable}` : id;
+}
+
 export class PanelOrder {
     constructor() {
         this.box = Main.panel._rightBox;
         this.file = Gio.File.new_for_path(`${GLib.get_user_config_dir()}/familiarmac-panel-order.json`);
         this.original = this.order();
+        this.preferred = [];
         this.signal = global.stage.connect('captured-event', (_stage, event) => this.event(event));
         // This small, local preference must be applied before the first paint.
         // An async read otherwise visibly shuffles the already displayed icons.
         try {
             const [, bytes] = this.file.load_contents(null);
             const ids = JSON.parse(new TextDecoder().decode(bytes));
-            if (Array.isArray(ids) && ids.every(id => typeof id === 'string')) this.apply(ids);
+            if (Array.isArray(ids) && ids.every(id => typeof id === 'string')) {
+                this.preferred = ids.filter(id => !/^appindicator-:/.test(id));
+                this.apply(this.preferred);
+            }
         } catch (_) { /* First installation has no saved order. */ }
+        this.childAdded = this.box.connect('child-added', () => {
+            if (this.reorderIdle || this.stopped) return;
+            // addToStatusArea registers the button after inserting its actor.
+            this.reorderIdle = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this.reorderIdle = 0;
+                if (!this.stopped && !this.drag) this.apply(this.preferred);
+                return GLib.SOURCE_REMOVE;
+            });
+        });
     }
     entries() {
-        return Object.entries(Main.panel.statusArea).map(([id, button]) => ({id, button, actor: button.container}))
+        return Object.entries(Main.panel.statusArea).map(([id, button]) => ({id: panelItemId(id, button), button, actor: button?.container}))
             .filter(({actor}) => actor?.get_parent() === this.box);
     }
     order() {
@@ -36,7 +57,13 @@ export class PanelOrder {
         const entries = this.entries();
         const current = this.order();
         const ordered = [...new Set(ids)].filter(id => current.includes(id));
-        ordered.push(...current.filter(id => !ordered.includes(id)));
+        for (const id of current.filter(id => !ordered.includes(id))) {
+            if (id.startsWith('appindicator-')) {
+                const anchor = ordered.findIndex(key => key.startsWith('familiarmac-status-') ||
+                    ['quickSettings', 'familiarmac-focus', 'dateMenu'].includes(key));
+                ordered.splice(anchor < 0 ? ordered.length : anchor, 0, id);
+            } else ordered.push(id);
+        }
         if (!ids.includes('familiarmac-focus') && ordered.includes('familiarmac-focus') && ordered.includes('dateMenu')) {
             ordered.splice(ordered.indexOf('familiarmac-focus'), 1);
             ordered.splice(ordered.indexOf('dateMenu'), 0, 'familiarmac-focus');
@@ -119,7 +146,12 @@ export class PanelOrder {
         return Clutter.EVENT_PROPAGATE;
     }
     save() {
-        this.pending = JSON.stringify(this.order());
+        const current = this.order();
+        const remaining = [...current];
+        // Preserve slots for applications that are temporarily not running.
+        this.preferred = (this.preferred ?? []).map(id => current.includes(id) ? remaining.shift() : id);
+        this.preferred.push(...remaining);
+        this.pending = JSON.stringify(this.preferred);
         this.flush();
     }
     flush() {
@@ -134,6 +166,9 @@ export class PanelOrder {
     }
     destroy() {
         this.stopped = true;
+        if (this.childAdded) this.box.disconnect(this.childAdded);
+        if (this.reorderIdle) GLib.source_remove(this.reorderIdle);
+        this.reorderIdle = 0;
         global.stage.disconnect(this.signal);
         this.finish();
         this.apply(this.original);

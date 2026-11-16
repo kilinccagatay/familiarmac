@@ -50,3 +50,17 @@ vm.runInNewContext('globalThis.PC=PanelClock',ctx);
 const pc=new ctx.PC();assert.deepEqual(clockChildren,[indicator,label]);assert.equal(label.y_align,1);
 pc.destroy();assert.deepEqual(clockChildren,[pad,label,indicator]);assert.equal(label.y_align,9);
 console.log('Clock spacer removal, leading notification icon and complete restoration PASS');
+vm.runInNewContext('globalThis.itemId=panelItemId',ctx);
+assert.equal(ctx.itemId('appindicator-:1.10@/StatusNotifierItem',{_indicator:{id:'chatgpt'}}),ctx.itemId('appindicator-:1.99@/StatusNotifierItem',{_indicator:{id:'chatgpt'}}));
+assert.notEqual(ctx.itemId('appindicator-:1.10@/StatusNotifierItem',{_indicator:{id:'chatgpt'}}),ctx.itemId('appindicator-:1.11@/StatusNotifierItem',{_indicator:{id:'other'}}));
+const lateChildren=[], lateBox={get_children:()=>lateChildren.slice(),set_child_at_index(a,i){lateChildren.splice(lateChildren.indexOf(a),1);lateChildren.splice(i,0,a)}};
+ctx.Main.panel.statusArea={};
+function add(id,indicator){const a={get_parent:()=>lateBox};ctx.Main.panel.statusArea[id]={container:a,_indicator:indicator};lateChildren.push(a);}
+add('familiarmac-status-_network');add('dateMenu');
+const lateOrder=Object.create(ctx.C.prototype);lateOrder.box=lateBox;
+add('appindicator-:1.456@/StatusNotifierItem',{id:'example'});
+lateOrder.apply(['familiarmac-status-_network','dateMenu']);
+assert.deepEqual(Array.from(lateOrder.order()),['appindicator-stable:example','familiarmac-status-_network','dateMenu']);
+lateOrder.apply(['familiarmac-status-_network','appindicator-stable:example','dateMenu']);
+assert.deepEqual(Array.from(lateOrder.order()),['familiarmac-status-_network','appindicator-stable:example','dateMenu']);
+console.log('Stable application identity, late arrival default and explicit saved position PASS');
