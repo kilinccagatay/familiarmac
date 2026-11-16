@@ -112,4 +112,4 @@ Log out/in after installation. The user copy shadows the distribution extension;
 ## Finding and launching applications
 Use **Command+Space** for floating app/settings/recent-file search; type a name, select with arrow keys and launch with Enter. Escape closes search. This uses AppMenu's existing search dialog, not Apple's Spotlight service or a full-disk index.
 
-Click the **colored application-grid button at the left end of the dock** to browse installed applications. Newly installed applications appear through GNOME's application registry. These settings take effect immediately on an existing FamiliarMac session; no logout is needed.
+Click the **colored application-grid button at the right end of the dock** to browse installed applications. Newly installed applications appear through GNOME's application registry. These settings take effect immediately on an existing FamiliarMac session; no logout is needed.
