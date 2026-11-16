@@ -70,3 +70,7 @@ sudo bash scripts/install-framebuffer-handoff.sh --restore
 ```
 
 Reboot when convenient. If needed from recovery, remove `/etc/default/grub.d/98-familiarmac-framebuffer.cfg` and run `update-grub`; the backed-up GRUB file is for reference, not a replacement for newer boot entries. For a single boot, remove `fbcon=nodefer` from the kernel line in GRUB's editor.
+
+## Verified outcome — 2026-11-16
+
+The user rebooted after `install-early-kms.sh` and reported that both boot and logout corruption are resolved. Current kernel command line no longer contains `fbcon=nodefer`. The early Nouveau hook is the successful configuration on this machine; the earlier framebuffer experiment above was ineffective. This is user-observed hardware validation, not a guarantee for other Mac models.

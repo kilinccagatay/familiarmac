@@ -37,6 +37,10 @@ export class PanelOrder {
         const current = this.order();
         const ordered = [...new Set(ids)].filter(id => current.includes(id));
         ordered.push(...current.filter(id => !ordered.includes(id)));
+        if (!ids.includes('familiarmac-focus') && ordered.includes('familiarmac-focus') && ordered.includes('dateMenu')) {
+            ordered.splice(ordered.indexOf('familiarmac-focus'), 1);
+            ordered.splice(ordered.indexOf('dateMenu'), 0, 'familiarmac-focus');
+        }
         const slots = this.box.get_children().map((actor, i) => entries.some(e => e.actor === actor) ? i : -1).filter(i => i >= 0);
         ordered.forEach((id, i) => this.box.set_child_at_index(entries.find(e => e.id === id).actor, slots[i]));
     }

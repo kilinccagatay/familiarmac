@@ -199,3 +199,12 @@ Added a device-restricted, reversible `fbcon=nodefer` installer for the reported
 ### Boot corruption: failed test recorded, early KMS test added (2026-11-16)
 
 The user confirmed boot corruption persisted with `fbcon=nodefer` active; record this as failed, not fixed. Added an opt-in MacBookPro10,1 installer that removes that experiment and loads gmux/Nouveau from initramfs before Plymouth. The existing image lacked both modules and the journal showed a late SimpleDRM→Nouveau transition. Installation backs up the current image, checks included modules, and supports restore. Visual boot/logout results remain pending; no desktop performance or input settings changed.
+
+## 2026-11-16 — Notification Center and independent Focus
+
+- Right-aligned, compact single-column date popup: native notification cards above the calendar. Removed the oversized side-by-side layout and the date popup's duplicate DND switch.
+- Independent crescent menu controls the same GNOME `show-banners` setting as Control Center; shown while DND is enabled. Native notification actions and dismissal remain intact.
+- No full-screen input layer, polling or new notification daemon. Actor order, visibility and menu anchoring restore when disabled. GNOME 46 private actor integration; other shell versions require verification.
+- Unit tests cover layout/restoration and setting synchronization; complete suite passed. Installed for next login; live visual validation pending.
+- Apple references: [Notification Center](https://support.apple.com/en-gb/guide/mac-help/-mchl2fb1258f/mac), [Focus menu](https://support.apple.com/en-bw/guide/mac-help/mchl999b7c1a/mac). This Linux version retains its native calendar; it does not implement Apple's widget gallery or cross-device Focus.
+- User confirmed the early Nouveau initramfs change resolved both boot and logout corruption.

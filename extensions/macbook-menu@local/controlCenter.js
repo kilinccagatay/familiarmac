@@ -25,17 +25,6 @@ export class ControlCenter {
         this.openSignal = this.panel.menu.connect('open-state-changed', (_menu, open) => {
             if (open) { this.arrange(); this.syncSurface(); }
         });
-        this.messageIndicator = Main.panel.statusArea.dateMenu?._indicator;
-        if (this.messageIndicator) {
-            this.messageIcon = this.messageIndicator.icon_name;
-            this.messageIndicator.add_style_class_name('fm-notification-indicator');
-            this.messageSignal = this.messageIndicator.connect('notify::icon-name', () => {
-                if (this.messageIndicator.icon_name === 'notifications-disabled-symbolic')
-                    this.messageIndicator.icon_name = 'weather-clear-night-symbolic';
-            });
-            if (this.messageIndicator.icon_name === 'notifications-disabled-symbolic')
-                this.messageIndicator.icon_name = 'weather-clear-night-symbolic';
-        }
         this.statusButtons = new StatusButtons(this);
     }
 
@@ -92,13 +81,7 @@ export class ControlCenter {
     destroy() {
         this.statusButtons?.destroy();
         this.statusButtons = null;
-        if (this.messageSignal) {
-            this.messageIndicator.disconnect(this.messageSignal);
-            this.messageIndicator.remove_style_class_name('fm-notification-indicator');
-            if (this.messageIndicator.icon_name === 'weather-clear-night-symbolic')
-                this.messageIndicator.icon_name = 'notifications-disabled-symbolic';
-            this.messageSignal = 0;
-        }
+
         this.battery?.destroy();
         this.surface?.destroy();
         this.surface = null;

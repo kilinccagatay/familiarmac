@@ -1,4 +1,5 @@
 import {OsdStyle} from './osdStyle.js';
+import {NotificationCenter} from './notificationCenter.js';
 import {PanelClock} from './panelClock.js';
 import {SessionDialog} from './sessionDialog.js';
 import {ControlCenter} from './controlCenter.js';
@@ -32,6 +33,7 @@ export default class MacBookMenu extends Extension {
         this._clockParent.remove_child(this._clock);
         Main.panel._rightBox.add_child(this._clock);
         this._clock.add_style_class_name('macbook-panel-clock');
+        this._notificationCenter = new NotificationCenter();
         this._controlCenter = new ControlCenter(this.path);
         this._osdStyle = new OsdStyle();
         this._sessionDialog = new SessionDialog();
@@ -200,6 +202,8 @@ export default class MacBookMenu extends Extension {
         this._sessionDialog = null;
         this._controlCenter?.destroy();
         this._controlCenter = null;
+        this._notificationCenter?.destroy();
+        this._notificationCenter = null;
         if (this._clock && this._clockParent) {
             this._clock.get_parent()?.remove_child(this._clock);
             this._clockParent.insert_child_at_index(this._clock, this._clockIndex);

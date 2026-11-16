@@ -50,14 +50,3 @@ for(const key of ['_network','_bluetooth','_volumeOutput','_system']){
  assert.equal(item.meta.column_span,1);assert.equal(detailMenu._arrowAlignment,0);
 }
 console.log('All hardware detail anchors, focus targets and grid spans restore correctly');
-// DND styling must exist at extension enable, before any menu is opened.
-let iconName='notifications-disabled-symbolic',iconChanged,disconnected=0;
-const indicator={get icon_name(){return iconName},set icon_name(v){iconName=v;iconChanged?.()},
- add_style_class_name(){},remove_style_class_name(){},connect(_n,fn){iconChanged=fn;return 5},disconnect(){iconChanged=null;disconnected++}};
-ctx.Main.panel.statusArea.dateMenu={_indicator:indicator};
-vm.runInNewContext('StatusButtons = class { destroy() {} }',ctx);
-const startup=new ctx.C('/tmp');assert.equal(iconName,'weather-clear-night-symbolic');assert.equal(startup.originalOrder,null);
-indicator.icon_name='message-indicator-symbolic';assert.equal(iconName,'message-indicator-symbolic');
-indicator.icon_name='notifications-disabled-symbolic';assert.equal(iconName,'weather-clear-night-symbolic');
-startup.destroy();startup.destroy();assert.equal(iconName,'notifications-disabled-symbolic');assert.equal(disconnected,1);
-console.log('DND initializes before menu open, preserves notifications and restores on disable PASS');

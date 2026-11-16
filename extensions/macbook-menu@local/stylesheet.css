@@ -203,3 +203,24 @@
 #panel .panel-button.clock-display .fm-notification-indicator {
   icon-size: 16px; padding: 0 2px; margin: 0; color: #ffffff; icon-shadow: none;
 }
+
+/* Right-edge Notification Center: real notifications above a calendar card. */
+.fm-notification-center { width: 340px; padding: 12px; color: #f5f5f7; }
+.fm-notification-center #calendarArea { spacing: 12px; }
+.fm-notification-center .message-list { width: 316px; min-width: 0; margin: 0; padding: 0; border: none; height: 220px; }
+.fm-notification-center .message-list-placeholder { color: #d4d4d8; }
+.fm-notification-center .message-list-placeholder StIcon { icon-size: 40px; }
+.fm-notification-center .message-list-placeholder StLabel { font-size: 12pt; color: #d4d4d8; }
+.fm-notification-center .message-list-sections { spacing: 8px; }
+.fm-notification-center .message { border-radius: 16px; background-color: rgba(70,70,76,0.94); color: #f5f5f7; margin: 0 0 8px; }
+.fm-notification-center .message-title { color: #ffffff; }
+.fm-notification-center .message-body { color: #eeeeef; }
+.fm-notification-center .message-list-controls { padding: 4px 0; spacing: 0; }
+.fm-notification-center .datemenu-today-button { margin: 0; padding: 6px 8px; color: #f5f5f7; }
+.fm-notification-center .day-label, .fm-notification-center .date-label { color: #f5f5f7; font-size: 12pt; }
+.fm-notification-center .calendar { margin: 0; padding: 10px; border-radius: 16px; background-color: rgba(70,70,76,0.94); color: #f5f5f7; }
+.fm-notification-center .calendar-month-label, .fm-notification-center .calendar-day-heading { color: #f5f5f7; }
+.fm-notification-center .calendar-change-month-back, .fm-notification-center .calendar-change-month-forward { padding: 4px; border-radius: 999px; background-color: transparent; color: #f5f5f7; }
+.fm-notification-center .calendar-day { width: 28px; height: 28px; padding: 2px; color: #eeeeef; }
+.fm-notification-center .calendar-other-month { color: #98989e; }
+.fm-notification-center .calendar-today { background-color: #0866ed; color: white; }
