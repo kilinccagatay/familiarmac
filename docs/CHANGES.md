@@ -117,3 +117,9 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Corrected the style target: GNOME 46's actual modal box is `dialogLayout._dialog`, not the outer Dialog actor. Width/padding/radius rules now apply to the visible box.
 - Explicitly enabled word wrapping and disabled title ellipsis; restore prior Pango properties on disable. Added a class to the otherwise unstyled button-layout widget so its spacing rule takes effect. Countdown and session actions unchanged.
 - Regression test verifies the correct inner style target and wrapping restoration. Installed for next login; no real restart invoked to test layout.
+
+### Apps opening and compact search repair
+- Fixed actual logged Apps exception: Shell.AppSystem.get_installed() returns Gio.DesktopAppInfo. Filter those, then resolve Shell.App through lookup_app before icon creation/activation. Ignore unresolved IDs. Regression fixture uses the real API object distinction.
+- Spotlight-style search removes inherited WhiteSur content margins/max-width, uses a transparent search entry with search glyph, and left-aligns expanding result contents. Empty query still collapses results; existing keyboard, Escape and outside-click behavior remains.
+- Added read-only graphics transition diagnostic script. Session and greeter logs both selecting Nouveau/card2 argues against a persistent Intel/NVIDIA switch; does not exclude a transient hardware mux change. No GPU, firmware or boot settings changed.
+- Installed UI fixes for next login. Tests pass; live Apps/search verification pending.

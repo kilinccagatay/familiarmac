@@ -102,6 +102,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
             can_focus: true,
             track_hover: true,
         });
+        this._entry.set_primary_icon(new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 20}));
         this.contentLayout.add_child(this._entry);
 
         this._resultsBox = boxLayout(true, {
@@ -417,11 +418,13 @@ class SearchDialog extends ModalDialog.ModalDialog {
 
                 const box = boxLayout(false, {
                     style_class: 'appmenu-search-result-content',
+                    x_expand: true, x_align: Clutter.ActorAlign.FILL,
                 });
                 box.add_child(this._iconForItem(item));
 
                 const textBox = boxLayout(true, {
                     style_class: 'appmenu-search-result-text',
+                    x_expand: true,
                 });
                 textBox.add_child(new St.Label({
                     text: item.title,

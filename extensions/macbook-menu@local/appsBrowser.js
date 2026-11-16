@@ -15,12 +15,17 @@ export function matchesApp(app, query, category) {
         (!category || (info?.get_categories?.() ?? '').split(';').includes(category));
 }
 
+export function installedApps(system) {
+    // get_installed returns Gio.DesktopAppInfo, not Shell.App.
+    return system.get_installed().filter(info => info.get_id() !== APPS_ID && info.should_show())
+        .map(info => system.lookup_app(info.get_id())).filter(Boolean)
+        .sort((a, b) => a.get_name().localeCompare(b.get_name()));
+}
+
 const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends ModalDialog.ModalDialog {
     constructor() {
         super({styleClass: 'familiarmac-apps'});
-        this._apps = Shell.AppSystem.get_default().get_installed()
-            .filter(app => app.get_id() !== APPS_ID && app.get_app_info()?.should_show())
-            .sort((a, b) => a.get_name().localeCompare(b.get_name()));
+        this._apps = installedApps(Shell.AppSystem.get_default());
         this._category = '';
         this._list = false;
         this._timer = 0;
