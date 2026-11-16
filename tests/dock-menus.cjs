@@ -48,6 +48,17 @@ assert.equal(record.flyout.items[0].ornament,1);
 icon._menu.items.find(i=>i.label==='Hide').action();assert.equal(hidden,1);
 icon._menu.items.find(i=>i.label==='Quit').action();assert.equal(quit,1);
 app.get_id=()=> 'org.gnome.Nautilus.desktop';icon._menu._rebuildMenu();assert.equal(record.flyout.items[0].sensitive,false);assert(!icon._menu.items.some(i=>i.label==='Quit'));
+let launched;
+context.settingsPanels=()=>[{name:'About',args:['system','about']},{name:'Sound',args:['sound']}];
+context.settingsCommand=()=>'/home/test/.local/bin/familiarmac-settings';
+context.Util={spawn:argv=>launched=argv};
+app.get_id=()=> 'org.gnome.Settings.desktop';
+for (const state of [0,1]) {
+ app.state=state;icon._menu._rebuildMenu();
+ assert.deepEqual(icon._menu.items.slice(0,4).map(i=>i.label),['About','Sound','separator','Options']);
+ icon._menu.items[0].action();
+ assert.equal(JSON.stringify(launched),JSON.stringify(['/home/test/.local/bin/familiarmac-settings','system','about']));
+}
 controller.destroy();assert.equal(icon._menu._rebuildMenu,original);assert.equal(controller.icons.size,0);
 console.log('Dock menu: stopped/running actions, Focus-independent flyout cleanup, Finder protection and restoration PASS');
 

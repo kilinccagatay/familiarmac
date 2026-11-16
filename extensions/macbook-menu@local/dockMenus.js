@@ -1,3 +1,6 @@
+import {settingsPanels} from './settingsPanels.js';
+import {settingsCommand} from './settingsCommand.js';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
@@ -104,7 +107,14 @@ export class DockMenus {
         const {running, fixed} = dockMenuState(app, icon._macbookBackgroundRunning);
         const windows = app.get_windows().filter(w => !w.is_override_redirect() && !w.skip_taskbar);
         const separator = () => menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        if (running) {
+        const isSettings = app.get_id() === 'org.gnome.Settings.desktop';
+        if (isSettings) {
+            const panels = settingsPanels();
+            for (const panel of panels)
+                menu.addAction(panel.name, () => Util.spawn([settingsCommand(), ...panel.args]));
+            if (panels.length) separator();
+        }
+        if (running && !isSettings) {
             for (const window of windows) {
                 const item = menu.addAction(window.get_title() || app.get_name(), () => Main.activateWindow(window));
                 item.setOrnament(window.has_focus() ? PopupMenu.Ornament.CHECK : PopupMenu.Ornament.NONE);

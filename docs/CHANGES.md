@@ -467,3 +467,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Add a reversible user D-Bus activation service for Settings so native desktop activation also uses the launcher. Existing service overrides are backed up and restored. No system package files are replaced.
 - Correct the About GtkPicture property from invalid `filename` to `file` with a file URI. The invalid property caused the entire native About template to fail once the launcher was actually used. Verified the installed picture using the real GTK4 builder (320px SVG paintable), and reopened the native About page with no template errors in its log.
 - Redrew the original A1398 SVG against Apple's Early 2013 15-inch Retina reference, correcting the black glass bezel, 16:10 panel and thin, level silver base. Reference: https://support.apple.com/en-gb/118465 . The repository contains our vector illustration, not Apple's product photograph.
+
+### Settings Dock shortcuts
+
+- The Settings Dock context menu now lists installed GNOME settings panels alphabetically, both while Settings is running and while closed, followed by normal Dock options.
+- Names come from localized desktop entries; version-specific subpage arguments (including System → About) are preserved. Actions use the guarded Settings launcher. macOS-only services are not fabricated.
+- Parser and stopped/running menu activation regressions passed; installed for next login.
