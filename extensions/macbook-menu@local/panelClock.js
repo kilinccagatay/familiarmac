@@ -25,8 +25,11 @@ export class PanelClock {
         this.names = dateNameFormatters(GLib.get_language_names_with_category('LC_MESSAGES'));
         this.label = Main.panel.statusArea.dateMenu._clockDisplay;
         this.clock = Main.panel.statusArea.dateMenu._clock;
-        // Reuse GNOME's wall-clock tick and timezone updates, not another timer.
-        new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_boolean('clock-show-seconds', true);
+        // Keep seconds local to the panel: the global preference also controls
+        // the lock-screen clock. Reuse the native ticker without another timer.
+        new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_boolean('clock-show-seconds', false);
+        this.previousForceSeconds = this.clock.force_seconds;
+        this.clock.force_seconds = true;
         this.signal = this.label.connect('notify::text', () => this.update());
         this.update();
     }
@@ -36,6 +39,7 @@ export class PanelClock {
     }
     destroy() {
         this.label.disconnect(this.signal);
+        this.clock.force_seconds = this.previousForceSeconds;
         this.label.text = this.clock.clock;
     }
 }

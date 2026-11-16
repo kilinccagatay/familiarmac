@@ -138,3 +138,7 @@ Apps grid/list and Spotlight application results use native GNOME AppIcon drag s
 During drag the launcher hides and releases its modal grab so the Dock receives the drop. Successful drops close the launcher only after DND releases the source; cancelled/outside drops return to the launcher. Pending search updates are cancelled to avoid destroying the source mid-drag. No background polling or input-setting changes are introduced. Spotlight now resolves installed desktop entries into Shell.App objects for launching, native icons and drag interoperability.
 
 The full automated suite passes, with lifecycle regressions for release, cancellation, deferred destruction and accidental activation. Installed copies match the repository; a new login is required to load the JavaScript. Physical drag/drop on the running desktop remains to be validated. Implementation uses the installed GNOME 46 `appDisplay.js`, `dash.js` and `dnd.js` APIs, alongside the existing Zorin Dash.
+
+## Clock scope correction (2026-11-16)
+
+Login and lock-screen clocks omit seconds. The login overlay already uses `%H:%M`; the shared `clock-show-seconds` preference is now false. The panel alone opts into native `WallClock.force_seconds`, preserving its requested seconds format without propagating it to the lock screen or introducing another timer. Disabling the extension restores the panel clock's previous force-seconds property.
