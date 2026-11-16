@@ -13,5 +13,6 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y gjs dbus-daemon build-essential python3 python3-gi gir1.2-gtk-3.0
-      - run: bash tests/run.sh
+          sudo apt-get install --no-install-recommends -y gjs dbus-daemon build-essential python3 python3-gi gir1.2-gtk-3.0 xvfb xauth
+      # GTK resolves virtual accelerator modifiers through the display keymap.
+      - run: xvfb-run -a env GDK_BACKEND=x11 bash tests/run.sh
