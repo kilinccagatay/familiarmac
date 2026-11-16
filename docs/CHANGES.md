@@ -328,3 +328,8 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Installed with original module/source/DKMS/initramfs backup; Wi-Fi remains connected. Runtime warning removal still requires reboot verification.
 - Added persistent /etc/dkms build wrapper; exact known sources are patched in the disposable build tree, already-fixed sources are not duplicated, unfamiliar sources remain untouched and modules missing required metadata fail validation.
 - Verified a second DKMS build through the persistent guard after restoring pristine vendor /usr/src. No changes to graphics, GRUB, kernel mitigation settings or active network modules. See BROADCOM-RETURN-SITES.md for sources, limitations and rollback.
+
+### Static GRUB logo without terminal reset
+- Added a separate opt-in, backed-up installer using background_image and an empty echo paint flush on the already active terminal. No clear, extra terminal selection, delay or video-mode override.
+- Validates generated GRUB syntax and unchanged kernel/initrd/mode/timeout commands, rolling back on failure. Previous withdrawn early-logo installer remains disabled.
+- Rendered and visually inspected the logo asset. Installed Wi-Fi module, initramfs and early Nouveau hook checksums remain unchanged; Wi-Fi stays connected. Physical early-logo visibility and clean handoff require reboot validation.
