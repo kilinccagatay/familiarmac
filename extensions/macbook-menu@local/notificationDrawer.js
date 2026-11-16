@@ -59,8 +59,8 @@ export class NotificationDrawer {
         const height = Math.max(1, (m.y + m.height - Math.max(m.y, py + Main.panel.height)) / scale);
         const width = Math.min(340, m.width / scale);
         this.width = width * scale;
-        this.menu.box.set_style(`width: ${width}px; height: ${height}px; max-height: ${height}px;`);
-        this.area.set_style(`height: ${Math.max(1, height - 24)}px;`);
+        this.menu.box.set_style(`width: ${width}px; max-height: ${height}px;`);
+        this.area.set_style(`max-height: ${Math.max(1, height - 24)}px;`);
     }
     destroy() {
         this.pointer.remove_all_transitions();

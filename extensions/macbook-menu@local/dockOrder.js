@@ -11,6 +11,7 @@ export class DockOrder {
     constructor() {
         this.settings=new Gio.Settings({schema_id:'org.gnome.shell'});
         this.icons=new Map();
+        this.separators=new Map();
         this.signal=this.settings.connect('changed::favorite-apps',()=>this.normalize());
         this.normalize();
         this.oldDelegate = Main.uiGroup._delegate;
@@ -43,6 +44,13 @@ export class DockOrder {
         const before=this.settings.get_strv('favorite-apps'),after=finderFirst(before);
         if (JSON.stringify(before)!==JSON.stringify(after)) this.settings.set_strv('favorite-apps',after);
     }
+    trackSeparator(actor) {
+        if (!actor.has_style_class_name?.('dash-separator') || this.separators.has(actor)) return;
+        const visible = actor.visible;
+        const signal = actor.connect('destroy', () => this.separators.delete(actor));
+        this.separators.set(actor, {visible, signal});
+        actor.hide(); // Zero width alone still leaves the box's inter-child spacing.
+    }
     track(icon) {
         if (this.icons.has(icon)) return;
         const info=icon.app?.appInfo ?? icon.app?.get_app_info?.();
@@ -58,6 +66,11 @@ export class DockOrder {
         this.icons.set(icon,{draggable,original,blocked,signal,container,trash});
     }
     destroy() {
+        for (const [actor, {visible, signal}] of this.separators) {
+            actor.disconnect(signal);
+            if (visible) actor.show();
+        }
+        this.separators.clear();
         this.stopped = true;
         if (Main.uiGroup._delegate === this.delegate) Main.uiGroup._delegate = this.oldDelegate;
         this.settings.disconnect(this.signal);

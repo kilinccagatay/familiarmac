@@ -351,3 +351,11 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Watch system/user app installations with input fingerprinting, no resident polling or repeated self-write loop.
 - Include fresh Firefox profile preparation, dependency preflight, shared installer and guarded rollback.
 - Verify a newly installed Mousepad export and existing VLC native menus; document unsupported custom UI honestly.
+
+## Apps, Dock spacing and notification cards
+
+- Apps uses five columns, including keyboard navigation across partial rows. A heading-free suggestion row combines up to two newly detected installations with GNOME's most-used apps; a divider separates the complete catalogue. Install history starts with an existing-app baseline, so package updates are not mistaken for new installs. No independent usage tracking is enabled.
+- Hide the native favorites/running separator actor, removing its layout gap while preserving the Downloads/Trash divider.
+- Notification empty state has its own card. Remove forced full-screen height so the calendar follows notifications; keep the existing right-edge animation and native notification actions.
+- Focus/Do Not Disturb popup shares the light status-popover palette and compact row spacing.
+- Reference: Apple's Apps browsing view includes suggestions and categories (https://support.apple.com/en-ie/guide/mac-help/mh35840/27/mac/27). The exact new/frequent selection rule here is FamiliarMac's user-requested policy, not a claim to reproduce Apple's private ranking.

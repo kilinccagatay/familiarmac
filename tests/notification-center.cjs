@@ -16,9 +16,9 @@ let banners=false,changed;const settings={get_boolean:()=>banners,set_boolean(_k
 const menu={close(){},box:new Actor(),_boxPointer:{_sourceAlignment:.5},setSourceAlignment(v){this._boxPointer._sourceAlignment=v}};
 const date={container:new Actor(),_messageList:list,_calendar:calendar,_date:heading,_indicator:indicator,menu};
 const right=new Actor();right.add_child(date.container);
-const context={CalendarLanguage:class{destroy(){}},NotificationDrawer:class{destroy(){}},Gio:{Settings:class{constructor(){return settings}}},Gettext:{dgettext:(_d,t)=>t},St:{Icon:Actor},
+const context={Clutter:{ActorAlign:{START:0}},CalendarLanguage:class{destroy(){}},NotificationDrawer:class{destroy(){}},Gio:{Settings:class{constructor(){return settings}}},Gettext:{dgettext:(_d,t)=>t},St:{Icon:Actor},
  Main:{panel:{statusArea:{dateMenu:date},_rightBox:right,addToStatusArea(_id,b,i){right.insert_child_at_index(b.container,i)}}},
- PanelMenu:{Button:class extends Actor{constructor(){super();this.container=this;this.menu={items:[],addMenuItem(a){this.items.push(a)},addAction(){},close(){}}}}},
+ PanelMenu:{Button:class extends Actor{constructor(){super();this.container=this;this.menu={box:new Actor(),items:[],addMenuItem(a){this.items.push(a)},addAction(){},close(){}}}}},
  PopupMenu:{PopupSwitchMenuItem:class extends Actor{setToggleState(v){this.state=v}},PopupSeparatorMenuItem:Actor}};
 const src=fs.readFileSync('extensions/macbook-menu@local/notificationCenter.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 vm.runInNewContext(src+'\nglobalThis.N=NotificationCenter',context);

@@ -2,6 +2,7 @@ import {CalendarLanguage} from './calendarLanguage.js';
 import {NotificationDrawer} from './notificationDrawer.js';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 import Gettext from 'gettext';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -19,6 +20,10 @@ export class NotificationCenter {
         this.signals = [];
         const list = this.date?._messageList;
         if (!list || !this.date._calendar || !this.date._date) return;
+        this.list = list;
+        this.listLayout = {expand: list.y_expand, align: list.y_align};
+        list.y_expand = false;
+        list.y_align = Clutter.ActorAlign.START;
         this.area = list.get_parent();
         this.column = this.date._calendar.get_parent();
         this.originalVertical = this.area.vertical;
@@ -43,6 +48,7 @@ export class NotificationCenter {
         this.button.add_child(new St.Icon({icon_name: 'weather-clear-night-symbolic',
             style_class: 'system-status-icon'}));
         this.toggle = new PopupMenu.PopupSwitchMenuItem(_('Do Not Disturb'), false);
+        this.button.menu.box.add_style_class_name('fm-focus-menu');
         this.button.menu.addMenuItem(this.toggle);
         this.toggle.connect('toggled', (_item, state) => this.settings.set_boolean('show-banners', !state));
         this.button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -79,6 +85,7 @@ export class NotificationCenter {
     destroy() {
         this.date?.menu.close();
         this.drawer?.destroy();
+        if (this.list) {this.list.y_expand = this.listLayout.expand; this.list.y_align = this.listLayout.align;}
         this.language?.destroy();
         if (this.settingSignal) this.settings.disconnect(this.settingSignal);
         this.settingSignal = 0;

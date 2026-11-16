@@ -15,7 +15,7 @@ controller.track(movable);assert.equal(controller.canUnpin(movable),true);
 assert.equal(ui._delegate.acceptDrop(movable),true);assert.equal(removed,null);later();assert.equal(removed,'brave.desktop');
 pointerY=450;assert.equal(controller.canUnpin(movable),false);assert.equal(controller.canUnpin(icon),false);
 controller.destroy();assert.equal(ui._delegate,undefined);assert.equal(drag.startDrag,original);
-const browser=load('extensions/macbook-menu@local/appsBrowser.js',{GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}}},'matchesApp,installedApps');
+const browser=load('extensions/macbook-menu@local/appsBrowser.js',{GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}}},'matchesApp,installedApps,suggestedApps,COLUMNS');
 const app={get_name:()=> 'Browser',get_description:()=> 'Web browsing',get_app_info:()=>({get_keywords:()=>['internet'],get_categories:()=> 'Network;WebBrowser;'})};
 assert.equal(browser.matchesApp(app,'internet','Network'),true);assert.equal(browser.matchesApp(app,'Browser','Office'),false);assert.equal(browser.matchesApp(app,'  WEB  ',''),true);
 console.log('Apps/dock: fixed Finder, free remaining order, drag lock cleanup, app search/category matching PASS');
@@ -23,3 +23,13 @@ console.log('Apps/dock: fixed Finder, free remaining order, drag lock cleanup, a
 const info=(id,visible=true)=>({get_id:()=>id,should_show:()=>visible});
 const shellApp={get_name:()=> 'Visible App',activate(){}};
 assert.deepEqual(Array.from(browser.installedApps({get_installed:()=>[info('visible'),info('hidden',false),info('missing'),info('org.familiarmac.Apps.desktop')],lookup_app:id=>id==='visible'?shellApp:null})),[shellApp]);
+
+assert.equal(browser.COLUMNS,5);
+const mk=id=>({get_id:()=>id});
+const apps=['a','b','c','d','e','f'].map(mk);
+const suggested=browser.suggestedApps(apps,{a:1000000,b:999999,c:0},[mk('a'),mk('c'),mk('d'),mk('e'),mk('f')],1000001);
+assert.deepEqual(Array.from(suggested,a=>a.get_id()),['a','b','c','d','e']);
+assert.equal(browser.suggestedApps(apps,{a:1},[],2000000).length,0);
+let hidden=0,shown=0,disconnected=0;
+const sep={visible:true,has_style_class_name:()=>true,connect:()=>4,disconnect(){disconnected++},hide(){hidden++},show(){shown++}};
+const dock=new order.DockOrder();dock.trackSeparator(sep);dock.trackSeparator(sep);assert.equal(hidden,1);dock.destroy();assert.equal(shown,1);assert.equal(disconnected,1);

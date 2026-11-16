@@ -6,7 +6,7 @@ let count=0, paints=0, tick, onDestroy;
 class NativeDots {get _number(){return count;}}
 const indicator=new NativeDots();indicator._area={queue_repaint(){paints++;},connect(s,fn){onDestroy=fn;return 1;},disconnect(){}};indicator._computeStyle=()=>{};
 const actor={app:{get_id:()=> 'org.gnome.Nautilus.desktop'},_indicator:{_indicators:[indicator]},get_children:()=>[]};
-const context={_downloadsStack:{track(){}},_dockOrder:{track(){}},_dockLaunch:{track(){}},ProcessTracker:class {isRunning(){return false;}},Main:{uiGroup:{get_children:()=>[{name:'dashtodockContainer',get_children:()=>[actor]},{name:'unrelated',get_children(){throw Error('must not scan unrelated UI');}}]}},GLib:{PRIORITY_DEFAULT:0,SOURCE_CONTINUE:true,timeout_add_seconds:(p,t,fn)=>{tick=fn;return 1;}}};
+const context={_downloadsStack:{track(){}},_dockOrder:{track(){},trackSeparator(){}},_dockLaunch:{track(){}},ProcessTracker:class {isRunning(){return false;}},Main:{uiGroup:{get_children:()=>[{name:'dashtodockContainer',get_children:()=>[actor]},{name:'unrelated',get_children(){throw Error('must not scan unrelated UI');}}]}},GLib:{PRIORITY_DEFAULT:0,SOURCE_CONTINUE:true,timeout_add_seconds:(p,t,fn)=>{tick=fn;return 1;}}};
 vm.runInNewContext(source.slice(begin,end),context);
 assert.equal(indicator._number,1);assert.equal(paints,1);
 tick();assert.equal(paints,1);

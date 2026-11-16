@@ -59,6 +59,7 @@ export default class MacBookMenu extends Extension {
         const updateFinder = () => {
             const seen = new Set();
             const visit = actor => {
+                this._dockOrder.trackSeparator(actor);
                 if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
                     this._dockLaunch.track(actor);
