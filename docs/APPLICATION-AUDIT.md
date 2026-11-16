@@ -21,19 +21,19 @@ Remaining distinct issues: LibreCAD uses its own Qt Wayland decoration; Logseq u
 | `com.github.xournalpp.xournalpp.desktop` | Main document title fits, controls match; empty document closed. |
 | `com.google.Chrome.desktop` | Main title/controls and global menus visible; no profile edits. |
 | `com.logseq.Logseq.desktop` | Custom Electron HTML controls on right; own light theme. Not covered by GTK rule; no graph opened. |
-| `com.obsproject.Studio.desktop` | Main and first-run wizard titles fit; closed without recording/streaming/setup changes. |
+| `com.obsproject.Studio.desktop` | Main editor rechecked after login: real global menus and full top-level labels visible; File menu and Quit shortcut inspected. No recording/streaming started. |
 | `com.odnoyko.valot.desktop` | Own custom header without window controls; title labels fit. |
 | `com.rafaelmardojai.Blanket.desktop` | Reopened after fix: complete centered title and compact controls. |
 | `com.zorin.desktop.upgrader.desktop` | No-upgrades screen title fits; closed, no upgrade performed. |
 | `de.haeckerfelix.Fragments.desktop` | Launch and capture recorded; no full functional validation. |
-| `fr.free.Homebank.desktop` | Welcome dialog and main title fit; no financial file opened. |
+| `fr.free.Homebank.desktop` | Main test document verified with user: title and controls fit. FAILED menu export: File/Edit/View/Manage/Transactions/Reports/Tools/Help remain in the app despite GTK3 X11/registrar overrides. Needs shared Flatpak GTK exporter investigation; not marked supported. |
 | `fr.handbrake.ghb.desktop` | Launch and capture recorded; no full functional validation. |
 | `gimp.desktop` | Main editor title fits; long panel menus ellipsized; existing panel-width fix awaits login. |
 | `gnome-language-selector.desktop` | Title fits; no language changes. |
 | `gnome-session-properties.desktop` | Title fits; normal Close, no autostart changes. |
 | `gufw.desktop` | Firewall title fits; settings untouched, normal WM_DELETE_WINDOW. |
 | `install-zorin-windows-app-support.desktop` | Opens Software catalog; no package installed. |
-| `io.github.OpenToonz.desktop` | Main and startup dialog titles fit; closed without project changes. |
+| `io.github.OpenToonz.desktop` | Main blank scene verified with user: full exported menus, actual shortcut hints and aligned submenu rows. Native Windows plus synthetic Window duplicate found; shared singular/plural detection now fixed, pending next shell load. |
 | `io.github.alainm23.planify.desktop` | Launch and capture recorded; no full functional validation. |
 | `io.github.phase1geo.minder.desktop` | Main title fits; blank startup dialog dismissed. |
 | `io.github.revisto.drum-machine.desktop` | Centered main title fits, own accent retained; closed without playback. |
@@ -45,15 +45,15 @@ Remaining distinct issues: LibreCAD uses its own Qt Wayland decoration; Logseq u
 | `libreoffice-impress.desktop` | Main blank presentation and template chooser: titles fit; chooser dismissed, normal close. |
 | `libreoffice-startcenter.desktop` | Main title fits; normal close. |
 | `libreoffice-writer.desktop` | Title fits; shared controls visible; blank document closed without edits. |
-| `net.scribus.Scribus.desktop` | Window not ready at capture; cannot mark visual pass. |
+| `net.scribus.Scribus.desktop` | Blank document checked; exported File rows align and actual shortcut hints are muted gray. Native Windows plus synthetic Window duplicate found (same as OpenToonz); shared singular/plural detection fixed, pending next shell load. Normal quit. |
 | `nm-connection-editor.desktop` | Title fits; inspected connection list only; settings unchanged. |
-| `org.ardour.Ardour.desktop` | First-run title fits; wizard closed without configuring audio. |
-| `org.audacityteam.Audacity.desktop` | Initial capture showed startup splash; full editor not verified. |
+| `org.ardour.Ardour.desktop` | Main editor verified with user. EXCEPTION: bundled YTK (libytk/libytkmm), real menus remain inside the app. Preserve the adjacent I/O, DSP, sample-rate and recording-time indicators; do not hide the whole row. Deferred by user; no menu adapter applied. |
+| `org.audacityteam.Audacity.desktop` | Shared GTK3 Flatpak module verified after normal launch: real menus move to the panel, local menu bar disappears, File submenu rows and actual muted shortcut hints visible. Initial plugin scanner VST child crash was separate; no claim that audio/plugin functionality has been tested. |
 | `org.blender.Blender.desktop` | Own drawn chrome, corrupted glyphs on first-run UI; Mesa Ivy Bridge Vulkan warning. Closed with Ctrl+Q; no GPU changes. |
 | `org.darktable.Darktable.desktop` | Title fits; app custom theme retained; closed without import. |
 | `org.deskflow.deskflow.desktop` | Header fits. Background/tray process needed SIGTERM after normal close; no server/client started. |
 | `org.familiarmac.Apps.desktop` | Five-column grid and search/header visible; dismissed with Escape. |
-| `org.freecad.FreeCAD.desktop` | Header fits; black startup content, full editor not verified. |
+| `org.freecad.FreeCAD.desktop` | Startup completed; blank Part Design editor and native top-level menus visually checked. Window buttons/title fit. Same native Windows + synthetic Window duplication; shared fix prepared, pending next shell load. |
 | `org.freedesktop.MalcontentControl.desktop` | Main header fits; no account setting modified. |
 | `org.gnome.Calculator.desktop` | Launch and capture recorded; no full functional validation. |
 | `org.gnome.Calendar.desktop` | Launch and capture recorded; no full functional validation. |
@@ -92,9 +92,9 @@ Remaining distinct issues: LibreCAD uses its own Qt Wayland decoration; Logseq u
 | `org.gnome.gitlab.somas.Apostrophe.desktop` | Launch and capture recorded; no full functional validation. |
 | `org.gnome.seahorse.Application.desktop` | Launch and capture recorded; no full functional validation. |
 | `org.inkscape.Inkscape.desktop` | Launch and capture recorded; no full functional validation. |
-| `org.kde.kdenlive.desktop` | First-run quick setup only; editor not yet verified. |
-| `org.kde.krita.desktop` | Initial capture showed startup splash; full editor not verified. |
-| `org.mixxx.Mixxx.desktop` | Main frame and portal title fit; cancelled library chooser, no music import; main content not verified. |
+| `org.kde.kdenlive.desktop` | Rechecked after login with a blank project: full panel menu labels, aligned Open Recent row and muted exported shortcut hints visually verified. |
+| `org.kde.krita.desktop` | User-created blank document checked: complete exported top-level labels and aligned window controls. Actual D-Bus accelerators include New/Open/Save/Save As; app menu Quit hint visible. Full File popup alignment not visually verified. Closed without saving the blank test document. |
+| `org.mixxx.Mixxx.desktop` | BLOCKED: repeat launch exported top-level menus, then became unresponsive. At 22:48:58 CET Nouveau reported a PTE write fault on the GNOME Shell channel; Shell segfaulted in host libgallium 25.2.8 and the session ended. Mixxx causality unproven; do not repeat launch during ordinary audit. No GPU/boot settings changed. |
 | `org.mozilla.firefox.desktop` | Main title/controls and global menus visible; no profile edits. |
 | `org.remmina.Remmina.desktop` | Main header fits, quit with documented --quit; no remote connection opened. |
 | `org.videolan.VLC.desktop` | Launch and capture recorded; no full functional validation. |
@@ -106,3 +106,15 @@ Remaining distinct issues: LibreCAD uses its own Qt Wayland decoration; Logseq u
 | `yelp.desktop` | Title fits; normal header close. |
 | `zorin-appearance.desktop` | Title fits; no preferences changed. |
 | `zorin-connect.desktop` | First-run pairing wizard title fits; closed without pairing. |
+
+### Electron shortcut metadata
+
+ChatGPT supplies real accelerators, but the Electron bridge previously dropped
+this field. The shared bridge now exports explicit accelerators and, where
+available, Electron's own role defaults as D-BusMenu `aas` shortcut metadata.
+It does not assign bindings or infer them from translated menu labels. Existing
+panel formatting provides muted Apple-style hints. Fresh installations include
+this automatically; existing integrations can run
+`sudo bash scripts/update-electron-menu-bridge.sh` and restart the application.
+Parser and real D-Bus tree/activation tests pass. User confirmed the ChatGPT
+shortcut display works after restarting the application (2026-11-16).

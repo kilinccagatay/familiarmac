@@ -1,3 +1,4 @@
+import {hasWindowMenu} from './menuRoles.js';
 import {itemShortcut} from './shortcutHints.js';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
@@ -696,8 +697,7 @@ export class MenuManager {
             : [{ label: _('Window'), children: windowChildren }];
 
         if (realMenuData?.topLevelMenus?.length) {
-            const hasWindowMenu = topLevelMenus.some(menu => menu.label.toLowerCase() === 'window');
-            if (!hasWindowMenu)
+            if (!hasWindowMenu(topLevelMenus, [_('Window'), _('Windows')]))
                 topLevelMenus.push({ label: _('Window'), children: windowChildren });
         }
 

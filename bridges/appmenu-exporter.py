@@ -16,6 +16,9 @@ def build(items):
         item.property_set('label',desc.get('label') or '')
         item.property_set_bool('enabled',desc.get('enabled',True))
         item.property_set_bool('visible',desc.get('visible',True))
+        shortcut=desc.get('shortcut',[])
+        if isinstance(shortcut,list) and shortcut and all(isinstance(key,str) and key for key in shortcut):
+            item.property_set_variant('shortcut',GLib.Variant('aas',[shortcut]))
         if desc.get('type')=='separator':item.property_set('type','separator')
         if desc.get('type') in ('checkbox','radio'):
             item.property_set('toggle-type','checkmark' if desc['type']=='checkbox' else 'radio')

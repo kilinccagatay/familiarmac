@@ -61,3 +61,12 @@ Original FamiliarMac code uses the installed GTK3/GIO APIs; no upstream source i
 
 ### Shared Flatpak appearance and Chromium
 Original FamiliarMac adapters use the [Flatpak sandbox permissions interface](https://docs.flatpak.org/en/latest/sandbox-permissions.html) and GTK user CSS. Chromium's [`browser.custom_chrome_frame` preference](https://chromium.googlesource.com/chromium/src/+/74cc2ff30c06738d09db97f9e7aba3e8ce3b308d/chrome/common/pref_names.cc) controls native system decoration; [`SystemTheme::kGtk`](https://chromium.googlesource.com/chromium/src/+/16fa99bb585526f1a4c56c467993f464bb732cd9%5E%21/) is its GTK appearance mode. No Chromium source is redistributed. Theme mirrors retain the installed themes' existing licenses.
+
+
+The Flatpak GTK3 helper copies the installed distro `libappmenu-gtk-module.so`,
+`libappmenu-gtk3-parser.so.0` and `org.appmenu.gtk-module` schema into a user-owned
+runtime bridge directory. These remain Vala Panel Appmenu components; no GTK/GLib
+system library is copied, and no binary is added to this repository. See the
+[upstream module documentation](https://github.com/rilian-la-te/vala-panel-appmenu/blob/master/subprojects/appmenu-gtk-module/README.md).
+Electron accelerator metadata follows [Electron MenuItem](https://www.electronjs.org/docs/latest/api/menu-item);
+role defaults come from Electron, not a label-based shortcut database.

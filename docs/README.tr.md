@@ -89,3 +89,18 @@ Yerel yedekler `~/.local/state/macbook-zorin` ve `/var/lib/macbook-zorin` altın
 ```
 
 Apple ile bağlantılı veya Apple tarafından desteklenen bir proje değildir. Kaynaklar ve özgün lisanslar korunur.
+
+
+## Otomatik uygulama uyarlaması
+
+Kurulum ve güncelleme olayları, sürekli tarama yerine bir systemd kullanıcı
+izleyicisiyle algılanır. Flatpak çalışma ortamı güncellemeleri de kontrol edilir.
+GTK3/wxGTK uygulamalarının gerçek menüleri, çalışma ortamında uyumluluğu doğrulanan
+modülle aktarılır; mevcut kütüphane yolları korunur. GTK4 ve Qt ayrı kurallarını
+kullanmaya devam eder. Electron uygulamalarında gerçek kısayollar üst menüye aktarılır.
+
+[![Audacity menüleri](screenshots/details/audacity-global-menu.png)](screenshots/audacity-global-menu.png)
+
+Bu, her Linux uygulaması için destek garantisi değildir. Açık uygulamayı normal
+şekilde yeniden başlatmak gerekebilir. [Teknik akış](APPLICATION-INTEGRATION.md) ve
+[uygulama denetimi](APPLICATION-AUDIT.md) doğrulananları ve kalan eksikleri açıklar.

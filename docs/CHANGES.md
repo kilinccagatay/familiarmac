@@ -599,3 +599,21 @@ GTK4 header bars use a compact 32px minimum height, with centered titles and con
   Chromium launchers are restored.
 - Documented how another supported machine installs the shared rules and repeats
   checks without copying this user's profiles or home-directory configuration.
+
+
+### 2026-11-16 — application audit and automatic integration
+
+- Detect literal shell `exec` launchers without executing them; retain GTK4 exclusion.
+- Supply distro GTK3 menu exporter/parser/schema to compatible Flatpaks through a
+  narrow read-only directory; validate runtime linkage before saving overrides.
+- Preserve environment search paths and existing accessibility modules; no global preload.
+- Watch dpkg/Flatpak update markers as well as launcher changes; include markers in
+  the inventory fingerprint so runtime-only updates are rechecked.
+- Export real Electron accelerators and role defaults through D-BusMenu.
+- Avoid duplicate synthetic Window menus when apps export Windows (including mnemonics).
+- Prevent blank panel clicks from grabbing background maximized windows; align
+  menu pills and restore the wider, inset Apple pill. New panel/menu JavaScript
+  requires a normal logout/login; no automatic session restart.
+- Record Audacity, Krita, Scribus and FreeCAD checks. Ardour remains a deferred
+  exception. GPU/session instability remains unresolved; the Mixxx software
+  workaround is explicit, hardware-guarded, reversible and not installed by default.

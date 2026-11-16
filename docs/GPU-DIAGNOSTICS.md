@@ -108,3 +108,54 @@ trigger a related failure, or that the precise cause of the idle Shell
 crash has been identified. Missing firmware is repaired, but hardware decode
 and the overall stability issue are **not fixed**. Do not enable accelerated
 video globally based on the successful `vainfo` probe.
+
+## Repeat session failure during application audit (22:48:58 CET)
+
+Kernel 6.17.0-20 and host Mesa 25.2.8 remained installed. Nouveau reported
+`WRITE / PTE / GPC0/PROP_0` on **gnome-shell's channel**, disabled that channel,
+then Shell exited with SIGSEGV in host libgallium at offset `0xb2b187`.
+No logout was requested. No Wi-Fi, boot, kernel or driver configuration was changed.
+Mixxx 2.5.6 was starting with Flatpak Mesa 26.2.5, renderer NVE7, at the time.
+This timing does not establish Mixxx as the sole cause: at 22:38:31, before
+Mixxx, three ffmpeg channels already reported `RT_WIDTH_OVERRUN` during the
+Kdenlive startup interval. The exact ffmpeg command lines were not captured.
+
+The matching Ubuntu debuginfo build ID
+`198701d4b61dc1afd1949464114e27c1e90498a2` places the final fault inside
+`pushbuf_dump` (symbol starts at `0xb2afa0`). This is the command-buffer dump
+path after a GPU submission failure, **not proof of the initial GPU fault's
+cause**. Do not treat patching the dump or suppressing logging as a GPU repair.
+The existing ~/core is an older Xwayland dump, not this Shell crash.
+
+Diagnostic caveat: unrestricted addr2line exhausted memory at 22:53:55 and was
+OOM-killed. That was a separate diagnostic error, after the original crash.
+Symbol-table-only inspection succeeded under a 512 MiB address-space limit.
+Use explicit memory limits for further symbol processing and isolate test
+application scopes; Flatpak may move its process outside a launching service.
+
+A per-process software-rendering plus Mixxx `--safe-mode` control reached the
+main UI, exited normally (code 0), and produced no new kernel messages during
+that short run. This is a short control, not a driver fix or stability guarantee.
+[Mixxx documents safe mode](https://manual.mixxx.org/2.5/en/chapters/appendix/commandline_dev_tools)
+as a GPU-driver workaround. [Mesa documents LIBGL_ALWAYS_SOFTWARE](https://docs.mesa3d.org/envvars.html)
+as forcing software rendering. Neither was set globally.
+
+### Scoped mitigation, not a root-cause repair
+
+A second control kept normal Mixxx features enabled and changed only its Mesa
+renderer to llvmpipe using per-process `LIBGL_ALWAYS_SOFTWARE=true` and
+`GALLIUM_DRIVER=llvmpipe`. Its log confirmed llvmpipe; the full UI appeared,
+normal shutdown completed with code 0, and no new kernel events were recorded
+from 22:55 through 22:57. This brief idle/startup test does not validate audio
+latency or long sessions. Software rendering costs CPU and may reduce waveform
+performance. It does not resolve independent Shell/Nouveau faults.
+
+The opt-in `python3 scripts/mixxx-software-workaround.py` applies only to
+Mixxx Flatpak on the observed Nouveau PCI ID 10de:0fd5. It preserves existing
+overrides and supports `--restore`, refusing restoration if overrides changed
+externally. Repeated apply and restore/reapply were checked locally. It is
+not part of the default installer and never changes GRUB, firmware, Wi-Fi,
+the selected GPU, or desktop-wide rendering.
+
+The remaining application audit is paused pending graphics stability work.
+Do not interpret this mitigation as confirmation that the session crash is fixed.

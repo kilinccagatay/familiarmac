@@ -70,6 +70,26 @@ The menu bar follows the active application. Firefox and Files (shown as Finder)
 
 See [the complete change inventory](docs/CHANGES.md) for scope and file locations. Some features remain experimental; [STATUS.md](STATUS.md) distinguishes tested code from visually verified behavior.
 
+## Automatic application adaptation
+
+An event-driven service checks application installations and updates, including
+Flatpak runtime updates. It detects supported toolkits and applies shared menu,
+window-control and theme integrations; it does not keep launching apps in the
+background. Package changes trigger a check; unchanged inventories skip repeated work.
+
+GTK3 Flatpaks, including wxGTK applications such as Audacity, receive the menu
+exporter only after its dependencies and schema are checked inside their runtime.
+Existing library paths and GTK modules are preserved. GTK4 and Qt retain their
+separate integration paths. Electron menus now retain the application's actual
+shortcut metadata, displayed as muted Apple-style hints.
+
+[![Audacity: exported menus and shortcuts](docs/screenshots/details/audacity-global-menu.png)](docs/screenshots/audacity-global-menu.png)
+
+This is toolkit detection plus explicit compatibility adapters, **not a guarantee
+for every Linux app**. Open applications may need a normal restart. See the
+[application audit](docs/APPLICATION-AUDIT.md) and [automation details](docs/APPLICATION-INTEGRATION.md)
+for verified results, unsupported cases and troubleshooting.
+
 ## Compatibility
 
 | Component | Current supported baseline |

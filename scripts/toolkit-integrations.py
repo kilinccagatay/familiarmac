@@ -18,6 +18,8 @@ STATE = HOME / '.local/state/familiarmac/toolkits'
 REGISTRAR = 'com.canonical.AppMenu.Registrar'
 spec = importlib.util.spec_from_file_location('flatpak_appearance', Path(__file__).with_name('flatpak-appearance.py'))
 appearance = importlib.util.module_from_spec(spec); spec.loader.exec_module(appearance)
+spec = importlib.util.spec_from_file_location('flatpak_gtk3_menu', Path(__file__).with_name('flatpak-gtk3-menu.py'))
+gtk_menu = importlib.util.module_from_spec(spec); spec.loader.exec_module(gtk_menu)
 
 
 
@@ -46,7 +48,21 @@ def gtk3_capable(metadata, files):
         if binary in seen or not binary.is_file(): continue
         seen.add(binary)
         with binary.open('rb') as stream:
-            if stream.read(4) != b'\x7fELF': continue
+            elf = stream.read(4) == b'\x7fELF'
+        if not elf:
+            # Resolve a literal exec target without executing shell code. Ignore
+            # substitutions, conditionals and arbitrary dynamic launchers.
+            if binary == executable and binary.stat().st_size < 65536:
+                for line in binary.read_text(errors='replace').splitlines():
+                    try: tokens = shlex.split(line, comments=True)
+                    except ValueError: continue
+                    if len(tokens) == 3 and tokens[0] == 'exec' and tokens[2] == '$@':
+                        target = tokens[1]
+                        if re.fullmatch(r'[A-Za-z0-9_.+-]+', target):
+                            queue.append(files/'bin'/target)
+                        elif re.fullmatch(r'/app/bin/[A-Za-z0-9_.+-]+', target):
+                            queue.append(files/'bin'/Path(target).name)
+            continue
         result = subprocess.run(['readelf','-d',str(binary)],text=True,capture_output=True,timeout=5)
         libraries = re.findall(r'\(NEEDED\).*?\[([^]]+)\]', result.stdout)
         if 'libgtk-4.so.1' in libraries: return False
@@ -141,6 +157,7 @@ def apply():
         config = Path(__file__).with_name('appearance-config')
         if not config.exists(): config = Path(__file__).resolve().parents[1]/'config'
         appearance.apply(HOME, apps, config)
+        gtk_folder = None
         for app in apps:
             try:
                 cfg = configparser.ConfigParser(interpolation=None)
@@ -154,17 +171,21 @@ def apply():
                     data = json.loads(record.read_text()) if record.exists() else {
                         'id': app, 'before': target.read_text() if target.exists() else None}
                     qt = qt_capable(cfg, files)
+                    menu_options = []
+                    if not qt:
+                        if gtk_folder is None: gtk_folder = gtk_menu.prepare(HOME)
+                        menu_options = gtk_menu.options(app, gtk_folder)
                     subprocess.run(['flatpak', 'override', '--user',
                                     '--talk-name=' + REGISTRAR, '--socket=x11',
                                     '--nosocket=wayland',
-                                    '--env=QT_QPA_PLATFORM=xcb' if qt else '--env=GDK_BACKEND=x11', app], check=True)
+                                    '--env=QT_QPA_PLATFORM=xcb' if qt else '--env=GDK_BACKEND=x11', *menu_options, app], check=True)
                     data['installed'] = target.read_text()
                     record.write_text(json.dumps(data, indent=2))
                     status = ('Qt Widgets' if qt else 'GTK3') + ': X11/menu permission configured; runtime menu needs verification'
                 else:
                     status = 'shared GTK3/GTK4 controls and theme access installed; menu export depends on toolkit'
                 report.append({'id': app, 'package': 'flatpak', 'status': status})
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, configparser.Error) as e:
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, RuntimeError, configparser.Error) as e:
                 report.append({'id': app, 'package': 'flatpak', 'status': 'error: ' + str(e)})
     # Include every visible installed launcher, without launching user applications.
     for app in Gio.AppInfo.get_all():

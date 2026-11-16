@@ -37,3 +37,7 @@
 .fm-system-light .macbook-app-popup .macbook-menu-shortcut { color: #64676c; }
 .fm-system-light .macbook-app-popup .popup-menu-item:focus .macbook-menu-shortcut,
 .fm-system-light .macbook-app-popup .popup-menu-item:hover .macbook-menu-shortcut { color: rgba(255,255,255,0.78); }
+
+/* Keep the shared checkmark column without doubling its leading gutter. */
+.macbook-app-popup .popup-ornamented-menu-item:ltr { padding-left: 2px; }
+.macbook-app-popup .popup-ornamented-menu-item:rtl { padding-right: 2px; padding-left: 8px; }

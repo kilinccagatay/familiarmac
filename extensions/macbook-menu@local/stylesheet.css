@@ -41,9 +41,27 @@
 #panel .macbook-apple-button,
 #panel .appmenu-panel-button {
   border-radius: 999px !important;
-  margin-top: 2px;
-  margin-bottom: 2px;
+  margin: 2px 0;
+  padding: 0 8px;
+  -natural-hpadding: 8px;
+  -minimum-hpadding: 8px;
 }
+/* Keep spacing inside each button, rather than adding a second label gutter.
+ * Both Apple and application menus use the same pill height and insets. */
+#panel .appmenu-panel-button .panel-button-label,
+#panel .macbook-apple-button .system-status-icon {
+  margin: 0;
+  padding: 0;
+}
+/* Apple has an icon-sized label: give its pill a wider inset and keep
+ * the logo center 24 logical pixels from the leading screen edge. */
+#panel .macbook-apple-button {
+  padding: 0 12px;
+  -natural-hpadding: 12px;
+  -minimum-hpadding: 12px;
+}
+#panel .macbook-apple-button:ltr { margin-left: 4px; }
+#panel .macbook-apple-button:rtl { margin-right: 4px; }
 /* One separator immediately before the fixed Trash, including running apps. */
 #dashtodockContainer.bottom .dash-separator { width: 0; margin: 0; background-color: transparent; }
 #dashtodockContainer.bottom .familiarmac-trash-end { border-left: 1px solid rgba(255,255,255,0.22); padding-left: 8px; margin-left: 5px; }

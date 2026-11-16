@@ -7,6 +7,15 @@ import {panelRanges} from './layout.js';
 export default class PanelLayout extends Extension {
     enable() {
         this._injections = new InjectionManager();
+        // GNOME treats unused panel space as a drag handle for whichever
+        // maximized window is underneath, even when a different app is focused.
+        // This is a menu bar: its background must never activate that window.
+        // Button events are handled by the actual menu buttons as before.
+        this._injections.overrideMethod(Object.getPrototypeOf(Main.panel), '_tryDragWindow', original => function (event) {
+            if (this !== Main.panel || Main.sessionMode.isLocked || Main.sessionMode.isGreeter)
+                return original.call(this, event);
+            return Clutter.EVENT_STOP;
+        });
         this._injections.overrideMethod(Object.getPrototypeOf(Main.panel), 'vfunc_allocate', original => function (box) {
             const [, centerWidth] = this._centerBox.get_preferred_width(-1);
             // Leave other layouts and the lock/login shell entirely to GNOME.

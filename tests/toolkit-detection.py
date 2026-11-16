@@ -19,4 +19,11 @@ with tempfile.TemporaryDirectory() as tmp:
  (root/'bin/editor').write_text('#!/bin/sh\nexit 1')
  with patch.object(m.subprocess,'run',side_effect=AssertionError('wrapper executed')):
   assert not m.gtk3_capable(cfg,root)
+ (root/'bin/editor.bin').write_bytes(b'\x7fELF')
+ (root/'bin/editor').write_text('#!/bin/sh\nexport EXAMPLE=value\nexec editor.bin "$@"\n')
+ with patch.object(m.shutil,'which',return_value='/usr/bin/readelf'),patch.object(m.subprocess,'run',return_value=subprocess.CompletedProcess([],0,stdout='(NEEDED) [libgtk-3.so.0]')):
+  assert m.gtk3_capable(cfg,root), 'literal exec wrapper should resolve without running'
+ (root/'bin/editor').write_text('#!/bin/sh\nexec $(danger) "$@"\n')
+ with patch.object(m.subprocess,'run',side_effect=AssertionError('dynamic wrapper executed')):
+  assert not m.gtk3_capable(cfg,root)
 print('Toolkit detection: transitive GTK3, GTK4 exclusion, no wrapper execution PASS')

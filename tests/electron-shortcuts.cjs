@@ -1,0 +1,13 @@
+const assert = require('node:assert/strict');
+const {acceleratorShortcut: convert} = require('../bridges/appmenu-bridge.cjs');
+assert.deepEqual(convert({accelerator:'CmdOrCtrl+Shift+P'}), ['Control','Shift','P']);
+assert.deepEqual(convert({accelerator:'CommandOrControl+Plus'}), ['Control','plus']);
+assert.deepEqual(convert({accelerator:'Ctrl++'}), ['Control','plus']);
+assert.deepEqual(convert({accelerator:'Alt+PageUp'}), ['Alt','Page_Up']);
+assert.deepEqual(convert({accelerator:'F11'}), ['F11']);
+assert.deepEqual(convert({getDefaultRoleAccelerator:()=> 'Ctrl+C'}), ['Control','C']);
+assert.deepEqual(convert({accelerator:'Alt+C',getDefaultRoleAccelerator:()=> 'Ctrl+C'}), ['Alt','C']);
+assert.deepEqual(convert({accelerator:'',getDefaultRoleAccelerator:()=> 'Ctrl+C'}), []);
+assert.deepEqual(convert({}), []);
+assert.deepEqual(convert({accelerator:'UnknownModifier+X'}), []);
+console.log('Electron accelerators: actual bindings, role defaults, overrides, plus and missing metadata PASS');

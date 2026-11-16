@@ -121,3 +121,6 @@ The English and Turkish READMEs show feature crops from these same captures. Eac
 See [sources and licenses](../THIRD_PARTY.md) for the themes, icons and other upstream components visible in these screenshots. The original A1398 vector illustration is in [assets/hardware](../assets/hardware/macbook-pro-a1398.svg). Application names and marks belong to their respective owners.
 
 [Back to README](../README.md) · [Türkçe](README.tr.md)
+
+
+Audacity global menu: [full capture](screenshots/audacity-global-menu.png), [detail](screenshots/details/audacity-global-menu.png). Normal Flatpak launch after shared GTK3 integration; real File menu and shortcut hints visible. No audio project content shown.

@@ -52,3 +52,5 @@ python3 tests/app-integration-install.py
 python3 tests/application-shortcuts.py
 
 python3 tests/toolkit-detection.py
+
+python3 tests/flatpak-gtk3-menu.py

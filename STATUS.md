@@ -42,3 +42,13 @@ Preflight, dry-run, source checksums and automated tests are included. Fresh-OS 
 
 ## Brightness
 Opt-in `--brightness`: internal gmux down key can reach true zero. Real hardware readback confirmed `actual_brightness=0`; native GNOME StepUp restored light, and the initial brightness was restored after the test. Native up key is deliberately retained (including secure-screen behavior). Custom down shortcut is not claimed to work on secure screens or every modal grab.
+
+## Son uygulama uyarlaması doğrulamaları
+
+- ChatGPT: gerçek Electron kısayol aktarımı düzeltildi; kullanıcı yeniden açtıktan sonra doğruladı.
+- Audacity: ortak GTK3 Flatpak modülü ile normal açılışta üst menü, yerel menünün gizlenmesi ve kısayol işaretleri görsel olarak doğrulandı.
+- Krita/Scribus/FreeCAD: ana ekranlar tek tek incelendi. Windows/Window tekrarının ortak düzeltmesi hazır; yeni oturumda görsel kontrol bekliyor.
+- Kurulum/güncelleme izleyicisi etkin; geçici launcher olayıyla otomatik çalışması doğrulandı. Bu test yeni indirilen her uygulamanın uyarlanacağını garanti etmez.
+- Ardour istisnası ve HomeBank'in yeniden görsel kontrolü açık kalıyor. GPU çökmesinin kök nedeni çözülmüş sayılmıyor; Mixxx geçici yazılım çizimi ayrı ve opt-in.
+
+Ayrıntılar: [otomasyon](docs/APPLICATION-INTEGRATION.md), [uygulama denetimi](docs/APPLICATION-AUDIT.md), [GPU tanılama](docs/GPU-DIAGNOSTICS.md).
