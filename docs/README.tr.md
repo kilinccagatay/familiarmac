@@ -8,6 +8,16 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda alıştığı ayarları ve işlevleri bulmakta zorlanmasıyla başladı. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
+## Ekran görüntüleri
+
+Zorin OS 18.1 ve FamiliarMac çalıştıran MacBookPro10,1 üzerinden alınan gerçek ekran görüntüleri.
+
+**Bu Mac Hakkında — A1398 çizimi ve sistemin gerçek cihaz bilgileri**
+
+![MacBook çizimi ve cihaz bilgileriyle FamiliarMac Hakkında sayfası](screenshots/about.png)
+
+[Ekran görüntüsü galerisi](SCREENSHOTS.md)
+
 ## Mevcut destek
 
 İlk profil **Zorin OS 18.x / GNOME 46 / Wayland** içindir. Tam donanım kurulumu **MacBookPro10,1** ile sınırlandırılmıştır. Projenin adı herhangi bir dağıtıma bağlı değildir; fakat mevcut kodun başka dağıtımlarda çalıştığı iddia edilmez. Ubuntu/Fedora veya farklı Mac modelleri için ayrı ve test edilmiş profiller gerekir.

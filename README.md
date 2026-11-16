@@ -10,6 +10,16 @@ This project began when I installed Linux on my father's MacBook. He was used to
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
+## Screenshots
+
+Actual screenshots from the MacBookPro10,1 running Zorin OS 18.1 and FamiliarMac.
+
+**About this Mac — native system information with the A1398 illustration**
+
+![FamiliarMac About page with MacBook illustration and native hardware information](docs/screenshots/about.png)
+
+[View the screenshot gallery](docs/SCREENSHOTS.md)
+
 ## What it includes
 
 - A single Apple-style system menu, application menus where apps export them, and Finder-like desktop actions.
