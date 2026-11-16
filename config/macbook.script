@@ -1,0 +1,89 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+# Render SVG assets at their final pixel size; avoid Plymouth's runtime resampling.
+size = Math.Int(Window.GetHeight() * 0.115 / 8) * 8;
+if (size < 64) size = 64;
+if (size > 256) size = 256;
+cx = Window.GetX() + Window.GetWidth() / 2;
+cy = Window.GetY() + Window.GetHeight() * 0.50;
+logo = Sprite(Image("apple-" + size + ".png"));
+logo.SetPosition(cx - size / 2, cy - size / 2, 1);
+bar_width = Math.Int(Window.GetWidth() * 0.183);
+bar_y = Window.GetY() + Math.Int(Window.GetHeight() * 0.90);
+track = Sprite(Image("bar-track.png").Scale(bar_width, 5));
+track.SetPosition(cx - bar_width / 2, bar_y, 1);
+fill_image = Image("bar-fill.png");
+fill = Sprite(fill_image.Scale(1, 5));
+fill.SetPosition(cx - bar_width / 2, bar_y, 2);
+activity = Sprite(fill_image.Scale(Math.Int(bar_width * 0.2), 5));
+activity.SetPosition(cx - bar_width / 2, bar_y, 3);
+progress = 0;
+phase = 0;
+status = "normal";
+prompt_sprite = Sprite();
+answer_sprite = Sprite();
+message_sprite = Sprite();
+
+# Hide decorative sprites until the first mode-aware frame.
+logo.SetOpacity(0); track.SetOpacity(0); fill.SetOpacity(0); activity.SetOpacity(0);
+fun refresh() {
+  if (Plymouth.GetMode() != "boot") {
+    logo.SetOpacity(0); track.SetOpacity(0); fill.SetOpacity(0); activity.SetOpacity(0);
+    return;
+  }
+  logo.SetOpacity(1);
+  phase += 0.04;
+  if (status == "normal") {
+    track.SetOpacity(1);
+    if (progress > 0) {
+      fill.SetOpacity(0.75 + 0.25 * (Math.Sin(phase) + 1) / 2);
+      activity.SetOpacity(0);
+    } else {
+      fill.SetOpacity(0);
+      activity.SetOpacity(1);
+      activity.SetX(cx - bar_width / 2 + (bar_width * 0.8) * (Math.Sin(phase) + 1) / 2);
+    }
+  } else {
+    track.SetOpacity(0); fill.SetOpacity(0); activity.SetOpacity(0);
+  }
+}
+fun boot_progress(duration, value) {
+  # Plymouth reports an estimate, not a measured percentage. Never invent one.
+  if (value > progress) progress = value;
+  if (progress > 1) progress = 1;
+  width = Math.Int(bar_width * progress);
+  if (width < 1) width = 1;
+  fill.SetImage(fill_image.Scale(width, 5));
+}
+fun normal() {
+  status = "normal";
+  prompt_sprite.SetOpacity(0); answer_sprite.SetOpacity(0);
+}
+fun show_prompt(prompt, answer) {
+  status = "prompt";
+  p = Image.Text(prompt, 1, 1, 1, 1, "Sans 12");
+  a = Image.Text(answer, 1, 1, 1, 1, "Sans 14");
+  prompt_sprite.SetImage(p); prompt_sprite.SetPosition(cx-p.GetWidth()/2, bar_y, 10);
+  answer_sprite.SetImage(a); answer_sprite.SetPosition(cx-a.GetWidth()/2, bar_y+32, 10);
+  prompt_sprite.SetOpacity(1); answer_sprite.SetOpacity(1);
+}
+fun password(prompt, count) {
+  dots = "";
+  for (i = 0; i < count; i++) dots += "*";
+  show_prompt(prompt, dots);
+}
+fun question(prompt, entry) { show_prompt(prompt, entry); }
+fun message(text) {
+  m = Image.Text(text, 0.8, 0.8, 0.8, 1, "Sans 10");
+  message_sprite.SetImage(m);
+  message_sprite.SetPosition(cx-m.GetWidth()/2, Window.GetHeight()*0.8, 10);
+  message_sprite.SetOpacity(1);
+}
+fun hide_message(text) { message_sprite.SetOpacity(0); }
+Plymouth.SetRefreshFunction(refresh);
+Plymouth.SetBootProgressFunction(boot_progress);
+Plymouth.SetDisplayNormalFunction(normal);
+Plymouth.SetDisplayPasswordFunction(password);
+Plymouth.SetDisplayQuestionFunction(question);
+Plymouth.SetDisplayMessageFunction(message);
+Plymouth.SetHideMessageFunction(hide_message);

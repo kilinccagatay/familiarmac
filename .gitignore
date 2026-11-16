@@ -1,0 +1,9 @@
+.state/
+__pycache__/
+*.log
+*.so
+*.asar
+*.bundle
+touchpad-settings.ini
+.env
+.env.*

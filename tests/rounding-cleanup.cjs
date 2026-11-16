@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const s=fs.readFileSync(__dirname+'/../overrides/rounded-window-corners/manager/event_manager.js','utf8');
+const start=s.indexOf('const connections = []');const end=s.indexOf('/**\n * Apply the effect',start);
+const ctx={};vm.runInNewContext(s.slice(start,end),ctx);
+let disconnected=[];const actor={connect:()=>1,disconnect:id=>disconnected.push('actor')};
+const texture={connect:()=>2,disconnect:id=>disconnected.push('texture')};
+const other={connect:()=>3,disconnect:id=>disconnected.push('other')};
+ctx.connect(actor,'size',()=>{},actor);ctx.connect(texture,'size',()=>{},actor);ctx.connect(other,'size',()=>{});
+ctx.disconnectAll(actor);assert.deepEqual(disconnected,['texture','actor']);ctx.disconnectAll(actor);assert.equal(disconnected.length,2);ctx.disconnectAll();assert.deepEqual(disconnected,['texture','actor','other']);
+console.log('Rounding cleanup: texture signals follow window lifetime, no double disconnect PASS');

@@ -1,0 +1,18 @@
+const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert/strict');
+const source = fs.readFileSync(__dirname + '/../extensions/macbook-menu@local/extension.js', 'utf8');
+const code = source.match(/pointer\._reposition = allocation => \{[\s\S]*?\n        \};/)[0];
+let calls = 0;
+const actor = {};
+const pointer = {_sourceActor: actor, get_parent: () => ({transform_stage_point: x => [true, x, 0]})};
+let monitor = {x: 1440, y: 0};
+const Main = {layoutManager: {findMonitorForActor: a => {assert.equal(a, actor); return monitor;}}};
+const allocation = {y1: 28, set_origin(x, y) {this.x1=x; this.y1=y;}};
+const reposition = box => {assert.equal(box, allocation); calls++;};
+vm.runInNewContext(code, {pointer, Main, reposition, Math});
+pointer._reposition(allocation);
+assert.equal(calls, 1); assert.equal(allocation.x1, 1444); assert.equal(allocation.y1, 28);
+monitor = null; pointer._reposition(allocation); assert.equal(calls, 2);
+pointer._sourceActor = null; pointer._reposition(allocation); assert.equal(calls, 3);
+console.log('GNOME 46 single-argument allocation and multi-monitor alignment: PASS');

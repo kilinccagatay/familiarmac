@@ -1,0 +1,7 @@
+/* Compact GTK4 header spacing: preserve title text and control hit targets. */
+headerbar windowcontrols { padding-left: 0; padding-right: 0; border-spacing: 4px; }
+headerbar windowcontrols:not(.empty).start:dir(ltr),
+headerbar windowcontrols:not(.empty).end:dir(rtl) { margin-right: 4px; }
+headerbar windowcontrols:not(.empty).start:dir(rtl),
+headerbar windowcontrols:not(.empty).end:dir(ltr) { margin-left: 4px; }
+headerbar .title, headerbar .subtitle { padding-left: 2px; padding-right: 2px; }

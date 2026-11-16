@@ -1,0 +1,9 @@
+/* Chromium samples GTK window/titlebar shapes for its internal toolbar.
+ * The compositor already rounds the outer window; avoid a second inner curve. */
+window.background.chromium,
+window.background.chromium headerbar.titlebar,
+window.background.chromium .titlebar {
+  border-radius: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}

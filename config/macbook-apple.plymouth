@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=MacBook Apple Progress
+Description=High resolution Apple logo with Plymouth progress and activity indicator
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/macbook-apple
+ScriptFile=/usr/share/plymouth/themes/macbook-apple/macbook.script

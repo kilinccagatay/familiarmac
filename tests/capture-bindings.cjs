@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const source=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/capture.js','utf8').replace(/^import .*;\n/gm,'').replace('export class CaptureBindings','class CaptureBindings');
+const values=new Map(),defaults=['<Super><Shift>4','<Super><Control><Shift>3','<Super><Control><Shift>4'];
+let callback,timer,sequence=0,rect=null,writes=0,copies=0,destroyed=0,grabs=[],allowed=[],data=null;
+const file={query_exists:()=>data!==null,load_contents:()=>[true,Buffer.from(data)],replace_contents:b=>{data=b;},delete:()=>{data=null;}};
+const context={TextDecoder,setTimeout,logError:e=>{throw e;},Gio:{Settings:class {constructor({path}){this.path=path;if(!values.has(path))values.set(path,defaults[values.size]);}get_string(){return values.get(this.path);}set_string(k,v){values.set(this.path,v);}},File:{new_for_path:p=>p.endsWith('.json')?file:{replace_contents_bytes_async(b,e,k,f,c,cb){writes++;setTimeout(()=>cb(this,{}),0);},replace_contents_finish(){}}},FileCreateFlags:{PRIVATE:1,NONE:0},MemoryOutputStream:{new_resizable:()=>({close(){},steal_as_bytes:()=>({get_data:()=>[]})})}},GLib:{get_user_state_dir:()=>'/state',build_filenamev:p=>p.join('/'),mkdir_with_parents(){},path_get_dirname:()=>'/state',timeout_add:(p,t,fn)=>{timer=fn;return 1;},source_remove(){},UserDirectory:{DIRECTORY_PICTURES:1},get_user_special_dir:()=>'/Pictures',get_real_time:()=>123},Meta:{KeyBindingFlags:{IGNORE_AUTOREPEAT:1},external_binding_name_for_action:id=>'external-'+id},Shell:{ActionMode:{ALL:255,LOGIN_SCREEN:1,LOCK_SCREEN:2,UNLOCK_SCREEN:4},Screenshot:class {async screenshot_stage_to_content(){return [{get_texture:()=>({})},2];}static async composite_to_stream(...args){context.composite=args;}}},St:{ClipboardType:{CLIPBOARD:1},Clipboard:{get_default:()=>({set_content(){copies++;}})}},Clutter:{Actor:class {destroy(){destroyed++;}}},Main:{wm:{allowKeybinding:(name,modes)=>allowed.push([name,modes])},uiGroup:{add_child(){}}},Screenshot:{SelectArea:class {async selectAsync(){return rect;}}},global:{stage:{width:100,height:100},display:{connect:(name,fn)=>{callback=fn;return 1;},disconnect(){},grab_accelerator:a=>{grabs.push(a);return ++sequence;},ungrab_accelerator(){}}}};
+vm.runInNewContext(source+'\nglobalThis.CaptureBindings=CaptureBindings;',context);
+(async()=>{
+const c=new context.CaptureBindings();assert.deepEqual([...values.values()],['','','']);timer();assert.equal(grabs.length,3);assert.ok(allowed.every(([,m])=>m===248));
+await c.capture(false,true);assert.equal(copies,1);assert.equal(writes,0);
+await c.capture(true,true);assert.equal(copies,1);assert.equal(destroyed,1);
+rect={x:10,y:20,width:30,height:40};await c.capture(true,false);assert.equal(writes,1);assert.deepEqual(context.composite.slice(1,5),[20,40,60,80]);
+c.destroy();assert.deepEqual([...values.values()],defaults);assert.equal(data,null);
+console.log('Capture bindings: popup/modal modes, clipboard-only, cancel, HiDPI crop and restore PASS');
+})().catch(e=>{console.error(e);process.exitCode=1;});

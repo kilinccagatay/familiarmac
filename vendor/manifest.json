@@ -1,0 +1,212 @@
+[
+  {
+    "path": "vendor/appmenu-5.7.1.tar.gz",
+    "sha256": "8ee7df37cf1b60ff603e9130df45809584480daf8e003fc001d8e03ef9505dee",
+    "bytes": 140623
+  },
+  {
+    "path": "vendor/keyd-2.6.0.tar.gz",
+    "sha256": "9dddd0f93b5e028dd5abc2a20ce236be8bca303426128c485450ebce0930185e",
+    "bytes": 685948
+  },
+  {
+    "path": "vendor/magic-lamp-v25.zip",
+    "sha256": "a3a445a0f0329b581fec6edd2c33f143eec9b267cbb9b028bb6d7bff990cc420",
+    "bytes": 20551
+  },
+  {
+    "path": "vendor/rounded-window-corners-LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "bytes": 35149
+  },
+  {
+    "path": "vendor/rounded-window-corners-v13.zip",
+    "sha256": "7e2271cc9717e7f7900825d2d8f85dd77e9085679814d1c8590010cfe2a041a4",
+    "bytes": 76121
+  },
+  {
+    "path": "vendor/touchpad-gestures-LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "bytes": 35149
+  },
+  {
+    "path": "vendor/touchpad-gestures-v27.zip",
+    "sha256": "8184d9c65673a0cb8dadc000db9b56f21753da3b0736c4f54ab22bb6ae64cb7a",
+    "bytes": 53283
+  },
+  {
+    "path": "vendor/whitesur-gtk.tar.gz",
+    "sha256": "615f1977b3cc9650daa2a8aad79edad16684e16a129f3aefe78723e81b338015",
+    "bytes": 2728633
+  },
+  {
+    "path": "vendor/whitesur-icons.tar.gz",
+    "sha256": "03c788578a667ea8ca76d1cc64c35e2de40ce555e70042766642bd74dc244f46",
+    "bytes": 8827401
+  },
+  {
+    "path": "assets/DEVICON-LICENSE",
+    "sha256": "121194741d4a915b9f5890fdd6dd95121f9b1f816517c792358d72d7c838d664",
+    "bytes": 1072
+  },
+  {
+    "path": "assets/apple-login.png",
+    "sha256": "6593eed9fe3a180d1be9fa0e4af7dac400ecf78b49ec0d5957d78ab73c4cc37f",
+    "bytes": 715
+  },
+  {
+    "path": "assets/apple-white.svg",
+    "sha256": "90f1efb7c7d34749510c30f10473070837531c6e06bce7422a4622bd7c583aee",
+    "bytes": 704
+  },
+  {
+    "path": "assets/apple.png",
+    "sha256": "a9a0214a5de29ea4b01e71d349f87584b7497ce96c797cddec86a58b37741355",
+    "bytes": 1224
+  },
+  {
+    "path": "assets/apple.svg",
+    "sha256": "8e6eef82e047f040249bc0ed50d288cfddfa52176cf5adcb9b17bae46b472e12",
+    "bytes": 691
+  },
+  {
+    "path": "assets/boot/apple-104.png",
+    "sha256": "596fade45b083c96ebfaa4e42b2696127f840546733ac970ffff4e992f33e0f9",
+    "bytes": 3070
+  },
+  {
+    "path": "assets/boot/apple-112.png",
+    "sha256": "75b02e3738b076fb9c35c72958d9eac97e5397cadc1e05eff0654f501a9e5d3b",
+    "bytes": 3324
+  },
+  {
+    "path": "assets/boot/apple-120.png",
+    "sha256": "4a93147432533fa48aea6e72343b6974bf4f784696f1f630f4c28152238da42a",
+    "bytes": 3568
+  },
+  {
+    "path": "assets/boot/apple-128.png",
+    "sha256": "8e5dff297bb02e5f30f3021c557c4f255bc7e79e39c935295687a77925c58efe",
+    "bytes": 3861
+  },
+  {
+    "path": "assets/boot/apple-136.png",
+    "sha256": "0a10a64be3f8d8b1afa56548f55a0303e720ab3673a43667a03c57a96c8d7afd",
+    "bytes": 4179
+  },
+  {
+    "path": "assets/boot/apple-144.png",
+    "sha256": "b3c4efaef73a978e592c3556e6d2a078c313118cb6129e19fd4c9801019be422",
+    "bytes": 4335
+  },
+  {
+    "path": "assets/boot/apple-152.png",
+    "sha256": "3dbb2b3f76c61dbcfdd41a63f4d0bba2f0ba001867bc60b6c1ca43a814ea540e",
+    "bytes": 4648
+  },
+  {
+    "path": "assets/boot/apple-160.png",
+    "sha256": "5b0a5cd4cc53cf68410d415075171ced4657f6a5cd856a2727e1dd4a9995cf3f",
+    "bytes": 4866
+  },
+  {
+    "path": "assets/boot/apple-168.png",
+    "sha256": "92f744b69cf04f21553e21953672861ff85b7f6d231e5e6a39865072739afc66",
+    "bytes": 5183
+  },
+  {
+    "path": "assets/boot/apple-176.png",
+    "sha256": "c91bd8711a71b2fe6dd69927d6ceee115866e8dfa4943b543031c41dd1444e70",
+    "bytes": 5400
+  },
+  {
+    "path": "assets/boot/apple-184.png",
+    "sha256": "84724bdff18190314e2e146186921c55d90ebe86521c862cd57669e789acaae6",
+    "bytes": 5674
+  },
+  {
+    "path": "assets/boot/apple-192.png",
+    "sha256": "1a756b7a19a80cc0ef5cc8d11ea37acb16465082b9bb64840c4db4529b5f2a9a",
+    "bytes": 6023
+  },
+  {
+    "path": "assets/boot/apple-200.png",
+    "sha256": "03fad98e5b6a579365642cdb14f971dff3ca1f7fe0b507af70b9db8f3c0f9a21",
+    "bytes": 6217
+  },
+  {
+    "path": "assets/boot/apple-208.png",
+    "sha256": "8bff5d092e060a71859150560c92ff1c55bab846c7d331fc0ef17db23513901d",
+    "bytes": 6525
+  },
+  {
+    "path": "assets/boot/apple-216.png",
+    "sha256": "4e92506e00e3972805d82b71912a6fd43610693a0877309ffb8a409ebf02b09c",
+    "bytes": 6740
+  },
+  {
+    "path": "assets/boot/apple-224.png",
+    "sha256": "9ec7970a6cdf2d5304bcc18595fa3043678a24ce8c721264024cb0c9bb86aa36",
+    "bytes": 7028
+  },
+  {
+    "path": "assets/boot/apple-232.png",
+    "sha256": "a9c214ce8642ceba616201d69681263b314d925c097b2b8f7749003498fbec11",
+    "bytes": 7231
+  },
+  {
+    "path": "assets/boot/apple-240.png",
+    "sha256": "6745c7d0468c8db01e9df5d58b952e2ef08a15c90f3b24e2b04a48ae5cd3bfef",
+    "bytes": 7515
+  },
+  {
+    "path": "assets/boot/apple-248.png",
+    "sha256": "3b2ff60298a41862c63f56c0e25a4cc817d4c7aa15b94c9fa9ec42b3d2751a95",
+    "bytes": 7804
+  },
+  {
+    "path": "assets/boot/apple-256.png",
+    "sha256": "0eec25586933c39e0f00a4a72568a9c79a782267a86058abacd7a62e07844cab",
+    "bytes": 8179
+  },
+  {
+    "path": "assets/boot/apple-64.png",
+    "sha256": "30c8e9cf6f8399087f4fa0b2656461547ec0894622366edb16b813c2465390c3",
+    "bytes": 1829
+  },
+  {
+    "path": "assets/boot/apple-72.png",
+    "sha256": "9b358790d96af725982eb44a90170ebe1d8924da9273287f69675c261163bc5f",
+    "bytes": 2046
+  },
+  {
+    "path": "assets/boot/apple-80.png",
+    "sha256": "04e634b07efa3dda5167a1e5ea0b42c96c6996d92962d61a37f647bf8d99180f",
+    "bytes": 2314
+  },
+  {
+    "path": "assets/boot/apple-88.png",
+    "sha256": "3257462b16ffa00e789918bb5e27383cef6a719458929731fc6c085cf1556c7c",
+    "bytes": 2545
+  },
+  {
+    "path": "assets/boot/apple-96.png",
+    "sha256": "b28b4760e18af6e6648aa6b28fd7e172eaa02cf62ac005a5b09c7d35df106fbe",
+    "bytes": 2782
+  },
+  {
+    "path": "assets/boot/apple-hires.png",
+    "sha256": "fc899e0f1d1846f7bb8f161485035e5d398e07ba3c7355c9ebd514c78bb1a5e1",
+    "bytes": 11505
+  },
+  {
+    "path": "assets/boot/bar-fill.png",
+    "sha256": "e4b2b0597fa3cdc9c40465a54af36b490eb8282f62e8e1f8d6a27ab6d88ab340",
+    "bytes": 139
+  },
+  {
+    "path": "assets/boot/bar-track.png",
+    "sha256": "ec30bc7c87f74fc4d8a11fdec2c8273f40599320a9552dd4500a35c9107fd80a",
+    "bytes": 139
+  }
+]

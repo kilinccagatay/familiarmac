@@ -1,0 +1,92 @@
+/* Local GDM refinement; GNOME 46 still provides authentication/session logic. */
+#lockDialogGroup {
+  background-color: #171c29;
+  background-image: url("resource:///org/gnome/shell/theme/assets/background.png");
+  background-size: cover;
+}
+.login-dialog .login-dialog-user-list { width: 18em; }
+.login-dialog .login-dialog-user-list-item {
+  background-color: transparent; box-shadow: none; border: none;
+  padding: 20px; border-radius: 20px;
+}
+.login-dialog .login-dialog-user-list-item:hover,
+.login-dialog .login-dialog-user-list-item:focus {
+  background-color: rgba(255,255,255,0.09); box-shadow: none;
+}
+.login-dialog .login-dialog-prompt-layout { width: 19em; spacing: 10px; }
+.login-dialog .login-dialog-prompt-entry {
+  background-color: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 18px; color: white; padding: 8px 12px;
+}
+.login-dialog .user-widget.vertical .user-widget-label {
+  font-size: 16pt; font-weight: 600;
+}
+/* The session chooser remains usable, but no longer gets a giant gear icon. */
+.login-dialog-session-list-button,
+.login-dialog .login-dialog-session-list-button {
+  width: 24px; height: 24px; min-width: 24px; min-height: 24px;
+  padding: 6px; margin: 12px; border-radius: 18px;
+  background-color: rgba(255,255,255,0.10);
+}
+.login-dialog-session-list-button StIcon,
+.login-dialog .login-dialog-session-list-button StIcon { icon-size: 16px; }
+.login-dialog-logo-bin { opacity: 0; }
+
+/* Explicit states override the distribution's blue selected user tile. */
+.login-dialog-user-list-item,
+.login-dialog-user-list-item:selected,
+.login-dialog-user-list-item:focus,
+.login-dialog-user-list-item:hover {
+  color: #ffffff;
+  background-color: rgba(30,30,36,0.28);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  box-shadow: none;
+}
+.login-dialog-prompt-entry {
+  color: white;
+  background-color: rgba(30,30,36,0.55);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+.login-dialog .login-dialog-session-list-button,
+.login-dialog-session-list-button {
+  icon-size: 16px;
+  background-image: none;
+  width: 20px; height: 20px;
+  min-width: 20px; min-height: 20px;
+  padding: 6px; margin: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  color: #eeeeee;
+  background-color: rgba(30,30,36,0.45);
+}
+.login-dialog-session-list-button .system-status-icon,
+.login-dialog-session-list-button StIcon { icon-size: 16px; }
+#panel.login-screen { background-color: transparent; color: white; }
+
+/* macOS reference: clock above, compact user/password area below. */
+.macbook-login-clock { color: rgba(255,255,255,0.92); spacing: 2px; font-size: 18px; font-weight: 600; }
+.macbook-login-time { font-size: 80px; font-weight: 700; }
+.login-dialog .login-dialog-user-list { width: 15em; }
+.login-dialog .login-dialog-user-list-item,
+.login-dialog .login-dialog-user-list-item:focus,
+.login-dialog .login-dialog-user-list-item:selected {
+  background-color: transparent; border-color: transparent;
+  box-shadow: none; padding: 8px;
+}
+.login-dialog .user-widget.vertical .user-widget-label { font-size: 11pt; }
+.login-dialog .user-widget.vertical .user-icon { icon-size: 48px; width: 48px; height: 48px; }
+.login-dialog .user-widget.vertical .user-icon StIcon { icon-size: 40px; }
+.login-dialog .login-dialog-prompt-layout { width: 17em; spacing: 6px; }
+/* GNOME 46 uses AuthMenuButton, not the older session-list-button class. */
+.login-dialog .login-dialog-auth-menu-button {
+  width: 24px; height: 24px; min-width: 24px; min-height: 24px;
+  padding: 4px; margin: 10px; border-radius: 10px;
+  background-image: none; background-color: rgba(0,0,0,0.18);
+  border: none; box-shadow: none; icon-size: 16px;
+}
+.login-dialog .login-dialog-auth-menu-button StIcon { icon-size: 16px; }
+#panel.login-screen .clock-display { opacity: 0; }

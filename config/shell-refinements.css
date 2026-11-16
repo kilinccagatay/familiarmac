@@ -1,0 +1,65 @@
+@import url("file:///usr/share/themes/MacBook-WhiteSur-Dark/gnome-shell/gnome-shell.css");
+
+/* Less rounded dock: the distribution's 24px radius made a pill. */
+#dashtodockContainer.bottom #dash .dash-background,
+#dashtodockContainer.bottom.dashtodock #dash .dash-background,
+#dashtodockContainer.bottom:overview #dash .dash-background {
+  border-radius: 12px !important;
+}
+
+/* Fixed docks must reserve only their visible height, with no top gutter. */
+#dashtodockContainer.bottom.fixed #dash .dash-background {
+  margin-top: 0;
+  border-radius: 12px;
+}
+#dashtodockContainer.bottom.fixed #dash .dash-item-container .app-well-app,
+#dashtodockContainer.bottom.fixed #dash .dash-item-container .show-apps {
+  padding-top: 10px;
+}
+
+/* GNOME 46 shared confirmation dialogs: explicit, legible button states. */
+.modal-dialog {
+  color: #f2f2f2;
+  background-color: #282828;
+  border-radius: 16px;
+  padding: 8px;
+}
+.modal-dialog .modal-dialog-linked-button {
+  color: #ffffff !important;
+  background-color: #464646;
+  background-gradient-direction: none;
+  min-height: 36px;
+  padding: 4px 16px;
+  margin: 6px !important;
+  border: 2px solid transparent !important;
+  border-radius: 8px;
+  box-shadow: none !important;
+  text-shadow: none;
+}
+.modal-dialog .modal-dialog-linked-button StLabel {
+  color: #ffffff !important;
+  font-size: 11pt;
+  font-weight: 500;
+}
+.modal-dialog .modal-dialog-linked-button:hover {
+  background-color: #575757;
+}
+.modal-dialog .modal-dialog-linked-button:active {
+  background-color: #353535;
+}
+.modal-dialog .modal-dialog-linked-button:focus {
+  border-color: #87b8ff !important;
+  box-shadow: none !important;
+}
+.modal-dialog .modal-dialog-linked-button:default {
+  color: #ffffff !important;
+  background-color: #1769cf;
+}
+.modal-dialog .modal-dialog-linked-button:default:hover {
+  background-color: #237ae8;
+}
+.modal-dialog .modal-dialog-linked-button:insensitive,
+.modal-dialog .modal-dialog-linked-button:insensitive StLabel {
+  color: #aaaaaa !important;
+  background-color: #383838;
+}

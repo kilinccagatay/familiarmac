@@ -1,0 +1,16 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const source=fs.readFileSync(__dirname+'/../overrides/rounded-window-corners/manager/utils.js','utf8');
+const functions=['unwrapActor','getRoundedCornersEffect'].map(name=>source.match(new RegExp('export function '+name+'\\([^)]*\\) \\{[\\s\\S]*?\\n\\}'))[0].replace('export ',''));
+const context={ROUNDED_CORNERS_EFFECT:'rounded',};vm.runInNewContext(functions.join('\n'),context);
+const effect={};const inner={get_effect:()=>{throw Error('Interior content must not be clipped');}};
+const outer={firstChild:inner,get_first_child:()=>inner,get_effect:name=>{assert.equal(name,'rounded');return effect;}};
+assert.equal(context.unwrapActor(outer),outer);assert.equal(context.getRoundedCornersEffect(outer),effect);
+console.log('Rounding attachment and lookup both target the outer window: PASS');
+const boundsCode=source.match(/export function computeBounds\([\s\S]*?\n\}/)[0].replace('export ','');
+const boundsContext={getPref:()=>false};vm.runInNewContext(boundsCode,boundsContext);
+const frame={width:1440,height:850,metaWindow:{maximizedHorizontally:true,maximizedVertically:true}};
+let bounds=boundsContext.computeBounds(frame,[0,0,0,0]);
+assert.deepEqual(JSON.parse(JSON.stringify(bounds)),{x1:0,y1:0,x2:1440,y2:850});
+frame.metaWindow.maximizedHorizontally=false;frame.metaWindow.maximizedVertically=false;
+bounds=boundsContext.computeBounds(frame,[0,0,0,0]);assert.equal(bounds.x1,1);assert.equal(bounds.y1,1);
+console.log('Maximized clipping reaches all work-area edges; floating inset preserved: PASS');
