@@ -94,6 +94,9 @@ class SearchDialog extends ModalDialog.ModalDialog {
         this.dialogLayout.y_expand = true;
         this.dialogLayout.x_align = Clutter.ActorAlign.FILL;
         this.dialogLayout.y_align = Clutter.ActorAlign.FILL;
+        // BinLayout uses ActorAlign only for expanding children; otherwise its
+        // default CENTER alignment adds half the remaining height to our offset.
+        this.dialogLayout._dialog.y_expand = true;
         this.dialogLayout._dialog.y_align = Clutter.ActorAlign.START;
         this.buttonLayout.hide();
         this._timeoutId = 0;

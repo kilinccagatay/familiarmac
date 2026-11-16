@@ -506,3 +506,15 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 
 - Live testing showed GTK reports `Gtk.DragResult.ERROR` (5), not `NO_TARGET`, when releasing a desktop file over this Wayland Dock. Accept that release path only after checking the visible Trash target; explicit user cancellation remains excluded. The Shell bridge also rejects a still-held primary button.
 - On 16 November 2026, a disposable desktop text file was dragged to the Dock by the user: its original disappeared and its file appeared in the user's Trash. The user also confirmed hearing the completion sound. No personal files were used or permanently deleted.
+
+### Spotlight placement and nested corners
+
+- Make the inner Spotlight card participate in Clutter BinLayout expansion so its top alignment is honored. The 20% screen-height offset is no longer added to a vertically centered allocation; result growth preserves the top anchor.
+- Match result-card corners to the outer 24px radius and 8px inset (16px inner radius). Applies to calculator and all search results.
+- Layout setup, nested radii, calculator selection, outside-click dismissal and Super+Space toggle regression checks pass. Actual Shell placement requires verification after the updated module loads at the next login.
+
+### Investigate idle Wayland session crash
+
+- Preserved the 16 November 18:54 CET Nouveau context-switch timeout and Mesa segfault evidence. Earlier Xwayland render-target traps predate the latest Spotlight edit; an extension trigger has not been established.
+- Found and installed missing GK107M video firmware using Nouveau's documented extraction route. A targeted installer verifies all ten hashes, refuses conflicting destination files, checks the GPU/driver and records installed files. No firmware blobs are distributed.
+- Installation was verified on disk. No driver/kernel/network/boot configuration changed and no active module was reloaded. Video-engine retry and long-term crash resolution still need validation; this is not a confirmed fix for the entire crash chain.

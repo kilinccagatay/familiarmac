@@ -13,7 +13,7 @@
 }
 .appmenu-search-dialog .appmenu-search-results { margin-top: 6px; spacing: 2px; }
 .appmenu-search-dialog .appmenu-search-section-title { margin: 5px 6px 2px; font-size: 8pt; }
-.appmenu-search-dialog .appmenu-search-result { padding: 5px 8px; border-radius: 8px; }
+.appmenu-search-dialog .appmenu-search-result { padding: 5px 8px; border-radius: 16px; }
 .appmenu-search-dialog .appmenu-search-result-title { font-size: 10pt; }
 .appmenu-search-dialog .appmenu-search-result-subtitle { font-size: 8pt; }
 .appmenu-search-dialog .appmenu-search-empty-state { padding: 8px; spacing: 3px; }

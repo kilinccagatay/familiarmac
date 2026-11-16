@@ -12,6 +12,21 @@ obj._search('app');assert.equal(results.length,5);obj._search('  ');assert.equal
 assert.equal(obj.dialogLayout._dialog.translation_y,180);
 console.log('Compact search: empty launch, inner top margin retained across queries, bounded results PASS');
 
+// Exercise the layout setup as well as open(): BinLayout ignores START for
+// non-expanding children, even when the surrounding wrapper fills the monitor.
+const layoutTarget={dialogLayout:{_dialog:{}}};
+const setup=code.slice(code.indexOf('this.dialogLayout.x_expand = true;'), code.indexOf('this.buttonLayout.hide();'));
+vm.runInNewContext('(function(){'+setup+'}).call(target)', {target:layoutTarget,Clutter:{ActorAlign:{FILL:0,START:1}}});
+assert.equal(layoutTarget.dialogLayout.y_expand,true);
+assert.equal(layoutTarget.dialogLayout._dialog.y_expand,true);
+assert.equal(layoutTarget.dialogLayout._dialog.y_align,1);
+const css=fs.readFileSync('overrides/appmenu/search.css','utf8');
+const outer=css.match(/\.modal-dialog\.appmenu-search-dialog \{([^}]+)/)[1];
+const inner=css.match(/\.appmenu-search-dialog \.appmenu-search-result \{([^}]+)/)[1];
+const radius=s=>Number(s.match(/border-radius: (\d+)px/)[1]);
+assert.equal(radius(outer)-radius(inner),Number(outer.match(/padding: (\d+)px/)[1]));
+console.log('Spotlight: expanding top-aligned card and concentric inset corners PASS');
+
 let closed=0;obj.close=()=>closed++;obj.dialogLayout._dialog={get_transformed_position:()=>[100,100],get_transformed_size:()=>[460,60]};
 assert.equal(obj._closeOnOutsidePress({type:()=>1,get_coords:()=>[120,120]}),false);
 assert.equal(obj._closeOnOutsidePress({type:()=>1,get_coords:()=>[50,120]}),true);
