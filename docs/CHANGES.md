@@ -448,3 +448,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Supports addition, subtraction, multiplication, division, parentheses, powers (`^`), unary signs and postfix percentages (`15% = 0.15`). Both comma and dot are decimal separators, including mixed input (`52,5 + 52.5 = 105`); thousands separators are not supported.
 - Results use regional number formatting, up to 12 significant digits. Enter or clicking the result copies it to the clipboard. Invalid/incomplete expressions and non-finite results do not produce a calculator result.
 - Parser and search-to-clipboard integration tests passed. Installed Shell JavaScript takes effect at next login; live visual validation remains pending.
+
+### Spotlight position and toggle correction
+
+- Keep the search card at 20% of the active monitor height using a translation independent of St theme margins, so showing results does not reset its top offset.
+- Handle Super/Command+Space inside the search modal to close it on the second press; ordinary Space still types normally. The desktop shortcut continues to open it.
+- Search/clipboard and modal shortcut regressions pass. Installed for next login; actual screen placement still needs session validation.

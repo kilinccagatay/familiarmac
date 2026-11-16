@@ -141,6 +141,11 @@ class SearchDialog extends ModalDialog.ModalDialog {
                     });
                 return Clutter.EVENT_STOP;
             }
+            if (key === Clutter.KEY_space &&
+                (event.get_state() & Clutter.ModifierType.SUPER_MASK)) {
+                this.close();
+                return Clutter.EVENT_STOP;
+            }
             if (key === Clutter.KEY_Escape) {
                 this.close();
                 return Clutter.EVENT_STOP;
@@ -220,7 +225,9 @@ class SearchDialog extends ModalDialog.ModalDialog {
         this._lastQuery = '';
         this._entry.set_text('');
         this._renderResults([]);
-        this.dialogLayout._dialog.margin_top = Math.round(Main.layoutManager.currentMonitor.height * 0.20);
+        // St theme/style changes can replace actor margins when results appear.
+        // Translation is independent of CSS and remains fixed as the card grows.
+        this.dialogLayout._dialog.translation_y = Math.round(Main.layoutManager.currentMonitor.height * 0.20);
         super.open(global.get_current_time());
         this._entry.grab_key_focus();
     }

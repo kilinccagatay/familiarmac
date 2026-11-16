@@ -6,10 +6,10 @@ const context={_:s=>s,St:{ClipboardType:{CLIPBOARD:1},Clipboard:{get_default:()=
 vm.runInNewContext(fs.readFileSync('overrides/appmenu/calculator.js','utf8').replace(/^export /gm,'')+'\n'+code+';globalThis.SearchDialog=SearchDialog;',context);
 const p=context.SearchDialog.prototype;
 const obj=Object.create(p);Object.assign(obj,{_destroyed:false,_entry:{set_text(){},grab_key_focus(){}},dialogLayout:{_dialog:{}},_resultsBox:{visible:true,destroy_all_children(){},add_child(){throw Error('Blank query must not add results');}}});
-obj.open();assert.equal(opened,true);assert.equal(obj._resultsBox.visible,false);assert.equal(obj.dialogLayout._dialog.margin_top,180);
+obj.open();assert.equal(opened,true);assert.equal(obj._resultsBox.visible,false);assert.equal(obj.dialogLayout._dialog.translation_y,180);
 let results;obj._renderResults=r=>results=r;obj._apps=()=>Array.from({length:12},(_,i)=>({title:'app '+i,type:'app'}));obj._settings=()=>[];obj._recent=()=>[];
 obj._search('app');assert.equal(results.length,5);obj._search('  ');assert.equal(results.length,0);
-assert.equal(obj.dialogLayout._dialog.margin_top,180);
+assert.equal(obj.dialogLayout._dialog.translation_y,180);
 console.log('Compact search: empty launch, inner top margin retained across queries, bounded results PASS');
 
 let closed=0;obj.close=()=>closed++;obj.dialogLayout._dialog={get_transformed_position:()=>[100,100],get_transformed_size:()=>[460,60]};
@@ -20,3 +20,16 @@ console.log('Search dismissal: outside clicks close; inside clicks and keyboard 
 
 obj._search('700/12');assert.equal(results[0].type,'calculator');assert.equal(results[0].title,'58.3333333333');obj._activate(results[0]);assert.equal(clipboard,'58.3333333333');
 console.log('Search calculator result selection copies answer PASS');
+
+// Exercise the actual captured-event handler while the search owns modal focus.
+const handlerSource=code.slice(code.indexOf("(_actor, event) => {"),code.indexOf('\n    _closeOnOutsidePress'));
+const handler=handlerSource.slice(0,handlerSource.lastIndexOf('});')+1);
+const keyContext={Clutter:{EventType:{KEY_PRESS:3},KEY_space:32,KEY_Escape:27,ModifierType:{SUPER_MASK:64},EVENT_STOP:1,EVENT_PROPAGATE:0}};
+const target={_destroyed:false,_closeOnOutsidePress:()=>false,close:()=>closed++};
+const onKey=vm.runInNewContext('(function(){return '+handler+'}).call(target)',{...keyContext,target});
+const before=closed;
+assert.equal(onKey(null,{type:()=>3,get_key_symbol:()=>32,get_state:()=>64}),1);
+assert.equal(closed,before+1);
+assert.equal(onKey(null,{type:()=>3,get_key_symbol:()=>32,get_state:()=>0}),0);
+assert.equal(closed,before+1);
+console.log('Spotlight modal Super+Space closes; plain Space remains input PASS');
