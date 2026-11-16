@@ -208,3 +208,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Unit tests cover layout/restoration and setting synchronization; complete suite passed. Installed for next login; live visual validation pending.
 - Apple references: [Notification Center](https://support.apple.com/en-gb/guide/mac-help/-mchl2fb1258f/mac), [Focus menu](https://support.apple.com/en-bw/guide/mac-help/mchl999b7c1a/mac). This Linux version retains its native calendar; it does not implement Apple's widget gallery or cross-device Focus.
 - User confirmed the early Nouveau initramfs change resolved both boot and logout corruption.
+
+## 2026-11-16 — Consistent status-bar spacing
+
+- All right-panel buttons use one 6px horizontal padding budget, zero extra icon padding/margins, and 16px symbolic hardware icons. Control Center no longer has its own larger padded icon.
+- Tray boxes lose theme-added margins. All AppIndicator applications use 20px artwork bounds to balance inset full-colour artwork against symbolic icons; no ChatGPT-specific exception. Arbitrary source artwork may still have different internal transparent margins.
+- Installer applies the shared tray size when a supported AppIndicator schema exists and saves its old value for restoration. Clock retains seconds and its existing UI-language format.
+- Installed CSS loads with the next session; tray size updates live. Visual verification remains pending.

@@ -225,6 +225,11 @@ write(registrar, (ROOT/'scripts/appmenu-registrar.py').read_text())
 write(Path.home()/'.config/autostart/macbook-appmenu-registrar.desktop',
       '[Desktop Entry]\nType=Application\nName=Application Menu Registrar\nExec=/usr/bin/python3 '+str(registrar)+'\nNoDisplay=true\nX-GNOME-Autostart-enabled=true\n')
 
+# Full-colour tray artwork has inset edges; use a shared optical size for all apps.
+for tray_schema in ('org.gnome.shell.extensions.zorin-appindicator', 'org.gnome.shell.extensions.appindicator'):
+    if Gio.SettingsSchemaSource.get_default().lookup(tray_schema, True):
+        setting(tray_schema, 'icon-size', '20')
+
 # Install the separate Apple menu, including its own clean icon.
 for f in (ROOT/'extensions/macbook-menu@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/macbook-menu@local'/f.name,f.read_text())
