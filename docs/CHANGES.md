@@ -523,3 +523,11 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 
 - Temporarily allow the registered search accelerator in SYSTEM_MODAL while Spotlight is open. Mutter intercepts registered shortcuts before the entry's captured-event handler, so handling Super+Space only on that actor was insufficient.
 - Restore NORMAL-only scope on close, failed modal grab and destruction; other system dialogs do not gain a new Spotlight shortcut. Tests cover the scope lifecycle alongside calculator/input behavior.
+
+### Dock activation during application shutdown
+
+- Apply to all applications through the common Dock activation handler, not a Firefox profile or app-specific command.
+- Send the open request immediately, including for background applications. Keep it pending until a real window appears; if shutdown swallowed it, retry once after the old process identities disappear and Shell reports STOPPED. A fixed 1.5-second delay no longer discards the user's request.
+- Retain process start times across last-window removal to distinguish process exit from Shell window state and PID reuse. Coalesce repeated clicks, bound pending requests to 15 seconds, and remove timers/signals on disable. Never terminate a process or attempt to reverse its internal shutdown.
+- Regression tests cover immediate background activation, delayed exit, duplicate clicks, PID reuse, existing startup and cleanup. Live close-and-reopen behavior requires the updated extension in a new login.
+- User confirmed Spotlight opens and closes with Command+Space after the previous fix.
