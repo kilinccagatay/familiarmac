@@ -172,3 +172,7 @@ Keep the outer dialog wrapper expanded to the monitor allocation and place the t
 ### Hardware overlay proportions (2026-11-16)
 
 Use equal 140px content width/height plus equal padding for a square volume/brightness/keyboard-backlight HUD. Match white monochrome symbols to white filled segments on a translucent gray surface. Zero the hidden native level's width as well as height so its theme minimum cannot widen the square. Preserve native adjustment, timeout and fade behavior. Reference: [macOS volume HUD example](https://zenn.dev/noppe/articles/bc790336f3cc6a).
+
+### Rounded hardware level endpoints (2026-11-16)
+
+Round only the outer corners of the first and last hardware OSD segments. Interior segment edges stay square; the same geometry applies to filled and empty segments for sound, display and keyboard brightness.

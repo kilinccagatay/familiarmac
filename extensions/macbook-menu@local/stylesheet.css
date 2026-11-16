@@ -179,6 +179,8 @@
 .fm-osd-segments { spacing: 2px; height: 7px; }
 .fm-osd-tick { background-color: rgba(30,35,40,0.28); }
 .fm-osd-tick.filled { background-color: white; }
+.fm-osd-tick:first-child { border-radius: 4px 0 0 4px; }
+.fm-osd-tick:last-child { border-radius: 0 4px 4px 0; }
 
 /* Keep glyphs circular and align text to the same leading edge. */
 .fm-small-tile { width: 65px; }
