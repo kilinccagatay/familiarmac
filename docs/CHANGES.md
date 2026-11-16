@@ -302,3 +302,5 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Plymouth trace reaches splash at ~2.5 s after Linux starts; firmware separately reports a 5-second timeout.
 - Added optional MacBookPro10,1 timeout-only helper with backup, restore and readback; installed timeout is zero without changing boot order.
 - Physical timing benefit remains unverified; pre-logo display corruption is still unresolved.
+
+- Focus/Do Not Disturb card now uses 14px horizontal inset (was 6px), moving its icon and label together away from the left edge; other cards retain their spacing.

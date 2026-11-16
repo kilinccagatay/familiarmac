@@ -161,7 +161,7 @@
 .fm-control-row StLabel { font-size: 9pt; font-weight: 600; }
 .fm-control-symbol { icon-size: 18px; padding: 6px; border-radius: 999px; background-color: rgba(70,80,90,0.24); }
 .fm-control-symbol.enabled { background-color: #2878e7; color: white; }
-.fm-focus { min-height: 48px; }
+.fm-focus { min-height: 48px; padding: 8px 14px; }
 .fm-small-tile { min-height: 55px; }
 .fm-small-tile .fm-control-row-content { spacing: 4px; }
 .fm-small-tile StLabel { max-width: 65px; font-size: 8pt; }
