@@ -4,9 +4,9 @@
 
 [🇹🇷 Türkçe](docs/README.tr.md) · [Install](docs/INSTALL.md) · [All changes](docs/CHANGES.md) · [Sources & licenses](THIRD_PARTY.md) · [Known limitations](STATUS.md)
 
-A Mac can remain useful long after its supported macOS releases stop arriving. Linux can extend its life, but changing a familiar interface can make everyday tasks unnecessarily difficult.
+A Mac can remain useful long after its supported macOS releases stop arriving. Linux can extend its life, and I wanted the desktop to keep the routines its owner already knew.
 
-This project began when I installed Linux on my father's MacBook. He was used to macOS and struggled to find settings and familiar actions. FamiliarMac collects the themes, shortcuts and desktop integrations we built to make that transition easier. It is also a reproducible record for reinstalling my own machine after a format.
+This project began when I installed Linux on my father's MacBook. He was already comfortable with macOS, and I wanted him to keep using the computer in a familiar way rather than change his habits just because the operating system changed. FamiliarMac collects the themes, shortcuts and desktop integrations I assembled for that goal. It is also a reproducible record for reinstalling my own machine after a format.
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
