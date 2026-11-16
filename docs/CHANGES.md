@@ -561,3 +561,7 @@ Both READMEs now show cropped feature previews for Dock, About, Apps, Spotlight 
 ### Actual login-screen capture
 
 Added the real GDM greeter to both README pages and the screenshot gallery. Account name is redacted. A user-approved temporary screenshot permission was reverted after capture; the original locked setting was verified restored. No boot, graphics, Wi-Fi, or authentication configuration was retained from the capture.
+
+### Single clock on the login screen
+
+Hide the redundant top-panel clock only in the GDM greeter, retaining the large login clock and accessibility/network/power controls. Normal desktop and lock-screen clocks are unchanged. The login overlay installer includes this change for fresh installations.

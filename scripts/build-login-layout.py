@@ -13,6 +13,22 @@ s='function dateNameFormatters'+names+'\n'+s
 replace('        this._userWidget = new UserWidget.UserWidget(this.user);','        this._userWidget = new UserWidget.UserWidget(this.user, Clutter.Orientation.VERTICAL);')
 replace('        parentActor.add_child(this);', '''        parentActor.add_child(this);
 
+        // Only the GDM greeter has a second, large clock below the panel.
+        // Keep accessibility/network/power controls and normal-session clocks intact.
+        if (Main.sessionMode.isGreeter) {
+            const panelClock = Main.panel.statusArea.dateMenu?.container;
+            if (panelClock) {
+                const wasVisible = panelClock.visible;
+                const hidePanelClock = () => panelClock.hide();
+                Main.sessionMode.connectObject('updated', hidePanelClock, this);
+                hidePanelClock();
+                this.connect('destroy', () => {
+                    Main.sessionMode.disconnectObject(this);
+                    panelClock.visible = wasVisible;
+                });
+            }
+        }
+
         // Presentation only: GDM owns all authentication and user/session handling.
         this._macClock = new St.BoxLayout({vertical: true, style_class: 'macbook-login-clock'});
         this._macDate = new St.Label({x_align: Clutter.ActorAlign.CENTER});
