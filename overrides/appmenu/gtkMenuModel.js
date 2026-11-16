@@ -64,7 +64,8 @@ export class GtkMenuModel {
             let ornament = null;
             if (state && target) ornament = state.equal(target) ? 'dot' : null;
             else if (state?.get_type_string() === 'b') ornament = state.get_boolean() ? 'check' : null;
-            items.push({label, sensitive: Boolean(group?.has_action(name) && group.get_action_enabled(name)),
+            const shortcut = get('accel')?.deepUnpack() ?? get('x-gtk-accel')?.deepUnpack() ?? '';
+            items.push({label, shortcut, sensitive: Boolean(group?.has_action(name) && group.get_action_enabled(name)),
                 ornament, activate: () => {
                     if (group?.has_action(name) && group.get_action_enabled(name)) group.activate_action(name, target);
                 }});

@@ -813,7 +813,7 @@ export class RealMenuManager {
             shortcut: (() => {
                 const keys = item.property_get_variant('shortcut')?.deepUnpack()?.[0];
                 if (!Array.isArray(keys)) return '';
-                return keys.map(key => ({Control: 'Ctrl', Alt: 'Alt', Shift: 'Shift', Super: 'Super'}[key] || key.toUpperCase())).join('+');
+                return keys;
             })(),
             activate: () => this._activateItem(item),
         };

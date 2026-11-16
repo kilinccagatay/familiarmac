@@ -548,3 +548,11 @@
 }
 .fm-notification-banners .message-title { font-weight: 600; }
 .fm-notification-banners .message-body { font-weight: 400; }
+
+.macbook-system-menu .fm-system-shortcut { color: rgba(160,160,166,0.95); margin-left: 22px; font-size: 0.95em; }
+.macbook-system-menu .popup-menu-item:focus .fm-system-shortcut,
+.macbook-system-menu .popup-menu-item:hover .fm-system-shortcut { color: rgba(255,255,255,0.78); }
+
+.fm-system-light .macbook-system-menu .fm-system-shortcut { color: #64676c; }
+.fm-system-light .macbook-system-menu .popup-menu-item:focus .fm-system-shortcut,
+.fm-system-light .macbook-system-menu .popup-menu-item:hover .fm-system-shortcut { color: rgba(255,255,255,0.78); }

@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const c={};vm.runInNewContext(fs.readFileSync('overrides/appmenu/shortcutHints.js','utf8').replace(/^export /gm,''),c);
+assert.equal(c.shortcutHint(['Control','c'],'firefox.desktop'),'⌘C');
+assert.equal(c.shortcutHint('<Primary><Shift>t','brave-browser.desktop'),'⇧⌘T');
+assert.equal(c.shortcutHint('<Control>c','org.gnome.Terminal.desktop'),'⌃C');
+assert.equal(c.shortcutHint('<Control><Shift>c','org.gnome.Terminal.desktop'),'⌘C');
+assert.equal(c.shortcutHint('Ctrl+H','firefox.desktop'),'⌃H');
+assert.equal(c.itemShortcut({label:'Settings'}),'');
+assert.equal(c.itemShortcut({shortcut:'Ctrl+Y',action:'redo'}),'⌘Y');
+assert.equal(c.itemShortcut({action:'redo'}),'');
+console.log('Application shortcut hints: native precedence, Terminal exceptions, no label guesses PASS');

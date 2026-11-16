@@ -1,3 +1,4 @@
+import {itemShortcut} from './shortcutHints.js';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -103,6 +104,12 @@ const TopLevelMenuButton = GObject.registerClass(
     _executeNativeAction(action, closeMenu = true) {
         const targetWindow = global.display.get_focus_window();
         const targetApp = this._appInstance;
+        // Match the existing keyd per-terminal translations when clicking a
+        // synthetic menu action as well as when typing its displayed shortcut.
+        if (/terminal|console|kitty/i.test(targetApp?.get_id?.() ?? '')) {
+            const key = {copy:'c',paste:'v','new-tab':'t',find:'f'}[action];
+            if (key) action = `custom-shortcut:<Control><Shift>${key}`;
+        }
 
         // Close the menu first to return focus to the previous window
         if (closeMenu && this.menu) {
@@ -266,9 +273,10 @@ const TopLevelMenuButton = GObject.registerClass(
           parentMenu.addMenuItem(recentSubmenu);
         } else {
           const menuItem = new PopupMenu.PopupMenuItem(item.label);
-          if (item.shortcut) {
+          const hint = itemShortcut(item, this._appInstance?.get_id?.() ?? "");
+          if (hint) {
             menuItem.label.x_expand = true;
-            menuItem.add_child(new St.Label({text: item.shortcut,
+            menuItem.add_child(new St.Label({text: hint,
               style_class: 'macbook-menu-shortcut', x_align: Clutter.ActorAlign.END,
               y_align: Clutter.ActorAlign.CENTER}));
           }

@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+let conflict=false,activated=0,callback,ungrabbed=[];const allowed=[];
+const c={Meta:{KeyBindingFlags:{IGNORE_AUTOREPEAT:1},external_binding_name_for_action:id=>'external-'+id},Shell:{ActionMode:{NORMAL:1,POPUP:2,NONE:0}},St:{Label:class{constructor(p){Object.assign(this,p)}}},Clutter:{ActorAlign:{END:1,CENTER:2}},Main:{wm:{allowKeybinding:(...a)=>allowed.push(a)}},console:{warn(){}},global:{display:{connect:(_n,f)=>(callback=f,1),disconnect(){},grab_accelerator:()=>conflict?0:10,ungrab_accelerator:id=>ungrabbed.push(id)}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/systemShortcuts.js','utf8').replace(/^import.*\n/gm,'').replace(/^export /gm,'')+'\nglobalThis.Bindings=SystemShortcuts;',c);
+const b=new c.Bindings();const item={label:{},children:[],add_child(x){this.children.push(x)}};
+assert.equal(b.add(item,'<Super><Control>q','⌃⌘Q',()=>activated++),true);
+callback(null,10);assert.equal(activated,1);assert.equal(item.children[0].text,'⌃⌘Q');
+conflict=true;assert.equal(b.add(item,'collision','bad',()=>{}),false);assert.equal(item.children.length,1);
+b.destroy();assert.deepEqual(ungrabbed,[10]);assert.equal(allowed.at(-1)[1],0);
+console.log('System shortcut collision leaves owner intact, no false hint; owned grabs cleaned up PASS');

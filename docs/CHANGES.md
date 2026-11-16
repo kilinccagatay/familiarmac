@@ -473,3 +473,11 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - The Settings Dock context menu now lists installed GNOME settings panels alphabetically, both while Settings is running and while closed, followed by normal Dock options.
 - Names come from localized desktop entries; version-specific subpage arguments (including System → About) are preserved. Actions use the guarded Settings launcher. macOS-only services are not fabricated.
 - Parser and stopped/running menu activation regressions passed; installed for next login.
+
+### Application-aware menu shortcuts
+
+- Show actual exported DBusMenu/GMenu accelerators as right-aligned subdued Apple symbols. Preserve GTK `accel`/`x-gtk-accel` metadata and app-specific overrides rather than guessing shortcuts from labels. Terminal Ctrl+C remains Control-C; its configured Ctrl+Shift+C equivalent is shown as Command-C. Synthetic terminal Copy/Paste actions also use the existing terminal mappings.
+- Add conflict-checked Apple menu bindings: Control-Command-Q locks, Shift-Command-Q opens logout confirmation, Option-Command-Escape opens the existing force-quit/process manager. A failed accelerator grab keeps the existing owner's binding and omits the hint. Disable releases only owned grabs.
+- The three explicit keyd translations separate Command from Control; existing keyboard/touchpad mappings remain intact. The incremental installer backs up and merges the running profile. No destructive Power/Restart shortcuts are added, nor shortcuts invented for About/System Settings.
+- Local parser, exported-action, collision/cleanup and real keyd tests passed. Installed Shell changes activate at next login; live keyboard/UI validation is still required.
+- Apple reference: https://support.apple.com/en-us/102650 . Menu hints reflect the shortcuts implemented on Linux, not an assertion that every macOS-only command is supported.

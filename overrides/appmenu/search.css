@@ -28,3 +28,12 @@
 .appmenu-search-dialog .appmenu-search-result.selected { background-color: #2878e7; color: white; }
 .appmenu-search-dialog .appmenu-search-result.selected .appmenu-search-result-subtitle { color: rgba(255,255,255,0.8); }
 .appmenu-search-dialog .appmenu-search-result-content { spacing: 10px; }
+
+/* Right-aligned native shortcut hints; independent of translated menu labels. */
+.macbook-app-popup .macbook-menu-shortcut { color: rgba(160,160,166,0.95); margin-left: 22px; font-size: 0.95em; }
+.macbook-app-popup .popup-menu-item:focus .macbook-menu-shortcut,
+.macbook-app-popup .popup-menu-item:hover .macbook-menu-shortcut { color: rgba(255,255,255,0.78); }
+
+.fm-system-light .macbook-app-popup .macbook-menu-shortcut { color: #64676c; }
+.fm-system-light .macbook-app-popup .popup-menu-item:focus .macbook-menu-shortcut,
+.fm-system-light .macbook-app-popup .popup-menu-item:hover .macbook-menu-shortcut { color: rgba(255,255,255,0.78); }

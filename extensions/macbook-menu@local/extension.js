@@ -1,3 +1,4 @@
+import {SystemShortcuts} from './systemShortcuts.js';
 import {NotificationBanner} from './notificationBanner.js';
 import {SystemAppearance} from './systemAppearance.js';
 import {OsdStyle} from './osdStyle.js';
@@ -176,7 +177,10 @@ export default class MacBookMenu extends Extension {
             recent.menu.addMenuItem(empty);
         }
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        menu.addAction(label('Force Quit…', 'Çıkmaya Zorla…'), () => Util.spawn(['gnome-system-monitor']));
+        this._systemShortcuts = new SystemShortcuts();
+        const forceQuit = () => { menu.close(); Util.spawn(['gnome-system-monitor']); };
+        const forceItem = menu.addAction(label('Force Quit…', 'Çıkmaya Zorla…'), forceQuit);
+        this._systemShortcuts.add(forceItem, '<Super><Alt>Escape', '⌥⌘⎋', forceQuit);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const actions = SystemActions.getDefault();
         const entries = [
@@ -189,6 +193,12 @@ export default class MacBookMenu extends Extension {
             if (method === 'activateLockScreen') menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             const item = menu.addAction(label, () => actions[method]());
             item.setSensitive(actions[capability]);
+            const binding = {activateLockScreen: ['<Super><Control>q', '⌃⌘Q'],
+                activateLogout: ['<Super><Shift>q', '⇧⌘Q']}[method];
+            if (binding) this._systemShortcuts.add(item, ...binding, () => {
+                menu.close();
+                if (actions[capability]) actions[method]();
+            });
             return {item, capability};
         });
         this._actions = actions;
@@ -203,6 +213,8 @@ export default class MacBookMenu extends Extension {
     }
 
     disable() {
+        this._systemShortcuts?.destroy();
+        this._systemShortcuts = null;
         this._appearance?.destroy();
         this._appearance = null;
         this._osdStyle?.destroy();
