@@ -210,6 +210,9 @@ with tempfile.TemporaryDirectory() as tmp:
         if f.is_file(): write(appmenu_dir/f.relative_to(tmp), f.read_bytes())
     subprocess.run(['glib-compile-schemas', '--strict', '--targetdir='+tmp, str(appmenu_dir/'schemas')], check=True)
     write(appmenu_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
+# Compact search: keep the vendor archive intact; apply reviewable overrides.
+write(appmenu_dir/'searchDialog.js', (ROOT/'overrides/appmenu/searchDialog.js').read_text())
+write(appmenu_dir/'stylesheet.css', (appmenu_dir/'stylesheet.css').read_text() + '\n' + (ROOT/'overrides/appmenu/search.css').read_text())
 for key, value in {
     'show-os-icon': 'true', 'show-user-switcher': 'false',
     'show-workspace-indicator': 'false', 'search-shortcut': "['<Super>space']",

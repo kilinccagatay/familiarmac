@@ -34,3 +34,5 @@ Brightness behavior reference: [GNOME 46 gsd-backlight.c](https://github.com/GNO
 
 ### Desktop-to-dock trash integration
 The installer patches a user-local copy of the system-installed `zorin-desktop-icons@zorinos.com` (Zorin's Desktop Icons NG fork). Original source headers credit Sergio Costas, Sundeep Mediratta and Carlos Soriano; GPL-3.0. The installed extension's source/license headers are preserved. Only our insertion patch is shipped in this repository. Dock target detection uses Zorin Dash's existing location-app interface (`locations.js`). No upstream desktop-extension code is bundled by this addition.
+
+`overrides/appmenu/searchDialog.js` derives from the pinned AppMenu search dialog above; retains its upstream license. Local changes: compact empty state, bounded results, fixed top anchor and outside-click dismissal. `overrides/appmenu/search.css` contains the accompanying FamiliarMac styling.

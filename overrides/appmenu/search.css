@@ -1,0 +1,20 @@
+/* FamiliarMac compact Spotlight-style search. Empty queries show only the entry. */
+.modal-dialog.appmenu-search-dialog {
+    width: 460px;
+    padding: 8px;
+    border-radius: 16px;
+}
+.appmenu-search-dialog .modal-dialog-content-box { padding: 0; spacing: 0; }
+.appmenu-search-dialog .appmenu-search-entry {
+    min-height: 30px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 14pt;
+}
+.appmenu-search-dialog .appmenu-search-results { margin-top: 6px; spacing: 2px; }
+.appmenu-search-dialog .appmenu-search-section-title { margin: 5px 6px 2px; font-size: 8pt; }
+.appmenu-search-dialog .appmenu-search-result { padding: 5px 8px; border-radius: 8px; }
+.appmenu-search-dialog .appmenu-search-result-title { font-size: 10pt; }
+.appmenu-search-dialog .appmenu-search-result-subtitle { font-size: 8pt; }
+.appmenu-search-dialog .appmenu-search-empty-state { padding: 8px; spacing: 3px; }
+.appmenu-search-dialog .appmenu-search-empty-icon { icon-size: 18px; }
