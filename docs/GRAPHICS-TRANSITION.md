@@ -1,6 +1,25 @@
 # MacBookPro10,1: transient corruption during boot/logout
 
-This is a hardware-specific, **unverified workaround**, not a default FamiliarMac theme setting.
+These are hardware-specific diagnostic changes, not default FamiliarMac theme settings.
+
+## Current result and next test
+
+On 2026-11-16 the `fbcon=nodefer` test was confirmed active after reboot: the framebuffer console was bound, but the user still saw corruption between two appearances of the Apple boot splash. **That workaround did not solve the reported boot artifact.** It must not be described as a fix.
+
+The current initramfs was then inspected: it did not contain `nouveau` or `apple-gmux`. The boot journal showed SimpleDRM first and Nouveau taking over roughly four seconds later. The next controlled test is to load the existing Nouveau driver before Plymouth displays its first logo:
+
+```sh
+bash scripts/install-early-kms.sh --check
+sudo bash scripts/install-early-kms.sh --install
+```
+
+This installer first removes the failed `fbcon=nodefer` drop-in, backs up the current kernel's initramfs, and adds an initramfs hook using the distribution's `force_load` function for `apple_gmux` followed by `nouveau`. Local initramfs-tools `/init` loads these modules before `init-premount/plymouth`. It verifies that both module files are included in the rebuilt image and restores the previous image if generation/verification fails. No live driver reload, GPU mux change or automatic restart is performed.
+
+After reboot, verify module timing and compare the splash visually. This targets the **boot** renderer handoff; it is not evidence that logout corruption is fixed. Test logout separately. Reference: [Nouveau KMS handover](https://nouveau.freedesktop.org/KernelModeSetting.html).
+
+Undo early loading with `sudo bash scripts/install-early-kms.sh --restore` and reboot. The untouched older kernel remains available in GRUB. The hook also applies to subsequently rebuilt kernels; after removing it, regenerate any other affected images with `sudo update-initramfs -u -k all`.
+
+## Previous test (retained for the diagnostic record)
 
 ## Observed evidence
 

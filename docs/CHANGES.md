@@ -195,3 +195,7 @@ Initialize the DND crescent adapter when the extension enables, not when Control
 ### Optional framebuffer handoff workaround (2026-11-16)
 
 Added a device-restricted, reversible `fbcon=nodefer` installer for the reported boot/logout corruption on MacBookPro10,1 with Nouveau. Diagnosis found a registered framebuffer but only the dummy console bound, with deferred takeover in the journal. This is a controlled hypothesis, not a verified fix. It changes one future-boot parameter, does not switch GPUs or disable acceleration, and includes backup, generation checks and restore mode. See [GRAPHICS-TRANSITION.md](GRAPHICS-TRANSITION.md) for evidence, verification and rollback.
+
+### Boot corruption: failed test recorded, early KMS test added (2026-11-16)
+
+The user confirmed boot corruption persisted with `fbcon=nodefer` active; record this as failed, not fixed. Added an opt-in MacBookPro10,1 installer that removes that experiment and loads gmux/Nouveau from initramfs before Plymouth. The existing image lacked both modules and the journal showed a late SimpleDRM→Nouveau transition. Installation backs up the current image, checks included modules, and supports restore. Visual boot/logout results remain pending; no desktop performance or input settings changed.
