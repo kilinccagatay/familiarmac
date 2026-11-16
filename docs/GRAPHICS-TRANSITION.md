@@ -174,6 +174,14 @@ Reference: [efibootmgr timeout semantics](https://github.com/rhboot/efibootmgr/b
 
 ## Same-terminal GRUB logo (separate experiment, November 16)
 
+**Withdrawn after hardware testing.** Cold boot showed no standalone logo,
+approximately nine seconds to Plymouth, and renewed display corruption.
+Installation is disabled; use --restore. Empty echo instead of terminal reset
+did not prevent the regression. The historical procedure below is not a
+recommended installation. Do not retry GRUB framebuffer artwork as a proven
+safe early-logo solution on this machine.
+
+
 User requested another early-logo attempt without the withdrawn terminal reset.
 Install with `sudo bash scripts/install-grub-static-logo.sh --install`; remove
 with the same script's `--restore`. Restricted to the tested EFI MacBookPro10,1.

@@ -4,6 +4,10 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 mode=${1:---check}
 case "$mode" in --check|--install|--restore) ;; *) exit 2;; esac
+if [[ $mode == --install ]]; then
+  echo 'Installation withdrawn: cold-boot test reproduced corruption and no early logo. Use --restore.' >&2
+  exit 1
+fi
 [[ $(cat /sys/class/dmi/id/product_name) == MacBookPro10,1 && -d /sys/firmware/efi ]] || { echo 'Test profile: EFI MacBookPro10,1 only.'; exit 1; }
 config=/etc/default/grub.d/97-familiarmac-static-logo.cfg
 refresh=/etc/grub.d/06_familiarmac_static_logo

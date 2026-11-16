@@ -333,3 +333,8 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Added a separate opt-in, backed-up installer using background_image and an empty echo paint flush on the already active terminal. No clear, extra terminal selection, delay or video-mode override.
 - Validates generated GRUB syntax and unchanged kernel/initrd/mode/timeout commands, rolling back on failure. Previous withdrawn early-logo installer remains disabled.
 - Rendered and visually inspected the logo asset. Installed Wi-Fi module, initramfs and early Nouveau hook checksums remain unchanged; Wi-Fi stays connected. Physical early-logo visibility and clean handoff require reboot validation.
+
+### Withdraw same-terminal GRUB logo after cold-boot failure
+- User observed no standalone logo, about nine seconds before Plymouth and renewed display corruption. Static configuration checks did not predict this physical failure.
+- Restored distribution GRUB theme and removed the logo/paint-flush layer; disabled installation of this experiment while retaining --restore.
+- Preserve signed Broadcom module, initramfs and early Nouveau hook. Physical clean-boot confirmation remains necessary; delay is unresolved.
