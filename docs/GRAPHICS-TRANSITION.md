@@ -207,3 +207,26 @@ Sources: https://www.gnu.org/software/grub/manual/grub/html_node/Simple-configur
 and GRUB implementations:
 https://github.com/rhboot/grub2/blob/master/grub-core/commands/echo.c
 https://github.com/rhboot/grub2/blob/master/grub-core/term/gfxterm_background.c
+
+## November 16, 15:34 boot comparison
+
+Current 7.0.0-43 trace: Nouveau framebuffer registered at 1.981s,
+fbcon takeover at 2.068s, Plymouth scanout at 2.561s, GDM requests Plymouth
+deactivation at 15.960s. Both greeter and user Shell select NVIDIA card0.
+No GPU reset is recorded during this boot transition. Missing video-decode
+firmware is first reported at 50.311s, too late to explain the pre-logo frame.
+These observations do not prove the exact source of the visible corruption.
+
+Prepared installed 6.17.0-20 as a controlled comparison: build the same Broadcom
+STA source for that kernel, retain early apple_gmux/Nouveau and regenerate only
+its initramfs (backed up). `scripts/prepare-kernel-comparison.sh KERNEL` performs
+preflight and preparation without selecting a boot or restarting anything.
+On this host a separate `grub-reboot` selection targets 6.17 for one boot only;
+the permanent default remains 7.0. No GPU mux or acceleration changes were made.
+After reboot compare the artifact, `uname -r`, Wi-Fi and a logout/login. This is
+a diagnostic comparison, not a confirmed fix or recommendation to downgrade.
+
+Runtime switching is a separate problem: see
+https://docs.kernel.org/gpu/vga-switcheroo.html and Apple's automatic selection
+behavior https://support.apple.com/en-us/102265 . An inactive Intel output in
+the current logs is not proof that the hardware cannot switch its panel.
