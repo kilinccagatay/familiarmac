@@ -91,3 +91,8 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 ### Visible dock separator and control-card geometry
 - Downloads now contains a dedicated noninteractive 1×32 logical-pixel divider actor before its button. It no longer depends on the dock's `.bottom` class or a theme-overridden container border. Divider is destroyed with the stack and does not add timers or input handlers.
 - Control Center card main/arrow halves now have complementary corners and matching enabled/disabled colors. Removed doubled padding and inherited fixed minimum widths; enlarged panel to 360 logical pixels for readable titles. Changes need the next login; physical appearance is not yet verified.
+
+### Independent status buttons
+- Network, Bluetooth, volume and battery now have separate panel hit targets with their live native indicators. The Control Center icon opens the full panel; separate buttons show only their corresponding native controls. Repeated click closes the detail. Keyboard Enter/Space/Down is supported.
+- Controls remain in their native grid, preserving submenu overlay metadata. Other controls are temporarily hidden with state-change tracking and restored on close/disable. No duplicate network/audio daemons; startup readiness wait is bounded and removed on disable. Privacy indicators remain in the native area.
+- Tests cover filtering, changing visibility, repeated activation and restoration. Full test suite passed. Installed for next login; live pointer/keyboard behavior still needs physical verification.

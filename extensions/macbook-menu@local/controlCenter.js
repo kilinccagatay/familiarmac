@@ -1,3 +1,4 @@
+import {StatusButtons} from './statusButtons.js';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import GLib from 'gi://GLib';
@@ -22,6 +23,7 @@ export class ControlCenter {
         this.openSignal = this.panel.menu.connect('open-state-changed', (_menu, open) => {
             if (open) this.arrange();
         });
+        this.statusButtons = new StatusButtons(this);
     }
 
     arrange() {
@@ -61,6 +63,8 @@ export class ControlCenter {
     }
 
     destroy() {
+        this.statusButtons?.destroy();
+        this.statusButtons = null;
         if (this.openSignal) this.panel.menu.disconnect(this.openSignal);
         this.openSignal = 0;
         if (this.notifySignal) this.notifications.disconnect(this.notifySignal);
