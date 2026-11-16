@@ -25,7 +25,7 @@ export class OsdStyle {
         this.saved.set(window, saved);
         box.vertical = true;
         box.add_style_class_name('fm-hardware-osd');
-        window._level.set_style('height: 0; min-height: 0;');
+        window._level.set_style('height: 0; min-height: 0; width: 0; min-width: 0; margin: 0; padding: 0;');
         window._level.opacity = 0;
         window._vbox.add_child(row);
         const sync = () => {

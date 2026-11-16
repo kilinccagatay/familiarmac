@@ -168,3 +168,7 @@ Keep the outer dialog wrapper expanded to the monitor allocation and place the t
 - Dock activation no longer waits for a background application with no closing window; when an already-starting application produces a window, a pending click activates it instead of being discarded. Closing-window clicks remain coalesced and bounded.
 - Reference: [Apple Battery Status menu](https://support.apple.com/en-sg/guide/mac-help/mchl173fcc57/27/mac/27). Linux state comes from GNOME Shell's existing UPower proxy; no additional polling service.
 - Regression tests cover activation transitions, battery state changes/cleanup, popup restoration and control allocation properties. Real session startup and physical click behavior still require verification after a new login; unit tests are not a visual or hardware acceptance test.
+
+### Hardware overlay proportions (2026-11-16)
+
+Use equal 140px content width/height plus equal padding for a square volume/brightness/keyboard-backlight HUD. Match white monochrome symbols to white filled segments on a translucent gray surface. Zero the hidden native level's width as well as height so its theme minimum cannot widen the square. Preserve native adjustment, timeout and fade behavior. Reference: [macOS volume HUD example](https://zenn.dev/noppe/articles/bc790336f3cc6a).
