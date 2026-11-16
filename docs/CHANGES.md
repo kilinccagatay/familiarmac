@@ -401,3 +401,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Options overlaps its parent by 6 logical pixels, with its first row aligned to Options. Placement flips left or clamps vertically at the work-area edge and scales with display scaling.
 - One outside click, touch or Escape closes the flyout and parent, releasing the inner native grab first. Clicks within the flyout retain normal behavior; no global input surface or handler is added.
 - Tests cover all three dismissal inputs, inside clicks, overlap geometry and screen-edge placement. New JavaScript loads next session; physical visual verification remains pending.
+
+## Dock submenu ancestor highlight and visible overlap
+
+- Keep Options subtly gray while its child menu is open, with distinct light/dark colors; clear the state when either menu closes.
+- Remove inherited content margins only for Dock context menus. WhiteSur added 12px side margins that obscured the intended 6px overlap.
+- Regression coverage includes state cleanup, single-click/Escape dismissal and overlap at 1x/2x scale. Full tests passed; visual verification requires a new session.

@@ -506,7 +506,7 @@
 
 /* Compact Dock context menus; scoped away from global/application menus. */
 .fm-dock-menu { min-width: 180px; }
-.fm-dock-menu .popup-menu-content { padding: 5px; border-radius: 12px; }
+.fm-dock-menu .popup-menu-content { margin: 0; padding: 5px; border-radius: 12px; }
 .fm-dock-menu .popup-menu-item { padding: 5px 10px; spacing: 7px; min-height: 0; border-radius: 6px; }
 .fm-dock-menu .popup-separator-menu-item { padding: 3px 10px; }
 .fm-dock-menu .popup-menu-arrow { icon-size: 12px; }
@@ -516,3 +516,15 @@
 
 /* A cascading options menu shares the parent edge, without a pointing tail. */
 .fm-dock-flyout { -arrow-rise: 0; -arrow-base: 0; -boxpointer-gap: 0; }
+
+/* Keep the ancestor marked while focus/pointer is in its child menu. */
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open,
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open:hover,
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open:focus {
+  background-color: rgba(255,255,255,0.14); color: #f2f2f4;
+}
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open,
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open:hover,
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open:focus {
+  background-color: rgba(0,0,0,0.10); color: #242428;
+}

@@ -121,6 +121,10 @@ export class DockMenus {
         menu.addMenuItem(options);
         const flyout = new PopupMenu.PopupMenu(options, 0, St.Side.LEFT);
         record.flyout = flyout;
+        flyout.connect('open-state-changed', (_flyout, open) => {
+            if (open) options.add_style_class_name('fm-submenu-open');
+            else options.remove_style_class_name('fm-submenu-open');
+        });
         flyout.actor.add_style_class_name('fm-dock-menu');
         flyout.actor.add_style_class_name('fm-dock-flyout');
         const pointer = flyout._boxPointer;
