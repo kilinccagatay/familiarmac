@@ -12,7 +12,7 @@ This inventory covers project behavior, not every typo or intermediate experimen
 | Brave integration | X11 launcher for exported menus; supported shortcuts and command-based quit mapping | `scripts/install-brave-global-menu.py`, `config/app.conf` |
 | ChatGPT integration | Version-guarded native window frame, Electron→Dbusmenu bridge, removal of duplicate HTML menu | `scripts/chatgpt-*`, `bridges/` |
 | Dock | Bottom centered fixed dock, reserved work area, reduced corner radius/top gutter, mount/trash visibility | desktop settings, Shell CSS |
-| Dock icon alignment | One-time favorite icon artwork normalization to an 84/96 visible square, original aspect ratio and inherited theme preserved; no runtime polling | `scripts/install-dock-icons.py` |
+| Dock icon alignment | Event-driven favorite icon artwork normalization to an 84/96 visible square, original aspect ratio and inherited theme preserved; no runtime polling | `scripts/install-dock-icons.py` |
 | Running indicators | Finder uses native dock dot; tracked process identity keeps a dot while an observed app process lives; PID reuse/exit checks | `processTracker.js`, `extension.js` |
 | Dock reopen | One pending launch while last window exits; repeated clicks coalesce; bounded wait for background process | `dockLaunch.js` |
 | Window rounding | Pinned outer-actor shader, 12px/.2 profile, maximized padding/inset fixes, texture signal lifecycle cleanup | `scripts/install-rounded-corners.py`, `overrides/rounded-window-corners/` |
@@ -42,3 +42,14 @@ This inventory covers project behavior, not every typo or intermediate experimen
 ## Early experiments
 
 Earlier revisions used a synthetic Finder dot, repeated panel fallback menus, larger logo assets and GTK3 inner-corner CSS. They were changed or superseded; their presence in history is not a recommendation to reapply them. Current options and status take precedence over historical notes.
+
+### Screenshot shortcuts
+- Command + Shift + 3: full-screen PNG to Desktop.
+- Command + Shift + 4: selected area to Desktop; Space before dragging toggles window selection. Escape cancels.
+- Add Control to 3/4: copy PNG to clipboard instead of saving a file. Control can also be held when completing a selection.
+- Command + Shift + 5: native Shell screenshot/recording toolbar.
+- A successful 3/4 capture flashes the screen and plays the capture sound, including clipboard captures.
+- Shell popup/modal action modes are supported; login and locked-screen capture are intentionally excluded.
+- This is not an exact clone of every macOS Screenshot option: the toolbar is GNOME's, window capture crops the visible frame, and macOS selection-resize modifier gestures are not implemented.
+
+Reference: [Apple screenshot shortcuts](https://support.apple.com/en-euro/guide/mac-help/mh26782/mac).

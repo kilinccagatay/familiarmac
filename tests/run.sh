@@ -11,7 +11,7 @@ from pathlib import Path
 for p in list(Path('scripts').glob('*.py'))+list(Path('bridges').glob('*.py')):
     ast.parse(p.read_text(),filename=str(p))
 CHECK
-for f in extensions/macbook-menu@local/*.js overrides/rounded-window-corners/manager/*.js; do
+for f in extensions/macbook-menu@local/*.js extensions/familiarmac-icons@local/*.js overrides/rounded-window-corners/manager/*.js; do
   "$NODE" --input-type=module --check < "$f"
 done
 for f in tests/*.cjs; do

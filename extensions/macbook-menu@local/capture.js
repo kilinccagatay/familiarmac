@@ -1,4 +1,5 @@
 import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -6,6 +7,47 @@ import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
+
+// Extend the Shell selector so popup grabs, Escape and HiDPI remain native.
+const MacSelectArea = GObject.registerClass(class MacSelectArea extends Screenshot.SelectArea {
+    _init() {
+        super._init();
+        this._windowMode = false;
+    }
+
+    vfunc_key_press_event(event) {
+        if (event.get_key_symbol() === Clutter.KEY_space && this._startX === -1) {
+            this._windowMode = !this._windowMode;
+            global.display.set_cursor(this._windowMode ? Meta.Cursor.POINTING_HAND : Meta.Cursor.CROSSHAIR);
+            return Clutter.EVENT_STOP;
+        }
+        return Clutter.EVENT_PROPAGATE; // GrabHelper handles Escape.
+    }
+
+    vfunc_button_press_event(event) {
+        if (!this._windowMode) return super.vfunc_button_press_event(event);
+        const [x, y] = event.get_coords();
+        const windows = global.display.sort_windows_by_stacking(
+            global.display.get_tab_list(Meta.TabList.NORMAL_ALL, global.workspace_manager.get_active_workspace()));
+        for (const window of windows.reverse()) {
+            if (window.minimized || !window.showing_on_its_workspace()) continue;
+            const rect = window.get_frame_rect();
+            if (x >= rect.x && x < rect.x + rect.width && y >= rect.y && y < rect.y + rect.height) {
+                this._result = rect;
+                this.copyToClipboard = !!(event.get_state() & Clutter.ModifierType.CONTROL_MASK);
+                this._grabHelper.ungrab();
+                break;
+            }
+        }
+        return Clutter.EVENT_STOP;
+    }
+
+    vfunc_button_release_event(event) {
+        if (this._windowMode) return Clutter.EVENT_STOP;
+        this.copyToClipboard = !!(event.get_state() & Clutter.ModifierType.CONTROL_MASK);
+        return super.vfunc_button_release_event(event);
+    }
+});
 
 // Compositor accelerators continue working during Shell popup and modal grabs.
 export class CaptureBindings {
@@ -16,7 +58,9 @@ export class CaptureBindings {
             const binding = this.bindings.get(id);
             if (binding) this.capture(binding.area, binding.clipboard).catch(logError);
         });
+        this.shellSettings = new Gio.Settings({schema_id: 'org.gnome.shell.keybindings'});
         const definitions = [
+            ['screen-file', 'Print', false, false],
             ['area-file', '<Super><Shift>4', true, false],
             ['screen-clipboard', '<Super><Control><Shift>3', false, true],
             ['area-clipboard', '<Super><Control><Shift>4', true, true],
@@ -28,6 +72,8 @@ export class CaptureBindings {
             const [, data] = this.backupFile.load_contents(null);
             saved = JSON.parse(new TextDecoder().decode(data));
         }
+        this.nativeScreenshot = saved.nativeScreenshot ?? this.shellSettings.get_strv('screenshot');
+        saved.nativeScreenshot = this.nativeScreenshot;
         for (const [suffix] of definitions) {
             const settings = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.media-keys.custom-keybinding',
                 path: `/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/macbook-${suffix}/`});
@@ -38,6 +84,7 @@ export class CaptureBindings {
         }
         GLib.mkdir_with_parents(GLib.path_get_dirname(backupPath), 0o700);
         this.backupFile.replace_contents(JSON.stringify(saved), null, false, Gio.FileCreateFlags.PRIVATE, null);
+        this.shellSettings.set_strv('screenshot', []);
         for (const [settings] of this.previous) {
             settings.set_string('binding', '');
         }
@@ -52,6 +99,7 @@ export class CaptureBindings {
                     const index = definitions.findIndex(def => def[1] === accelerator);
                     const [settings, original] = this.previous[index];
                     settings.set_string('binding', original);
+                    if (accelerator === 'Print') this.shellSettings.set_strv('screenshot', this.nativeScreenshot);
                     logError(new Error(`Screenshot binding unavailable: ${accelerator}`));
                     continue;
                 }
@@ -74,8 +122,9 @@ export class CaptureBindings {
             if (area) {
                 frozen = new Clutter.Actor({content, width: global.stage.width, height: global.stage.height});
                 Main.uiGroup.add_child(frozen);
-                this.selector = new Screenshot.SelectArea();
+                this.selector = new MacSelectArea();
                 const rect = await this.selector.selectAsync();
+                clipboard ||= this.selector.copyToClipboard;
                 this.selector = null;
                 if (!rect) return; // Escape cancels without writing or changing clipboard.
                 geometry = [rect.x, rect.y, rect.width, rect.height].map(n => Math.round(n * scale));
@@ -88,7 +137,7 @@ export class CaptureBindings {
             if (clipboard) {
                 St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, 'image/png', bytes);
             } else {
-                const dir = GLib.build_filenamev([GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) || GLib.get_home_dir(), 'Screenshots']);
+                const dir = GLib.build_filenamev([GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP) || GLib.get_home_dir()]);
                 GLib.mkdir_with_parents(dir, 0o755);
                 const file = Gio.File.new_for_path(`${dir}/Screenshot-${GLib.get_real_time()}.png`);
                 await new Promise((resolve, reject) => {
@@ -99,6 +148,13 @@ export class CaptureBindings {
                         });
                 });
             }
+            frozen?.destroy();
+            frozen = null;
+            new Screenshot.Flashspot({x: 0, y: 0, width: global.stage.width, height: global.stage.height}).fire();
+            global.display.get_sound_player().play_from_theme('screen-capture', 'Screenshot', null);
+        } catch (error) {
+            Main.notifyError('Screenshot failed', error.message);
+            throw error;
         } finally {
             frozen?.destroy();
             this.busy = false;
@@ -114,6 +170,8 @@ export class CaptureBindings {
             Main.wm.allowKeybinding(name, Shell.ActionMode.NONE);
         }
         this.bindings.clear();
+        if (this.shellSettings.get_strv('screenshot').length === 0)
+            this.shellSettings.set_strv('screenshot', this.nativeScreenshot);
         for (const [settings, binding] of this.previous)
             if (settings.get_string('binding') === '') settings.set_string('binding', binding);
         if (this.backupFile.query_exists(null)) this.backupFile.delete(null);
