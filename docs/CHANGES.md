@@ -296,3 +296,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 
 - Following confirmation that the compact layout and Battery Settings label are fixed, changed the shared Control Center sound/display/keyboard slider fill to blue (`#0a84ff`) with the existing outlined white handle and gray empty track.
 - This is the requested visual preference, not a claim that every macOS version/panel uses a blue fill. Existing padding, input handling and crash fix are unchanged.
+
+### Firmware wait diagnosis
+
+- Plymouth trace reaches splash at ~2.5 s after Linux starts; firmware separately reports a 5-second timeout.
+- Added optional MacBookPro10,1 timeout-only helper with backup, restore and readback; installed timeout is zero without changing boot order.
+- Physical timing benefit remains unverified; pre-logo display corruption is still unresolved.

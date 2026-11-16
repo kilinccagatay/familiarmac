@@ -144,3 +144,30 @@ can affect timing, so remove it after collecting evidence. It cannot measure
 firmware time before Linux. Keep logs local: they can contain device details
 and boot messages. Compare renderer creation/activation and first splash
 against the kernel framebuffer timestamps before choosing another workaround.
+
+## Timestamped trace and firmware timeout
+
+The captured boot trace shows Plymouth starting at 2.039 s, opening Nouveau DRM
+at 2.419 s, requesting the default splash at 2.497 s, and installing its scanout
+buffer at 2.530 s (kernel-relative times). The kernel framebuffer console switch
+occurs at 2.402 s. There is no multi-second Plymouth splash delay in this trace.
+These timestamps narrow the pre-logo artifact to an early handoff hypothesis;
+they do not identify which frame is corrupt or prove the cause.
+
+EFI reports a separate `Timeout: 5 seconds`, with Zorin already first in BootOrder.
+The optional MacBookPro10,1 helper sets only this timeout to zero, backs up the
+old value and entries, verifies readback, and leaves boot order and graphics
+configuration unchanged:
+
+```sh
+sudo bash scripts/install-firmware-timeout.sh --install
+sudo bash scripts/install-firmware-timeout.sh --restore
+```
+
+Installed readback is zero; Apple firmware honoring this variable and the actual
+power-button-to-logo improvement must be checked on the next physical boot.
+The brief corrupted frame remains unresolved. Do not claim that this timing
+change repairs display corruption. Keep the debug trace enabled until the next
+comparison, then remove it with `install-boot-trace.sh --restore`.
+
+Reference: [efibootmgr timeout semantics](https://github.com/rhboot/efibootmgr/blob/main/README).
