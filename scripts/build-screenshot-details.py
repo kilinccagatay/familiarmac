@@ -5,6 +5,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'docs/screenshots'
 CROPS = {
+    'firefox-global-menu': ('firefox-global-menu', (0, 0, 1500, 850)),
+    'finder-global-menu': ('finder-global-menu', (0, 0, 1500, 850)),
     'about': ('about', (780, 60, 2030, 1325)),
     'dock': ('apps', (970, 1625, 1920, 1800)),
     'apps': ('apps', (830, 400, 2060, 1390)),

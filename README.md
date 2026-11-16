@@ -40,6 +40,14 @@ Feature close-ups cropped from the installed desktop. Click an image to open the
 | --- | --- |
 | [![System and power menu](docs/screenshots/details/power-menu.png)](docs/screenshots/power-menu.png) | [![Restart confirmation](docs/screenshots/details/restart-dialog.png)](docs/screenshots/restart-dialog.png) |
 
+**Application menus in the top bar**
+
+The menu bar follows the active application. Firefox and Files (shown as Finder) are captured below with their File menus open.
+
+| Firefox | Finder |
+| --- | --- |
+| [![Firefox](docs/screenshots/details/firefox-global-menu.png)](docs/screenshots/firefox-global-menu.png) | [![Finder](docs/screenshots/details/finder-global-menu.png)](docs/screenshots/finder-global-menu.png) |
+
 **Login screen**
 
 [![Login screen](docs/screenshots/login.png)](docs/screenshots/login.png)

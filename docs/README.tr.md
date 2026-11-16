@@ -38,6 +38,14 @@ Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmı
 | --- | --- |
 | [![Sistem ve güç menüsü](screenshots/details/power-menu.png)](screenshots/power-menu.png) | [![Yeniden başlatma onayı](screenshots/details/restart-dialog.png)](screenshots/restart-dialog.png) |
 
+**Uygulama menüleri üst çubukta**
+
+Üst menü çubuğu etkin uygulamaya göre değişir. Firefox ve Finder adıyla gösterilen Dosyalar uygulaması, File menüleri açıkken çekilmiştir.
+
+| Firefox | Finder |
+| --- | --- |
+| [![Firefox](screenshots/details/firefox-global-menu.png)](screenshots/firefox-global-menu.png) | [![Finder](screenshots/details/finder-global-menu.png)](screenshots/finder-global-menu.png) |
+
 **Giriş ekranı**
 
 [![Giriş ekranı](screenshots/login.png)](screenshots/login.png)

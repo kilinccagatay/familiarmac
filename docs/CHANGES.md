@@ -565,3 +565,7 @@ Added the real GDM greeter to both README pages and the screenshot gallery. Acco
 ### Single clock on the login screen
 
 Hide the redundant top-panel clock only in the GDM greeter, retaining the large login clock and accessibility/network/power controls. Normal desktop and lock-screen clocks are unchanged. The login overlay installer includes this change for fresh installations.
+
+### Global-menu screenshots
+
+Added real Firefox and Files/Finder captures with File menus open in the top bar. Both READMEs include detail crops linked to the full gallery images.

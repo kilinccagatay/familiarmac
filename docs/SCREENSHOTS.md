@@ -12,6 +12,16 @@ Sistemin Hakkında sayfası gerçek işletim sistemi ve donanım bilgilerini kor
 
 ![About page with A1398 illustration](screenshots/about.png)
 
+## Application menus / Uygulama menüleri
+
+The top menu bar follows the active application. These real captures show Firefox and Files (displayed as Finder), with their File menus open. Firefox displays the public FamiliarMac repository; Files displays its local checkout. Menu availability depends on application integration.
+
+Üst menü çubuğu etkin uygulamayı takip eder. Gerçek çekimlerde Firefox ve Finder adıyla gösterilen Dosyalar uygulamasının File menüleri açıktır. Firefox’ta herkese açık FamiliarMac reposu, Dosyalar’da yerel repo klasörü gösterilir. Menü desteği uygulamanın entegrasyonuna bağlıdır.
+
+![Firefox File menu in the top bar](screenshots/firefox-global-menu.png)
+
+![Finder File menu in the top bar](screenshots/finder-global-menu.png)
+
 ## Spotlight search / Spotlight araması
 
 Application search stays anchored as results appear. Command+Space opens and closes Spotlight.
