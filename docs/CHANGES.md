@@ -426,3 +426,17 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Keep the dotted clock family quoted, use bare fallback names, and apply the same correction to the SF Pro Text shell declaration. No font binaries are redistributed.
 - Rebuilt and inspected GDM resource CSS. No GDM restart or boot/input configuration changes. New greeter appearance still needs visual confirmation.
 - Parser reference: https://github.com/GNOME/gnome-shell/blob/46.0/src/st/st-theme-node.c (font_family_from_terms).
+
+## A1398 About page
+
+- Apple menu opens `gnome-control-center system about`, not the System overview.
+- Original scalable A1398 illustration replaces only the About-page picture through a user-scoped GResource template overlay; real OS/hardware fields remain native. Applies only to A1398 DMI models.
+- Desktop launcher uses the wrapper; a Settings binary hash guards the overlay on upgrades. Re-run `python3 scripts/install-about.py` after a compatible update; `--restore` removes the adaptation and restores the previous launcher.
+- Existing Settings processes must close before the overlay loads. Apple menu JS loads next login. Full existing suite passed; isolated Settings launch accepted the overlay without template errors. Visual validation remains pending.
+- Design reference: Apple Early 2013 Retina 15-inch technical specifications, https://support.apple.com/en-gb/118465 . SVG is an original FamiliarMac drawing, not an Apple image copy.
+
+## Compact top-right notification banners
+
+- Native GNOME notification tray is aligned to the right with 340px cards, modest edge spacing, rounded corners and system light/dark palettes.
+- Queue, DND suppression, actions, close controls and native animation remain unchanged; no additional input surface or polling. Alignment and styles restore on disable.
+- Full tests passed including tray-state restoration. Installed for next Shell login; live visual confirmation remains pending.

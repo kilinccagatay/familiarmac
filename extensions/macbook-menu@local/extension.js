@@ -1,3 +1,4 @@
+import {NotificationBanner} from './notificationBanner.js';
 import {SystemAppearance} from './systemAppearance.js';
 import {OsdStyle} from './osdStyle.js';
 import {NotificationCenter} from './notificationCenter.js';
@@ -37,6 +38,7 @@ export default class MacBookMenu extends Extension {
         Main.panel._rightBox.add_child(this._clock);
         this._clock.add_style_class_name('macbook-panel-clock');
         this._notificationCenter = new NotificationCenter();
+        this._notificationBanner = new NotificationBanner();
         this._controlCenter = new ControlCenter(this.path);
         this._osdStyle = new OsdStyle();
         this._sessionDialog = new SessionDialog();
@@ -152,7 +154,8 @@ export default class MacBookMenu extends Extension {
             item.connect('activate', () => Util.spawn(args));
             menu.addMenuItem(item);
         };
-        addApp(label('About This Mac', 'Bu Mac Hakkında'), 'computer-symbolic', ['gnome-control-center', 'system']);
+        const settingsWrapper = GLib.build_filenamev([GLib.get_home_dir(), '.local/bin/familiarmac-settings']);
+        addApp(label('About This Mac', 'Bu Mac Hakkında'), 'computer-symbolic', [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center', 'system', 'about']);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         addApp(label('System Settings…', 'Sistem Ayarları…'), 'preferences-system-symbolic', ['gnome-control-center']);
         addApp(label('App Store', 'Uygulama Mağazası'), 'org.gnome.Software-symbolic', ['gnome-software']);
@@ -210,6 +213,8 @@ export default class MacBookMenu extends Extension {
         this._sessionDialog = null;
         this._controlCenter?.destroy();
         this._controlCenter = null;
+        this._notificationBanner?.destroy();
+        this._notificationBanner = null;
         this._notificationCenter?.destroy();
         this._notificationCenter = null;
         if (this._clock && this._clockParent) {

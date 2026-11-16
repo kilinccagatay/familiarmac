@@ -528,3 +528,23 @@
 .fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open:focus {
   background-color: rgba(0,0,0,0.10); color: #242428;
 }
+
+/* Compact right-edge banners, separate from the notification-center cards. */
+.fm-notification-banners .notification-banner {
+  width: 340px; min-height: 56px; margin: 10px 12px; padding: 8px;
+  border-radius: 16px; text-shadow: none;
+}
+.fm-system-dark .fm-notification-banners .notification-banner,
+.fm-system-dark .fm-notification-banners .notification-banner:hover,
+.fm-system-dark .fm-notification-banners .notification-banner:active {
+  background-color: rgba(42,43,47,0.97); color: #f5f5f7;
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.fm-system-light .fm-notification-banners .notification-banner,
+.fm-system-light .fm-notification-banners .notification-banner:hover,
+.fm-system-light .fm-notification-banners .notification-banner:active {
+  background-color: rgba(238,240,244,0.97); color: #20262b;
+  border: 1px solid rgba(30,40,50,0.18);
+}
+.fm-notification-banners .message-title { font-weight: 600; }
+.fm-notification-banners .message-body { font-weight: 400; }
