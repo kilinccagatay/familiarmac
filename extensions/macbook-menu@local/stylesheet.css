@@ -280,3 +280,25 @@
 .fm-sound .popup-menu-item:active { color: #ffffff; background-color: #0866ed; }
 .fm-sound .popup-menu-icon { icon-size: 18px; }
 .fm-sound-devices { max-height: 240px; }
+
+/* Only the date popup: transparent right-edge drawer, independent cards. */
+.fm-notification-drawer {
+  -arrow-rise: 0; -arrow-base: 0; -arrow-border-width: 0;
+  -arrow-background-color: transparent; -arrow-border-color: transparent;
+  -boxpointer-gap: 0; background-color: transparent; box-shadow: none;
+}
+.fm-notification-drawer .fm-notification-center {
+  background-color: transparent; background-image: none; border: none;
+  box-shadow: none; border-radius: 0; padding: 12px;
+}
+.fm-notification-center .message-list { width: auto; height: 180px; }
+.fm-notification-center .calendar { padding: 12px; }
+.fm-notification-center .calendar-day,
+.fm-notification-center .calendar-day-heading { min-width: 0; width: 28px; margin: 0; text-align: center; }
+.fm-notification-center .calendar-day { height: 28px; min-height: 0; padding: 2px; }
+.fm-notification-center .calendar-month-header { padding: 0 0 8px; }
+.fm-notification-center .datemenu-today-button { padding: 6px 8px; background-color: rgba(50,50,56,0.88); border-radius: 14px; }
+/* Clock pill only: preserve all neighbouring status button dimensions. */
+#panel #panelRight .panel-button.clock-display .clock {
+  padding: 2px 7px !important; margin: 2px 0; border-radius: 999px;
+}

@@ -1,3 +1,5 @@
+import {CalendarLanguage} from './calendarLanguage.js';
+import {NotificationDrawer} from './notificationDrawer.js';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Gettext from 'gettext';
@@ -28,6 +30,8 @@ export class NotificationCenter {
         // Date heading, notification list, then one compact calendar widget.
         this.move(this.date._date, this.area, 0);
         this.move(this.date._calendar, this.area, 2);
+        this.language = new CalendarLanguage(this.date);
+        this.drawer = new NotificationDrawer(this.date.menu, this.area, this.date._calendar);
         const controls = list._dndButton.get_parent();
         for (const actor of controls.get_children())
             if (actor !== list._clearButton) this.hide(actor);
@@ -73,6 +77,9 @@ export class NotificationCenter {
         parent.insert_child_at_index(actor, index);
     }
     destroy() {
+        this.date?.menu.close();
+        this.drawer?.destroy();
+        this.language?.destroy();
         if (this.settingSignal) this.settings.disconnect(this.settingSignal);
         this.settingSignal = 0;
         this.button?.destroy();

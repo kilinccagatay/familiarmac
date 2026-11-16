@@ -246,3 +246,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Native slider and device section are temporarily reparented and restored on close/disable; keeps mute, volume amplification policy, keyboard controls and device selection callbacks. No polling or independent mixer.
 - Reference: https://support.apple.com/en-euro/guide/mac-help/mchl1f98810b/27/mac/27 .
 - Full suite and dedicated sound lifecycle test passed. Installed for next login; visual and physical audio validation pending.
+
+## 2026-11-16 — Transparent notification drawer and calendar language
+
+- Scope restricted to the date popup and clock pill: transparent outer container, separate cards, right-edge slide animation and monitor-height geometry below the panel. Native menu focus/outside-click handling retained; no new global input layer.
+- Calendar date/month/weekday labels follow LC_MESSAGES (UI language), independent of LC_TIME; existing week-start preference retained. Month navigation re-localizes names. Equal calendar columns correct asymmetric spacing.
+- Clock pill gets explicit internal horizontal/vertical spacing; neighbouring status-button rules unchanged.
+- Complete suite passed, including locale/navigation and drawer geometry/callback/restoration tests. Installed for next session. Live GNOME animation, scaling and visual results still require validation. Wi-Fi, Sound, Battery, Dock and boot code unchanged in this revision.

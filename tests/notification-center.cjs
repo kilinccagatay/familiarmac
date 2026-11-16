@@ -13,10 +13,10 @@ const area=new Actor(),list=new Actor(),column=new Actor(),heading=new Actor(),c
 area.add_child(list);area.add_child(column);column.add_child(heading);column.add_child(calendar);
 controls.add_child(label);controls.add_child(toggle);controls.add_child(clear);list._dndButton=toggle;list._clearButton=clear;indicator._sync=()=>indicator.visible=true;
 let banners=false,changed;const settings={get_boolean:()=>banners,set_boolean(_k,v){banners=v;changed()},connect(_k,f){changed=f;return 1},disconnect(){changed=null}};
-const menu={box:new Actor(),_boxPointer:{_sourceAlignment:.5},setSourceAlignment(v){this._boxPointer._sourceAlignment=v}};
+const menu={close(){},box:new Actor(),_boxPointer:{_sourceAlignment:.5},setSourceAlignment(v){this._boxPointer._sourceAlignment=v}};
 const date={container:new Actor(),_messageList:list,_calendar:calendar,_date:heading,_indicator:indicator,menu};
 const right=new Actor();right.add_child(date.container);
-const context={Gio:{Settings:class{constructor(){return settings}}},Gettext:{dgettext:(_d,t)=>t},St:{Icon:Actor},
+const context={CalendarLanguage:class{destroy(){}},NotificationDrawer:class{destroy(){}},Gio:{Settings:class{constructor(){return settings}}},Gettext:{dgettext:(_d,t)=>t},St:{Icon:Actor},
  Main:{panel:{statusArea:{dateMenu:date},_rightBox:right,addToStatusArea(_id,b,i){right.insert_child_at_index(b.container,i)}}},
  PanelMenu:{Button:class extends Actor{constructor(){super();this.container=this;this.menu={items:[],addMenuItem(a){this.items.push(a)},addAction(){},close(){}}}}},
  PopupMenu:{PopupSwitchMenuItem:class extends Actor{setToggleState(v){this.state=v}},PopupSeparatorMenuItem:Actor}};
