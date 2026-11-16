@@ -12,15 +12,39 @@ FamiliarMac changes the **interface and interaction**, not the operating system 
 
 ## Screenshots
 
-Actual screenshots from the MacBookPro10,1 running Zorin OS 18.1 and FamiliarMac.
+Feature close-ups cropped from the installed desktop. Click an image to open the full capture. Network and account names are redacted where needed.
 
-**About this Mac — native system information with the A1398 illustration**
+[![Dock](docs/screenshots/details/dock.png)](docs/screenshots/apps.png)
 
-![FamiliarMac About page with MacBook illustration and native hardware information](docs/screenshots/about.png)
+| About this Mac | Applications |
+| --- | --- |
+| [![About this Mac](docs/screenshots/details/about.png)](docs/screenshots/about.png) | [![Applications](docs/screenshots/details/apps.png)](docs/screenshots/apps.png) |
 
-![Spotlight calculator on the FamiliarMac desktop](docs/screenshots/spotlight-calculator.png)
+| Spotlight search | Calculator |
+| --- | --- |
+| [![Spotlight search](docs/screenshots/details/spotlight-search.png)](docs/screenshots/spotlight-search.png) | [![Calculator](docs/screenshots/details/spotlight-calculator.png)](docs/screenshots/spotlight-calculator.png) |
 
-[View the screenshot gallery: About, Spotlight, applications and Control Center](docs/SCREENSHOTS.md)
+| Control Center | Notification Center |
+| --- | --- |
+| [![Control Center](docs/screenshots/details/control-center.png)](docs/screenshots/control-center.png) | [![Notification Center](docs/screenshots/details/notifications.png)](docs/screenshots/notifications.png) |
+
+| Wi-Fi | Sound |
+| --- | --- |
+| [![Wi-Fi](docs/screenshots/details/wifi.png)](docs/screenshots/wifi.png) | [![Sound](docs/screenshots/details/sound.png)](docs/screenshots/sound.png) |
+
+| Display brightness | Volume indicator | Keyboard backlight |
+| --- | --- | --- |
+| [![Display brightness](docs/screenshots/details/brightness-osd.png)](docs/screenshots/brightness-osd.png) | [![Volume indicator](docs/screenshots/details/sound-osd.png)](docs/screenshots/sound-osd.png) | [![Keyboard backlight](docs/screenshots/details/keyboard-osd.png)](docs/screenshots/keyboard-osd.png) |
+
+| System and power menu | Restart confirmation |
+| --- | --- |
+| [![System and power menu](docs/screenshots/details/power-menu.png)](docs/screenshots/power-menu.png) | [![Restart confirmation](docs/screenshots/details/restart-dialog.png)](docs/screenshots/restart-dialog.png) |
+
+**Keyboard brightness menu**
+
+[![Keyboard brightness](docs/screenshots/details/keyboard.png)](docs/screenshots/keyboard.png)
+
+[All screenshots and capture notes](docs/SCREENSHOTS.md)
 
 ## What it includes
 

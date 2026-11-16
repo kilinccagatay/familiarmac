@@ -553,3 +553,7 @@ The MOVE-only cursor experiment was reverted after the user reported broken drop
 Added actual desktop captures of Spotlight application search, arithmetic results, the five-column Apps grid and dark Control Center. Both READMEs link to the bilingual gallery and show the calculator alongside the existing About illustration screenshot. No chat content appears in the new captures.
 
 Expanded the screenshot gallery with Wi-Fi, Sound, keyboard brightness, three hardware OSDs, Notification Center, the system power menu and restart confirmation. Network/account names are visibly redacted; OSD images are cropped below the top bar. The actual GDM login-screen capture remains pending.
+
+### Feature close-ups on the repository homepage
+
+Both READMEs now show cropped feature previews for Dock, About, Apps, Spotlight search/calculator, Control Center, notifications, Wi-Fi/audio, keyboard brightness, hardware OSDs and power dialogs. Each preview links to its full reviewed screenshot. `scripts/build-screenshot-details.py` reproduces the crops without altering source captures.

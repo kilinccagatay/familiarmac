@@ -10,15 +10,39 @@ Bu proje, babamın MacBook'una Linux kurduğumda alıştığı ayarları ve işl
 
 ## Ekran görüntüleri
 
-Zorin OS 18.1 ve FamiliarMac çalıştıran MacBookPro10,1 üzerinden alınan gerçek ekran görüntüleri.
+Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmış bölümleri. Tam görüntüyü açmak için görsele tıklayabilirsin. Ağ ve hesap adları gerektiğinde gizlenmiştir.
 
-**Bu Mac Hakkında — A1398 çizimi ve sistemin gerçek cihaz bilgileri**
+[![Dock](screenshots/details/dock.png)](screenshots/apps.png)
 
-![MacBook çizimi ve cihaz bilgileriyle FamiliarMac Hakkında sayfası](screenshots/about.png)
+| Bu Mac Hakkında | Uygulamalar |
+| --- | --- |
+| [![Bu Mac Hakkında](screenshots/details/about.png)](screenshots/about.png) | [![Uygulamalar](screenshots/details/apps.png)](screenshots/apps.png) |
 
-![FamiliarMac Spotlight hesap makinesi](screenshots/spotlight-calculator.png)
+| Spotlight araması | Hesap makinesi |
+| --- | --- |
+| [![Spotlight araması](screenshots/details/spotlight-search.png)](screenshots/spotlight-search.png) | [![Hesap makinesi](screenshots/details/spotlight-calculator.png)](screenshots/spotlight-calculator.png) |
 
-[Ekran görüntüsü galerisi](SCREENSHOTS.md)
+| Denetim Merkezi | Bildirim Merkezi |
+| --- | --- |
+| [![Denetim Merkezi](screenshots/details/control-center.png)](screenshots/control-center.png) | [![Bildirim Merkezi](screenshots/details/notifications.png)](screenshots/notifications.png) |
+
+| Wi-Fi | Ses |
+| --- | --- |
+| [![Wi-Fi](screenshots/details/wifi.png)](screenshots/wifi.png) | [![Ses](screenshots/details/sound.png)](screenshots/sound.png) |
+
+| Ekran parlaklığı | Ses göstergesi | Klavye ışığı |
+| --- | --- | --- |
+| [![Ekran parlaklığı](screenshots/details/brightness-osd.png)](screenshots/brightness-osd.png) | [![Ses göstergesi](screenshots/details/sound-osd.png)](screenshots/sound-osd.png) | [![Klavye ışığı](screenshots/details/keyboard-osd.png)](screenshots/keyboard-osd.png) |
+
+| Sistem ve güç menüsü | Yeniden başlatma onayı |
+| --- | --- |
+| [![Sistem ve güç menüsü](screenshots/details/power-menu.png)](screenshots/power-menu.png) | [![Yeniden başlatma onayı](screenshots/details/restart-dialog.png)](screenshots/restart-dialog.png) |
+
+**Klavye parlaklığı menüsü**
+
+[![Klavye parlaklığı](screenshots/details/keyboard.png)](screenshots/keyboard.png)
+
+[Tüm ekran görüntüleri ve açıklamalar](SCREENSHOTS.md)
 
 ## Mevcut destek
 

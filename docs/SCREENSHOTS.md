@@ -94,9 +94,15 @@ Sistem menüsü ve geri sayımlı yeniden başlatma onayı. Menü görüntüsün
 
 ## Login screen / Giriş ekranı
 
-Pending a separate capture from the GDM greeter session. The lock screen is not substituted for the actual login screen.
+A real GDM capture is still pending. On this installation the GDM profile locks `disable-save-to-disk=true`, and the screenshot tool could not save the greeter. The security setting was not changed. The lock screen is not substituted for the actual login screen.
 
-GDM giriş oturumundan ayrıca çekim bekleniyor. Kilit ekranı, gerçek giriş ekranı yerine kullanılmamıştır.
+Gerçek GDM görüntüsü hâlâ bekleniyor. Bu kurulumda GDM profili `disable-save-to-disk=true` değerini kilitliyor; ekran görüntüsü aracı giriş ekranını kaydedemedi. Güvenlik ayarı değiştirilmedi. Kilit ekranı, gerçek giriş ekranı yerine kullanılmamıştır.
+
+## README detail crops / README ayrıntı görselleri
+
+The English and Turkish READMEs show feature crops from these same captures. Each crop links to its full source image. To regenerate the crops with Pillow installed: `python3 scripts/build-screenshot-details.py`. This does not change the original captures or their privacy redactions.
+
+İngilizce ve Türkçe README dosyaları bu görüntülerden kırpılmış özellik görsellerini gösterir. Her kırpım tam kaynak görüntüye bağlantı verir. Pillow kurulu geliştirme ortamında yeniden üretmek için: `python3 scripts/build-screenshot-details.py`. Asıl görüntüler ve gizlilik için kapatılan alanlar değişmez.
 
 ## Sources / Kaynaklar
 
