@@ -43,3 +43,7 @@ The installer patches a user-local copy of the system-installed `zorin-desktop-i
 - Evaluated [Dock Stacks](https://github.com/dragosol/dock-stacks): current metadata supports GNOME 49/50, not this GNOME 46 target.
 - Evaluated [Dash2Dock Lite](https://github.com/icedman/dash2dock-lite/tree/98ef2ae08dfc0210f71767e4a1b6a10cdb06d6d8): its Downloads fan is coupled to that replacement dock’s renderer/animation engine.
 Neither evaluated dock is installed or vendored. `appsBrowser.js` and `downloadsStack.js` are FamiliarMac implementations using the installed GNOME Shell widgets and Gio file APIs; no code from those candidate docks was copied.
+
+### Control Center and menu ordering
+- [Apple Control Center reference](https://support.apple.com/en-gb/guide/mac-help/mchlc9d0e1f2/27/mac/27). FamiliarMac's two-toggle SVG is original; no Apple artwork or control implementation is bundled. Native GNOME Shell 46 Quick Settings supplies the controls and system state.
+- `overrides/appmenu/menuManager.js` derives from the pinned AppMenu archive documented above, retaining its license. The local change moves Help behind Window/custom menus without replacing actions.

@@ -85,3 +85,30 @@
 .familiarmac-stack-options .familiarmac-stack-heading { font-size: 9pt; color: rgba(240,240,240,0.55); }
 .familiarmac-stack.fan .popup-menu-content { background-color: transparent; border-color: transparent; box-shadow: none; }
 .familiarmac-stack.fan .familiarmac-stack-open-folder { border-radius: 10px; background-color: rgba(30,30,34,0.90); }
+
+/* Native GNOME controls with compact macOS-inspired cards. Scoped to this menu. */
+#panel .familiarmac-status { border-radius: 999px; margin: 2px 0; }
+#panel .familiarmac-status .panel-status-indicators-box { spacing: 9px; }
+#panel .familiarmac-status .system-status-icon { icon-size: 16px; }
+#panel .familiarmac-status .familiarmac-control-icon { icon-size: 18px; margin-left: 3px; }
+#panel .familiarmac-status StLabel { font-size: 10pt; font-weight: normal; }
+.familiarmac-control-center.quick-settings {
+  padding: 12px; border-radius: 20px;
+  background-color: rgba(42,42,46,0.97);
+  border: 1px solid rgba(255,255,255,0.20);
+  color: #f6f6f6;
+}
+.familiarmac-control-center .quick-settings-grid { spacing-rows: 10px; spacing-columns: 10px; }
+.familiarmac-control-center .quick-toggle {
+  border-radius: 14px; min-height: 46px; padding: 6px 10px;
+  background-color: rgba(255,255,255,0.10); color: #f6f6f6;
+}
+.familiarmac-control-center .quick-toggle:checked { background-color: #2878e7; color: white; }
+.familiarmac-control-center .quick-toggle:hover { background-color: rgba(255,255,255,0.20); }
+.familiarmac-control-center .quick-toggle:checked:hover { background-color: #3988f7; }
+.familiarmac-control-center .quick-toggle:focus { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65); }
+.familiarmac-control-center .quick-toggle .quick-toggle-title { font-size: 10pt; font-weight: 600; }
+.familiarmac-control-center .quick-toggle .quick-toggle-subtitle { font-size: 9pt; }
+.familiarmac-control-center .quick-slider { padding: 8px; border-radius: 14px; background-color: rgba(255,255,255,0.10); }
+.familiarmac-control-center .quick-slider .slider { -barlevel-height: 12px; -barlevel-background-color: rgba(255,255,255,0.18); -barlevel-active-background-color: #eeeeee; }
+.familiarmac-control-center .quick-toggle-menu { border-radius: 14px; background-color: #343438; }

@@ -75,3 +75,9 @@ The dock folder section is now `separator | Downloads | Trash`. Downloads opens 
 
 ### Downloads reference-menu refinement
 Separate right-click sections mirror the supplied reference: Sort by, Display as Folder/Stack, View content as Fan/Grid/List/Automatic, Options and Open Downloads. Fan is explicitly selectable regardless of file count. Its configurable maximum defaults to seven; screen height may lower it. A clickable **N More in Finder** row sits above the fan and uses the full visible-file count, including folders larger than 200 entries. View/sort/display/limit choices persist. Date Added is visibly disabled rather than substituting another timestamp.
+
+### Compact status controls and Help ordering (2026-11-16)
+- Added an original two-toggle Control Center icon to the native status button, with compact spacing and lighter battery text. Existing privacy, recording, network and battery indicators remain live.
+- Scoped native Quick Settings styling: rounded compact cards, blue active controls, inset volume/brightness cards, dark translucent background. Native controls, authentication, keyboard navigation and hardware callbacks remain unchanged; no timer or new service. This is a macOS-inspired GNOME control center, not a pixel-identical replacement; AirDrop and Apple screen mirroring are not implemented.
+- Generic app menu ordering keeps localized Help last, after synthesized Window and custom menus, preserving actions.
+- Changes install for the next login. Syntax, lifecycle cleanup and ordering tests passed; physical panel appearance still needs visual verification after login.

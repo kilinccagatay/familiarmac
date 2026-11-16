@@ -1,3 +1,4 @@
+import {ControlCenter} from './controlCenter.js';
 import {DownloadsStack} from './downloadsStack.js';
 import {AppsBrowser} from './appsBrowser.js';
 import {DockOrder} from './dockOrder.js';
@@ -28,6 +29,7 @@ export default class MacBookMenu extends Extension {
         this._clockParent.remove_child(this._clock);
         Main.panel._rightBox.add_child(this._clock);
         this._clock.add_style_class_name('macbook-panel-clock');
+        this._controlCenter = new ControlCenter(this.path);
         this._captureBindings = new CaptureBindings();
         this._trashDrop = new TrashDrop();
         this._appsBrowser = new AppsBrowser();
@@ -184,6 +186,8 @@ export default class MacBookMenu extends Extension {
     }
 
     disable() {
+        this._controlCenter?.destroy();
+        this._controlCenter = null;
         if (this._clock && this._clockParent) {
             this._clock.get_parent()?.remove_child(this._clock);
             this._clockParent.insert_child_at_index(this._clock, this._clockIndex);
