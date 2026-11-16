@@ -232,3 +232,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 
 - Separate separator from the settings action; left-align its label with battery information. Replace square hover fill with rounded blue hover/keyboard focus and explicit transparent idle state.
 - Preserve power-settings action and live battery state. Battery tests and JS syntax passed; installed for next session, visual validation pending.
+
+## 2026-11-16 — Single-level Wi-Fi detail
+
+- Replace nested Quick Settings tile/submenu with a master Wi-Fi switch, native network list (signal, lock and connected checkmark), and Wi-Fi Settings action.
+- Borrow/restore the original GNOME network section while open; retain NetworkManager authentication, accessibility and activation. Scan only while open, using GNOME's scan lifecycle. Hardware-disabled Wi-Fi cannot be toggled. Ethernet remains independent.
+- Apple reference: https://support.apple.com/en-mt/guide/mac-help/mchlfad426fa/mac . Uses Linux's native network ordering; Apple's Personal Hotspot/iCloud sections are not implemented.
+- Suite and dedicated lifecycle test passed; installed for next login. Actual network switching was not exercised to avoid interrupting the connection; live visual validation pending.

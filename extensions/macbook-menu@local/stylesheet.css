@@ -253,3 +253,15 @@
 #panel #panelRight .panel-button .appindicator-box,
 #panel #panelRight .panel-button .appindicator-trayicons-box { margin: 0; padding: 0; spacing: 4px; }
 #panel #panelRight .panel-button.clock-display .clock { padding: 0 !important; }
+
+/* Single-level Wi-Fi menu: master switch, native networks, settings. */
+.fm-wifi { spacing: 8px; padding: 6px; color: #20262b; }
+.fm-wifi .popup-menu-item { padding: 7px 8px; spacing: 8px; border-radius: 8px; color: #20262b; }
+.fm-wifi .popup-menu-item:hover, .fm-wifi .popup-menu-item:focus,
+.fm-wifi .popup-menu-item:active { background-color: #0866ed; color: white; }
+.fm-wifi .fm-wifi-toggle { font-weight: bold; font-size: 11pt; }
+.fm-wifi .popup-menu-icon { icon-size: 16px; }
+.fm-wifi .wireless-secure-icon { icon-size: 10px; }
+.fm-wifi .nm-network-item StLabel { padding: 0; }
+.fm-wifi-scroll { max-height: 360px; }
+.fm-wifi .popup-menu-section { background-color: transparent; border: none; box-shadow: none; }

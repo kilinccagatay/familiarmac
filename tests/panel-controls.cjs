@@ -5,7 +5,7 @@ const root = __dirname + '/..';
 let source = fs.readFileSync(root+'/extensions/macbook-menu@local/controlCenter.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 const panelClasses=new Set(), menuClasses=new Set(); let added=0,destroyed=0;
 const panel={add_style_class_name:x=>panelClasses.add(x),remove_style_class_name:x=>panelClasses.delete(x),menu:{connect:()=>1,disconnect:()=>{},box:{add_style_class_name:x=>menuClasses.add(x),remove_style_class_name:x=>menuClasses.delete(x)}},_indicators:{add_child:()=>added++}};
-const ctx={BatterySurface:class{constructor(){this.actor={}}sync(){}destroy(){}},ControlSurface:class{constructor(){this.actor={}}syncMedia(){}destroy(){}},StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
+const ctx={WifiSurface:class{constructor(){this.actor={}}destroy(){}},BatterySurface:class{constructor(){this.actor={}}sync(){}destroy(){}},ControlSurface:class{constructor(){this.actor={}}syncMedia(){}destroy(){}},StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
 vm.runInNewContext(source+'\nglobalThis.C=ControlCenter;',ctx);
 const c=new ctx.C('/tmp');assert.equal(added,1);assert.equal(menuClasses.size,1);c.destroy();c.destroy();assert.equal(destroyed,1);assert.equal(menuClasses.size,0);assert.equal(panelClasses.size,0);
 ctx.Main.panel.statusArea.quickSettings=null;new ctx.C('/tmp').destroy();
