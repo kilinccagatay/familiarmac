@@ -31,3 +31,6 @@ No proprietary ChatGPT/macOS binaries are distributed. Optional ChatGPT patches 
 Apple, macOS, MacBook and the Apple logo are trademarks of Apple Inc. Brave, ChatGPT and other referenced product names belong to their respective owners. FamiliarMac is independent. The software licenses do not grant rights to imply endorsement or ownership of those marks.
 
 Brightness behavior reference: [GNOME 46 gsd-backlight.c](https://github.com/GNOME/gnome-settings-daemon/blob/gnome-46/plugins/power/gsd-backlight.c) clamps this device's minimum above zero. FamiliarMac uses the existing active-session logind `SetBrightness` API for an opt-in zero-capable down key, without copying or patching the daemon. The gmux hardware test reached `actual_brightness=0` and native GNOME `StepUp` restored light.
+
+### Desktop-to-dock trash integration
+The installer patches a user-local copy of the system-installed `zorin-desktop-icons@zorinos.com` (Zorin's Desktop Icons NG fork). Original source headers credit Sergio Costas, Sundeep Mediratta and Carlos Soriano; GPL-3.0. The installed extension's source/license headers are preserved. Only our insertion patch is shipped in this repository. Dock target detection uses Zorin Dash's existing location-app interface (`locations.js`). No upstream desktop-extension code is bundled by this addition.

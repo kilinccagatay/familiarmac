@@ -103,3 +103,8 @@ Installers under `scripts/` are available for targeted work, but many have prere
 
 ## Dock icon alignment
 The installer generates a user-local inherited icon theme from installed favorite application icons. It measures alpha bounds and normalizes the longest visible dimension to 84/96, centering artwork without stretching. It does not bundle proprietary app artwork. The FamiliarMac Icon Alignment extension reacts to favorite/application installation changes, debounces them and runs a cached helper outside the Shell process; there is no polling or per-frame image processing. A newly installed extension loads at the next login. You can also rerun `python3 scripts/install-dock-icons.py`. Other icons inherit the original theme. Restore with `python3 scripts/install-dock-icons.py --restore`. Application-supplied absolute icons are skipped.
+
+## Desktop files dropped on dock Trash
+`python3 scripts/install-trash-drop.py` creates a guarded user-local copy of the installed Zorin Desktop Icons extension. The drag source confirms a real failed-target release; a Shell bridge validates that the pointer is still on dock Trash before the existing Nautilus trash operation runs. Escape/cancellation does nothing; files are moved to Trash, never permanently deleted. Multiple selected ordinary files are supported. This integration targets desktop-origin drags, not arbitrary file-manager windows.
+
+Log out/in after installation. The user copy shadows the distribution extension; rerun this installer after distribution desktop-icon updates to refresh it. Modified user copies are not overwritten automatically. Restore using `python3 scripts/install-trash-drop.py --restore`, then log out/in. Physical drag validation is still required after loading the new code.

@@ -1,3 +1,4 @@
+import {TrashDrop} from './trashDrop.js';
 import {DockLaunch} from './dockLaunch.js';
 import {CaptureBindings} from './capture.js';
 import Gio from 'gi://Gio';
@@ -25,6 +26,7 @@ export default class MacBookMenu extends Extension {
         Main.panel._rightBox.add_child(this._clock);
         this._clock.add_style_class_name('macbook-panel-clock');
         this._captureBindings = new CaptureBindings();
+        this._trashDrop = new TrashDrop();
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
         this._dockLaunch = new DockLaunch();
@@ -180,6 +182,8 @@ export default class MacBookMenu extends Extension {
             this._clock.remove_style_class_name('macbook-panel-clock');
         }
         this._clock = this._clockParent = null;
+        this._trashDrop?.destroy();
+        this._trashDrop = null;
         this._captureBindings?.destroy();
         this._captureBindings = null;
         if (this._finderTimer) GLib.source_remove(this._finderTimer);

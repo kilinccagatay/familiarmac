@@ -53,3 +53,6 @@ Earlier revisions used a synthetic Finder dot, repeated panel fallback menus, la
 - This is not an exact clone of every macOS Screenshot option: the toolbar is GNOME's, window capture crops the visible frame, and macOS selection-resize modifier gestures are not implemented.
 
 Reference: [Apple screenshot shortcuts](https://support.apple.com/en-euro/guide/mac-help/mh26782/mac).
+
+### Desktop-to-dock Trash
+Added a desktop drag-source/Shell bridge for dropping selected desktop files onto dock Trash. Uses the existing desktop file-operations service, rejects cancellations and stale/off-target drops, excludes special desktop icons, and adds no polling. Source integration is version-guarded and reversible. Covered by logic tests; live drag verification pending next login.
