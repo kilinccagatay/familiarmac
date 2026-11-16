@@ -47,3 +47,5 @@ Neither evaluated dock is installed or vendored. `appsBrowser.js` and `downloads
 ### Control Center and menu ordering
 - [Apple Control Center reference](https://support.apple.com/en-gb/guide/mac-help/mchlc9d0e1f2/27/mac/27). FamiliarMac's two-toggle SVG is original; no Apple artwork or control implementation is bundled. Native GNOME Shell 46 Quick Settings supplies the controls and system state.
 - `overrides/appmenu/menuManager.js` derives from the pinned AppMenu archive documented above, retaining its license. The local change moves Help behind Window/custom menus without replacing actions.
+
+Session confirmation reference: [Apple WWDC 2017 What's New in Cocoa](https://devstreaming-cdn.apple.com/videos/wwdc/2017/207mg6u1b7mfd02n/207/207_whats_new_in_cocoa.pdf) shows a restart question with a seconds countdown. Current GNOME Shell 46 endSessionDialog.js was inspected locally: its presentation rounds to 10-second intervals until the last 10 seconds. FamiliarMac wraps the display update; it does not replace or copy the session manager timer implementation.

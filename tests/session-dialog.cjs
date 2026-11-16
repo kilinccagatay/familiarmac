@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let src=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/sessionDialog.js','utf8').replace(/^import .*;$/gm,'').replace(/export /g,'');
+let calls=0;const classes=new Set();
+const native=function(){calls++;this._messageDialogContent.description='User42 will restart in 60 seconds.'};
+const d={_sync:native,_type:2,_checkBox:{checked:false},_secondsLeft:58.2,_messageDialogContent:{},dialogLayout:{add_style_class_name:x=>classes.add(x),remove_style_class_name:x=>classes.delete(x)}};
+const ctx={Main:{endSessionDialog:d},GLib:{get_language_names:()=>['en_US']}};
+vm.runInNewContext(src+'\nglobalThis.C=SessionDialog;globalThis.seconds=secondsRemaining',ctx);
+const c=new ctx.C();d._sync();assert.equal(calls,1);assert.equal(d._messageDialogContent.description,'User42 will restart in 59 seconds.');
+for(const value of [60,59.1,58,10,9.2,1,0,-1])assert.equal(ctx.seconds(value),Math.max(0,Math.ceil(value)));
+d._secondsLeft=47.1;d._sync();assert.ok(d._messageDialogContent.description.includes('48 seconds'));
+d._checkBox.checked=true;d._sync();assert.ok(d._messageDialogContent.description.includes('60 seconds'));
+c.destroy();assert.equal(d._sync,native);assert.equal(classes.size,0);
+console.log('Session dialog: native actions retained, per-second display and cleanup passed');

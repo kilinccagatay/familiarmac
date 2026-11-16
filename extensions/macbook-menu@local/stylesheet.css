@@ -112,3 +112,14 @@
 .familiarmac-control-center .quick-slider { padding: 8px; border-radius: 14px; background-color: rgba(255,255,255,0.10); }
 .familiarmac-control-center .quick-slider .slider { -barlevel-height: 12px; -barlevel-background-color: rgba(255,255,255,0.18); -barlevel-active-background-color: #eeeeee; }
 .familiarmac-control-center .quick-toggle-menu { border-radius: 14px; background-color: #343438; }
+
+.familiarmac-control-center.quick-settings { width: 320px; }
+.familiarmac-control-center .familiarmac-control-heading { font-size: 10pt; font-weight: bold; padding: 4px 8px 0; }
+.modal-dialog.familiarmac-session-dialog { width: 300px; padding: 22px; border-radius: 18px; }
+.familiarmac-session-dialog .modal-dialog-content-box { padding: 0; margin: 0; }
+.familiarmac-session-dialog .message-dialog-content { spacing: 12px; }
+.familiarmac-session-dialog .message-dialog-title { font-size: 13pt; font-weight: bold; text-align: center; }
+.familiarmac-session-dialog .message-dialog-description { font-size: 10pt; text-align: center; }
+.familiarmac-session-dialog .modal-dialog-button-box { padding-top: 18px; spacing: 8px; }
+.familiarmac-session-dialog .modal-dialog-button { min-height: 24px; padding: 5px 12px; border-radius: 8px; font-size: 10pt; }
+.familiarmac-session-dialog .modal-dialog-linked-button { min-height: 24px; padding: 5px 12px; border-radius: 8px; font-size: 10pt; }

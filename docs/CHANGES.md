@@ -81,3 +81,9 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Scoped native Quick Settings styling: rounded compact cards, blue active controls, inset volume/brightness cards, dark translucent background. Native controls, authentication, keyboard navigation and hardware callbacks remain unchanged; no timer or new service. This is a macOS-inspired GNOME control center, not a pixel-identical replacement; AirDrop and Apple screen mirroring are not implemented.
 - Generic app menu ordering keeps localized Help last, after synthesized Window and custom menus, preserving actions.
 - Changes install for the next login. Syntax, lifecycle cleanup and ordering tests passed; physical panel appearance still needs visual verification after login.
+
+### Control Center layout and session confirmation
+- Reordered native controls into connectivity/Do Not Disturb cards, followed by labelled Display and Sound sliders; system/power actions at the bottom. Native submenu overlays, network selection, output selection, keyboard/outside-click dismissal remain intact. Layout is set only at first opening after native initialization, with no polling; original actor order and signal connections are restored on disable.
+- Do Not Disturb is functional and synchronized to GNOME notification banner settings.
+- Smaller session confirmation with question title and compact buttons. Native countdown presentation previously rounded to 10-second steps; now shows ceil(actual remaining seconds) every native timer tick. Timer deadline, cancel, inhibitors, PackageKit/update flow and restart actions are unchanged. No system restart was triggered for tests.
+- Native GNOME grid is retained: this does not yet reproduce Apple's grouped connectivity tile, media tile, or every macOS-specific submenu. Physical layout still needs post-login validation.
