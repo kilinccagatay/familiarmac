@@ -112,3 +112,8 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Command-drag now checks that the primary mouse button and modifier remain held; lost button release, modifier release and Escape cancel the drag. A 100ms guard runs only during dragging and is removed on completion/disable, preventing later hover from moving icons. Regression tests cover missed release and normal drop.
 - A detail menu highlights only its clicked status button. Removed the native Control Center active state that was also applied when its shared menu hosted a network/sound/battery detail view.
 - Installed for next login; live input validation pending.
+
+### Session confirmation layout repair
+- Corrected the style target: GNOME 46's actual modal box is `dialogLayout._dialog`, not the outer Dialog actor. Width/padding/radius rules now apply to the visible box.
+- Explicitly enabled word wrapping and disabled title ellipsis; restore prior Pango properties on disable. Added a class to the otherwise unstyled button-layout widget so its spacing rule takes effect. Countdown and session actions unchanged.
+- Regression test verifies the correct inner style target and wrapping restoration. Installed for next login; no real restart invoked to test layout.

@@ -1,4 +1,5 @@
 import GLib from 'gi://GLib';
+import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 export function secondsRemaining(value) {
@@ -11,11 +12,18 @@ export class SessionDialog {
     constructor() {
         this.dialog = Main.endSessionDialog;
         if (!this.dialog) return;
+        this.box = this.dialog.dialogLayout._dialog;
+        this.box.add_style_class_name('familiarmac-session-dialog');
+        this.dialog.buttonLayout.add_style_class_name('familiarmac-session-buttons');
+        this.title = this.dialog._messageDialogContent._title.clutter_text;
+        this.titleProperties = {ellipsize: this.title.ellipsize, line_wrap: this.title.line_wrap,
+            line_wrap_mode: this.title.line_wrap_mode, line_alignment: this.title.line_alignment};
+        this.title.set({ellipsize: Pango.EllipsizeMode.NONE, line_wrap: true,
+            line_wrap_mode: Pango.WrapMode.WORD_CHAR, line_alignment: Pango.Alignment.CENTER});
         this.originalSync = this.dialog._sync;
         const owner = this;
         this.wrapper = function (...args) {
             owner.originalSync.apply(this, args);
-            this.dialogLayout.add_style_class_name('familiarmac-session-dialog');
             if (this._type > 2 || this._checkBox.checked || this._secondsLeft <= 0) return;
             const content = this._messageDialogContent;
             const seconds = secondsRemaining(this._secondsLeft);
@@ -36,7 +44,9 @@ export class SessionDialog {
 
     destroy() {
         if (this.dialog?._sync === this.wrapper) this.dialog._sync = this.originalSync;
-        this.dialog?.dialogLayout.remove_style_class_name('familiarmac-session-dialog');
+        this.box?.remove_style_class_name('familiarmac-session-dialog');
+        this.dialog?.buttonLayout.remove_style_class_name('familiarmac-session-buttons');
+        if (this.title) this.title.set(this.titleProperties);
         this.dialog = null;
     }
 }
