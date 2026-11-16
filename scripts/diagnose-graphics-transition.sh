@@ -3,6 +3,14 @@
 set -euo pipefail
 printf 'Model: '; cat /sys/class/dmi/id/product_name
 printf 'Kernel: '; uname -r
+printf 'Boot parameters: '; cat /proc/cmdline
+printf '\nFramebuffer console binding:\n'
+for console in /sys/class/vtconsole/vtcon*; do
+  [[ -r "$console/name" ]] || continue
+  cat "$console/name" "$console/bind"
+done
+printf '\nFramebuffer handoff history:\n'
+journalctl -b -k --no-pager -o short-monotonic | rg 'fbcon|Console:|frame buffer device' || true
 printf '\nConnected outputs:\n'
 for status in /sys/class/drm/card*-*/status; do
   [[ -f "$status" ]] || continue

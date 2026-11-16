@@ -191,3 +191,7 @@ The zero-capable gmux brightness-down helper bypasses GNOME's native brightness 
 ### Notification startup and clock alignment (2026-11-16)
 
 Initialize the DND crescent adapter when the extension enables, not when Control Center first opens. Preserve the normal unread-notification symbol and restore native behavior on disable. Remove GNOME's mirrored clock spacer from the right-aligned panel layout, place the real indicator before the clock, and restore the exact original child order on disable. Match clock text to the other 10pt status labels and keep the white 16px glyph vertically centered. Tests cover initialization before any menu opening, notification changes, spacer removal and teardown. Physical appearance awaits the next login.
+
+### Optional framebuffer handoff workaround (2026-11-16)
+
+Added a device-restricted, reversible `fbcon=nodefer` installer for the reported boot/logout corruption on MacBookPro10,1 with Nouveau. Diagnosis found a registered framebuffer but only the dummy console bound, with deferred takeover in the journal. This is a controlled hypothesis, not a verified fix. It changes one future-boot parameter, does not switch GPUs or disable acceleration, and includes backup, generation checks and restore mode. See [GRAPHICS-TRANSITION.md](GRAPHICS-TRANSITION.md) for evidence, verification and rollback.
