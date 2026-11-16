@@ -3,6 +3,9 @@ set -euo pipefail
 cd -- "$(dirname -- "$0")/.."
 NODE=${NODE:-node}
 command -v "$NODE" >/dev/null || { echo 'Node 18+ required; set NODE=/path/to/node'; exit 1; }
+for tool in gjs dbus-run-session cc make python3; do
+  command -v "$tool" >/dev/null || { echo "Missing test dependency: $tool (Ubuntu: sudo apt-get install gjs dbus-daemon build-essential python3)" >&2; exit 1; }
+done
 sha256sum --check vendor/SHA256SUMS
 for f in install.sh apply.sh restore.sh scripts/*.sh tests/*.sh; do bash -n "$f"; done
 python3 - <<'CHECK'

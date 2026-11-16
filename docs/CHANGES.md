@@ -454,3 +454,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Keep the search card at 20% of the active monitor height using a translation independent of St theme margins, so showing results does not reset its top offset.
 - Handle Super/Command+Space inside the search modal to close it on the second press; ordinary Space still types normally. The desktop shortcut continues to open it.
 - Search/clipboard and modal shortcut regressions pass. Installed for next login; actual screen placement still needs session validation.
+
+
+### GitHub Actions test dependencies
+
+- Install GJS and D-Bus explicitly on the clean Ubuntu runner before testing. Recent runs stopped at the GMenu integration test because `gjs` was missing, after earlier tests had passed.
+- Fail early with an actionable dependency message for local test environments too; no tests are skipped.
