@@ -74,3 +74,11 @@ Reboot when convenient. If needed from recovery, remove `/etc/default/grub.d/98-
 ## Verified outcome — 2026-11-16
 
 The user rebooted after `install-early-kms.sh` and reported that both boot and logout corruption are resolved. Current kernel command line no longer contains `fbcon=nodefer`. The early Nouveau hook is the successful configuration on this machine; the earlier framebuffer experiment above was ineffective. This is user-observed hardware validation, not a guarantee for other Mac models.
+
+## Optional logo before Plymouth
+
+`sudo bash scripts/install-early-logo.sh --install` adds a static, centred logo on black to GRUB's graphical background. It uses the repository's existing vector logo and does not add a delay or progress indicator. It retains the current video mode, timeout, kernel parameters and early Nouveau hook. A generated-config backup and transaction rollback protect installation; `sudo bash scripts/install-early-logo.sh --restore` removes the override and regenerates GRUB with the previous distribution theme.
+
+This can cover the GRUB portion of the black screen, not the firmware interval before GRUB executes. A seamless transition cannot be guaranteed until observed on hardware. The existing Plymouth logo/progress starts after the native driver is ready; no late-driver workaround is reintroduced.
+
+Reference: [GNU GRUB background configuration](https://www.gnu.org/software/grub/manual/grub/html_node/Simple-configuration.html). No Apple firmware modification or bootloader reinstall is involved.

@@ -215,3 +215,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Tray boxes lose theme-added margins. All AppIndicator applications use 20px artwork bounds to balance inset full-colour artwork against symbolic icons; no ChatGPT-specific exception. Arbitrary source artwork may still have different internal transparent margins.
 - Installer applies the shared tray size when a supported AppIndicator schema exists and saves its old value for restoration. Clock retains seconds and its existing UI-language format.
 - Installed CSS loads with the next session; tray size updates live. Visual verification remains pending.
+
+## 2026-11-16 — Static early boot logo
+
+- Added an opt-in GRUB background renderer and reversible installer for a centred Apple logo without progress, before Plymouth starts.
+- Preserves timeout, graphics mode and the successful early Nouveau initialization. Firmware time before GRUB remains outside its control.
+- Renderer and shell syntax validated; installed on the target machine. Visual reboot validation pending.
