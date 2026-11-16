@@ -108,7 +108,8 @@ export class StatusButtons {
         this.owner.syncSurface?.();
         const wireless = key === '_network' ? this.panel._network?._wirelessToggle : null;
         const customWifi = Boolean(wireless?.visible && this.owner.wifi);
-        const selected = new Set(key === '_system' || customWifi ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
+        const customSound = key === '_volumeOutput' && Boolean(this.owner.sound?.native);
+        const selected = new Set(key === '_system' || customWifi || customSound ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
         for (const item of menu._grid.get_children()) {
             if (selected.has(item) || item === menu._grid.layout_manager._overlay) continue;
@@ -138,6 +139,7 @@ export class StatusButtons {
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
         menu.open();
+        if (customSound) this.owner.sound.show();
         if (customWifi) this.owner.wifi.show();
         else if (wireless?.visible && wireless.menu) wireless.menu.open(BoxPointer.PopupAnimation.NONE);
         // Native QuickSettings marks its source active even for our detail view.
@@ -146,6 +148,7 @@ export class StatusButtons {
     }
 
     restore() {
+        this.owner.sound?.hide();
         this.owner.wifi?.hide();
         for (const {item, signal, visible} of this.mask) {
             item.disconnect(signal); item.visible = visible;

@@ -1,3 +1,4 @@
+import {SoundSurface} from './soundSurface.js';
 import {WifiSurface} from './wifiSurface.js';
 import {BatterySurface} from './batterySurface.js';
 import {ControlSurface} from './controlSurface.js';
@@ -63,6 +64,8 @@ export class ControlCenter {
         ordered.forEach((item, index) => {
             if (item.get_parent() === grid) grid.set_child_at_index(item, index);
         });
+        this.sound = new SoundSurface(this, tr);
+        menu.box.insert_child_at_index(this.sound.actor, 0);
         this.wifi = new WifiSurface(this, tr);
         menu.box.insert_child_at_index(this.wifi.actor, 0);
         this.battery = new BatterySurface(this, tr);
@@ -77,7 +80,9 @@ export class ControlCenter {
         this.surface.actor.visible = !this.detail;
         const wifi = this.detail === '_network' && Boolean(this.wifi?.wireless?.visible);
         this.wifi.actor.visible = wifi;
-        this.panel.menu._grid.visible = Boolean(this.detail) && this.detail !== '_system' && !wifi;
+        const sound = this.detail === '_volumeOutput' && Boolean(this.sound?.native);
+        this.sound.actor.visible = sound;
+        this.panel.menu._grid.visible = Boolean(this.detail) && this.detail !== '_system' && !wifi && !sound;
         this.battery.actor.visible = this.detail === '_system';
         if (this.detail === '_system') this.battery.sync();
         if (!this.detail) this.surface.syncMedia();
@@ -87,6 +92,7 @@ export class ControlCenter {
         this.statusButtons?.destroy();
         this.statusButtons = null;
 
+        this.sound?.destroy();
         this.wifi?.destroy();
         this.battery?.destroy();
         this.surface?.destroy();

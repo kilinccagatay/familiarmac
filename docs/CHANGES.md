@@ -239,3 +239,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Borrow/restore the original GNOME network section while open; retain NetworkManager authentication, accessibility and activation. Scan only while open, using GNOME's scan lifecycle. Hardware-disabled Wi-Fi cannot be toggled. Ethernet remains independent.
 - Apple reference: https://support.apple.com/en-mt/guide/mac-help/mchlfad426fa/mac . Uses Linux's native network ordering; Apple's Personal Hotspot/iCloud sections are not implemented.
 - Suite and dedicated lifecycle test passed; installed for next login. Actual network switching was not exercised to avoid interrupting the connection; live visual validation pending.
+
+## 2026-11-16 — Sound detail palette and output list
+
+- Single-level Sound panel with a high-contrast mute icon, native volume slider, output devices and Sound Settings. No nested arrow/tile or white-on-light hardware glyph.
+- Native slider and device section are temporarily reparented and restored on close/disable; keeps mute, volume amplification policy, keyboard controls and device selection callbacks. No polling or independent mixer.
+- Reference: https://support.apple.com/en-euro/guide/mac-help/mchl1f98810b/27/mac/27 .
+- Full suite and dedicated sound lifecycle test passed. Installed for next login; visual and physical audio validation pending.
