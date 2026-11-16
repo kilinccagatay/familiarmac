@@ -47,7 +47,9 @@ export class StatusButtons {
             const button = new PanelMenu.Button(0.5, title, true);
             button.add_style_class_name('familiarmac-status-single');
             box.remove_child(indicator);
-            button.add_child(indicator);
+            const content = new St.BoxLayout();
+            button.add_child(content);
+            content.add_child(indicator);
             let wirelessIcon = null;
             const wireless = key === '_network' ? indicator._wirelessToggle : null;
             const bindings = [];
@@ -55,11 +57,12 @@ export class StatusButtons {
                 // Wi-Fi status remains Wi-Fi when Ethernet owns the default route.
                 indicator.hide();
                 wirelessIcon = new St.Icon({style_class: 'system-status-icon'});
-                button.add_child(wirelessIcon);
+                content.add_child(wirelessIcon);
                 const updateWifi = () => {
                     wirelessIcon.icon_name = wireless.icon_name;
                     wirelessIcon.visible = wireless.visible;
                     indicator.visible = !wireless.visible;
+                    button.visible = Boolean(wireless.visible || indicator.visible);
                 };
                 bindings.push(wireless.connect('notify::icon-name', updateWifi),
                     wireless.connect('notify::visible', updateWifi));
@@ -91,11 +94,11 @@ export class StatusButtons {
         menu.close();
         this.restore();
         if (same) return;
-        this.owner.detail = true;
+        this.owner.detail = key;
         this.owner.arrange();
         this.owner.syncSurface?.();
         const wireless = key === '_network' ? this.panel._network?._wirelessToggle : null;
-        const selected = new Set(wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
+        const selected = new Set(key === '_system' ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
         for (const item of menu._grid.get_children()) {
             if (selected.has(item) || item === menu._grid.layout_manager._overlay) continue;
@@ -166,7 +169,7 @@ export class StatusButtons {
             for (const id of bindings) wireless.disconnect(id);
             if (wireless) indicator.show();
             indicator.disconnect(signal);
-            button.remove_child(indicator);
+            indicator.get_parent().remove_child(indicator);
             box.insert_child_at_index(indicator, Math.min(index, box.get_n_children()));
             button.destroy();
         }

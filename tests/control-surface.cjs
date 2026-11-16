@@ -17,6 +17,8 @@ const displayCard=surface.actor.children[1],slider=displayCard.children[1].child
 brightness.slider.value=0.7;brightness.slider.emit('notify::value');assert.equal(slider.value,0.7);
 slider.value=0.3;slider.emit('notify::value');assert.equal(brightness.slider.value,0.3);
 let drags=0;brightness.slider.connect('drag-end',()=>drags++);slider.emit('drag-end');assert.equal(drags,1);
+assert.equal(surface.actor.children[0].children[0].children[0].get_child().x_expand,true);
+assert.equal(surface.actor.children[0].children[0].children[0].fmIcon.x_align,1);
 surface.syncMedia();assert.equal(surface.play.reactive,false);
 surface.destroy();assert.equal(native.signals.size,0);assert.equal(surface.actor.destroyed,true);
 console.log('Control cards: native slider synchronization, drag-end forwarding, absent media and cleanup PASS');

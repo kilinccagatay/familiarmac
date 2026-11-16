@@ -37,13 +37,15 @@ export class DockLaunch {
             if (app.can_open_new_window()) app.open_new_window(-1);
             else app.activate();
         };
-        if (app.state === Shell.AppState.STOPPED) { launch(); return; }
+        const closing = app.get_windows().some(w => this.closing.has(w));
+        if (app.state === Shell.AppState.STOPPED || (!closing && app.state !== Shell.AppState.STARTING)) { launch(); return; }
         // Closing the last window leaves RUNNING briefly while the process exits.
         // Launch once after STOPPED, or after a bounded wait for background apps.
         const deadline = GLib.get_monotonic_time() + 1500000;
         const timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             if (this.windows(app).length) {
                 this.pending.delete(id);
+                app.activate();
                 return GLib.SOURCE_REMOVE;
             }
             if (app.state !== Shell.AppState.STOPPED && GLib.get_monotonic_time() < deadline)

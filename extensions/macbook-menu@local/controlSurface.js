@@ -37,11 +37,11 @@ export class ControlSurface {
     }
     watch(object, signal, callback) { this.signals.push([object, object.connect(signal, callback)]); }
     button(title, iconName, callback) {
-        const button = new St.Button({can_focus: true, x_expand: true, style_class: 'fm-control-row', accessible_name: title});
-        const box = new St.BoxLayout({style_class: 'fm-control-row-content'});
-        const icon = new St.Icon({icon_name: iconName, style_class: 'fm-control-symbol'});
+        const button = new St.Button({can_focus: true, x_expand: Boolean(title), style_class: 'fm-control-row', accessible_name: title});
+        const box = new St.BoxLayout({x_expand: true, x_align: Clutter.ActorAlign.FILL, style_class: 'fm-control-row-content'});
+        const icon = new St.Icon({icon_name: iconName, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER, style_class: 'fm-control-symbol'});
         box.add_child(icon);
-        const label = title ? new St.Label({text: title, y_align: Clutter.ActorAlign.CENTER}) : null;
+        const label = title ? new St.Label({text: title, x_expand: true, y_align: Clutter.ActorAlign.CENTER}) : null;
         if (title) box.add_child(label);
         button.set_child(box); button.connect('clicked', callback);
         button.fmIcon = icon; button.fmLabel = label;

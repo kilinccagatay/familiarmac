@@ -152,7 +152,7 @@
 .fm-controls { spacing: 10px; }
 .fm-controls-top, .fm-control-small { spacing: 10px; }
 .fm-control-right { spacing: 10px; width: 166px; }
-.fm-connections { width: 166px; padding: 6px; }
+.fm-connections { width: 152px; padding: 6px; }
 .fm-card { border-radius: 14px; background-color: rgba(241,247,250,0.50); border: 1px solid rgba(255,255,255,0.26); }
 .fm-control-row { padding: 8px 6px; border-radius: 10px; color: #20262b; }
 .fm-control-row:hover { background-color: rgba(255,255,255,0.40); }
@@ -179,3 +179,13 @@
 .fm-osd-segments { spacing: 2px; height: 7px; }
 .fm-osd-tick { background-color: rgba(30,35,40,0.28); }
 .fm-osd-tick.filled { background-color: white; }
+
+/* Keep glyphs circular and align text to the same leading edge. */
+.fm-small-tile { width: 65px; }
+.fm-small-tile StLabel { text-align: center; }
+#panel .fm-notification-indicator { color: white; icon-size: 16px; }
+.fm-battery { spacing: 10px; padding: 8px; color: #20262b; }
+.fm-battery-header { font-weight: bold; font-size: 11pt; spacing: 16px; }
+.fm-battery-status { font-size: 10pt; color: #354149; }
+.fm-battery-settings { border-top: 1px solid rgba(30,40,50,0.20); padding: 10px 0 2px; color: #20262b; font-size: 10pt; }
+.fm-battery-settings:hover { background-color: rgba(255,255,255,0.35); }

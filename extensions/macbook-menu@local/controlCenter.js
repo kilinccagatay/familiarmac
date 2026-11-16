@@ -1,3 +1,4 @@
+import {BatterySurface} from './batterySurface.js';
 import {ControlSurface} from './controlSurface.js';
 import {StatusButtons} from './statusButtons.js';
 import Gio from 'gi://Gio';
@@ -35,8 +36,19 @@ export class ControlCenter {
         const tr = GLib.get_language_names()[0].startsWith('tr');
         this.notifications = new Gio.Settings({schema_id: 'org.gnome.desktop.notifications'});
         this.focus = new QuickSettings.QuickToggle({title: tr ? 'Rahatsız Etmeyin' : 'Do Not Disturb',
-            iconName: 'notifications-disabled-symbolic', toggleMode: true});
+            iconName: 'weather-clear-night-symbolic', toggleMode: true});
         const sync = () => { this.focus.checked = !this.notifications.get_boolean('show-banners'); };
+        this.messageIndicator = Main.panel.statusArea.dateMenu?._indicator;
+        if (this.messageIndicator) {
+            this.messageIcon = this.messageIndicator.icon_name;
+            this.messageIndicator.add_style_class_name('fm-notification-indicator');
+            this.messageSignal = this.messageIndicator.connect('notify::icon-name', () => {
+                if (this.messageIndicator.icon_name === 'notifications-disabled-symbolic')
+                    this.messageIndicator.icon_name = 'weather-clear-night-symbolic';
+            });
+            if (this.messageIndicator.icon_name === 'notifications-disabled-symbolic')
+                this.messageIndicator.icon_name = 'weather-clear-night-symbolic';
+        }
         this.notifySignal = this.notifications.connect('changed::show-banners', sync);
         this.focus.connect('clicked', () => this.notifications.set_boolean('show-banners', !this.focus.checked));
         sync();
@@ -61,6 +73,8 @@ export class ControlCenter {
         ordered.forEach((item, index) => {
             if (item.get_parent() === grid) grid.set_child_at_index(item, index);
         });
+        this.battery = new BatterySurface(this, tr);
+        menu.box.insert_child_at_index(this.battery.actor, 0);
         this.surface = new ControlSurface(this, tr);
         menu.box.insert_child_at_index(this.surface.actor, 0);
         this.syncSurface();
@@ -69,13 +83,22 @@ export class ControlCenter {
     syncSurface() {
         if (!this.surface) return;
         this.surface.actor.visible = !this.detail;
-        this.panel.menu._grid.visible = Boolean(this.detail);
+        this.panel.menu._grid.visible = Boolean(this.detail) && this.detail !== '_system';
+        this.battery.actor.visible = this.detail === '_system';
+        if (this.detail === '_system') this.battery.sync();
         if (!this.detail) this.surface.syncMedia();
     }
 
     destroy() {
         this.statusButtons?.destroy();
         this.statusButtons = null;
+        if (this.messageSignal) {
+            this.messageIndicator.disconnect(this.messageSignal);
+            this.messageIndicator.remove_style_class_name('fm-notification-indicator');
+            if (this.messageIndicator.icon_name === 'weather-clear-night-symbolic')
+                this.messageIndicator.icon_name = 'notifications-disabled-symbolic';
+        }
+        this.battery?.destroy();
         this.surface?.destroy();
         this.surface = null;
         if (this.panel?.menu?._grid) this.panel.menu._grid.show();
