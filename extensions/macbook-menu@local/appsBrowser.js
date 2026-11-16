@@ -1,3 +1,4 @@
+import {launcherAppButton} from './launcherDrag.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
@@ -90,12 +91,12 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
         let row;
         for (const [index,app] of apps.entries()) {
             if (this._list || index%6===0) {row=new St.BoxLayout({style_class:'familiarmac-apps-row'});this._results.add_child(row);}
-            const button=new St.Button({can_focus:true,track_hover:true,x_expand:this._list,style_class:this._list?'familiarmac-apps-list-item':'familiarmac-apps-tile'});
+            const button=launcherAppButton(app,this,{can_focus:true,track_hover:true,x_expand:this._list,style_class:this._list?'familiarmac-apps-list-item':'familiarmac-apps-tile'});
             const box=new St.BoxLayout({vertical:!this._list,style_class:'familiarmac-apps-item-content'});
-            box.add_child(app.create_icon_texture(this._list?28:48));
+            const dragIcon=app.create_icon_texture(this._list?28:48);
+            box.add_child(dragIcon);button.getDragActorSource=()=>dragIcon;
             const label=new St.Label({text:app.get_name(),x_expand:true,x_align:this._list?Clutter.ActorAlign.START:Clutter.ActorAlign.CENTER});
             box.add_child(label);button.set_child(box);
-            button.activate=()=>{this.close();app.activate();};button.connect('clicked',button.activate);
             row.add_child(button);this._buttons.push(button);
         }
         if (!apps.length) this._results.add_child(new St.Label({text:'No applications found',style_class:'familiarmac-apps-empty'}));

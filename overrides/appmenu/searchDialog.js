@@ -1,3 +1,4 @@
+import {launcherAppButton} from './launcherDrag.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
@@ -254,7 +255,8 @@ class SearchDialog extends ModalDialog.ModalDialog {
     }
 
     _apps() {
-        return this._appSystem.get_installed().map(app => ({
+        return this._appSystem.get_installed().filter(info => info.should_show())
+            .map(info => this._appSystem.lookup_app(info.get_id())).filter(Boolean).map(app => ({
             type: 'app',
             title: app.get_name(),
             subtitle: app.get_description() || app.get_id(),
@@ -346,7 +348,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
 
     _iconForItem(item) {
         if (item.type === 'app') {
-            const appIcon = item.app?.get_icon?.();
+            const appIcon = item.app?.get_app_info?.()?.get_icon?.();
             if (appIcon)
                 return new St.Icon({gicon: appIcon, style_class: 'appmenu-search-result-icon'});
         }
@@ -399,13 +401,17 @@ class SearchDialog extends ModalDialog.ModalDialog {
             }));
 
             for (const item of sectionItems) {
-                const button = new St.Button({
+                const properties = {
                     style_class: 'appmenu-search-result',
                     can_focus: true,
                     track_hover: true,
-                });
-                button.activate = () => this._activate(item);
-                button.connect('clicked', () => this._activate(item));
+                };
+                const button = item.type === 'app'
+                    ? launcherAppButton(item.app, this, properties) : new St.Button(properties);
+                if (item.type !== 'app') {
+                    button.activate = () => this._activate(item);
+                    button.connect('clicked', button.activate);
+                }
                 button.connect('notify::hover', () => {
                     if (this._destroyed)
                         return;
@@ -420,7 +426,9 @@ class SearchDialog extends ModalDialog.ModalDialog {
                     style_class: 'appmenu-search-result-content',
                     x_expand: true, x_align: Clutter.ActorAlign.FILL,
                 });
-                box.add_child(this._iconForItem(item));
+                const dragIcon = this._iconForItem(item);
+                box.add_child(dragIcon);
+                if (item.type === 'app') button.getDragActorSource = () => dragIcon;
 
                 const textBox = boxLayout(true, {
                     style_class: 'appmenu-search-result-text',
@@ -437,7 +445,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
                     x_align: Clutter.ActorAlign.START,
                 }));
                 box.add_child(textBox);
-                button.add_child(box);
+                button.set_child(box);
                 this._resultButtons.push(button);
                 this._resultsBox.add_child(button);
             }

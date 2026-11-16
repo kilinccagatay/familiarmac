@@ -130,3 +130,11 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Spotlight and Apps use an undimmed modal surface: outside-click and Escape dismissal remain, without the GNOME Lightbox. Both have a 24 logical pixel outer radius. Spotlight reference: [Apple Spotlight guide](https://support.apple.com/en-gb/guide/mac-help/mchlp1008/mac).
 - Command-drag uses a Clutter pointer grab through release, instead of polling virtual modifier state every 100ms. Escape/modifier release cancel; mouse release ends the operation, so later hover cannot keep moving icons. Input/trackpad settings are unchanged.
 - Full automated suite passes, including every hardware popup's anchor/span restoration and drag/release lifecycle. Installed Shell JavaScript takes effect next login; actual pointer behavior and visual alignment still require desktop validation. No logout/restart is triggered by installation.
+
+## Drag applications from launchers to Dock (2026-11-16)
+
+Apps grid/list and Spotlight application results use native GNOME AppIcon drag sources, shared through `launcherDrag.js`. Hold and drag an application onto the Dock application area to pin it at the drop position. Existing favorites use the native move path, avoiding duplicates; Finder-first normalization and the separate Downloads/Trash section remain in place. File/search-setting results are not treated as application favorites.
+
+During drag the launcher hides and releases its modal grab so the Dock receives the drop. Successful drops close the launcher only after DND releases the source; cancelled/outside drops return to the launcher. Pending search updates are cancelled to avoid destroying the source mid-drag. No background polling or input-setting changes are introduced. Spotlight now resolves installed desktop entries into Shell.App objects for launching, native icons and drag interoperability.
+
+The full automated suite passes, with lifecycle regressions for release, cancellation, deferred destruction and accidental activation. Installed copies match the repository; a new login is required to load the JavaScript. Physical drag/drop on the running desktop remains to be validated. Implementation uses the installed GNOME 46 `appDisplay.js`, `dash.js` and `dnd.js` APIs, alongside the existing Zorin Dash.
