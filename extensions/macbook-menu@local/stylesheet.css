@@ -79,3 +79,9 @@
 .familiarmac-stack-file:hover,.familiarmac-stack-file:focus { background-color: rgba(128,128,128,0.25); }
 .familiarmac-stack-fan { max-height: 470px; }
 .familiarmac-stack.fan .familiarmac-stack-label { padding: 4px 8px; border-radius: 8px; background-color: rgba(30,30,34,0.9); }
+.familiarmac-stack-more { padding: 5px 8px; border-radius: 14px; }
+.familiarmac-stack-more:hover,.familiarmac-stack-more:focus { background-color: rgba(128,128,128,0.25); }
+.familiarmac-stack-options .popup-menu-content { min-width: 230px; padding: 8px; border-radius: 14px; }
+.familiarmac-stack-options .familiarmac-stack-heading { font-size: 9pt; color: rgba(240,240,240,0.55); }
+.familiarmac-stack.fan .popup-menu-content { background-color: transparent; border-color: transparent; box-shadow: none; }
+.familiarmac-stack.fan .familiarmac-stack-open-folder { border-radius: 10px; background-color: rgba(30,30,34,0.90); }

@@ -1,11 +1,18 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const code=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/downloadsStack.js','utf8').replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
-const context={};vm.runInNewContext(code+';Object.assign(globalThis,{orderFiles,stackView,DownloadsStack});',context);
+const context={};vm.runInNewContext(code+';Object.assign(globalThis,{orderFiles,stackView,remainingCount,DownloadsStack});',context);
 const files=[{name:'z.txt',time:1},{name:'a.txt',time:3},{name:'b.txt',time:2}];
 assert.deepEqual(Array.from(context.orderFiles(files,'name'),f=>f.name),['a.txt','b.txt','z.txt']);
 assert.deepEqual(Array.from(context.orderFiles(files,'date'),f=>f.time),[3,2,1]);assert.equal(files[0].name,'z.txt');
 assert.equal(context.stackView('auto',7),'fan');assert.equal(context.stackView('auto',8),'grid');assert.equal(context.stackView('list',1),'list');
-let closed=0,batch=0;const enumerator={next_files_async(n,p,c,cb){cb(this,{});},next_files_finish(){return batch++ ? [] : [{get_is_hidden:()=>false,get_display_name:()=> 'test',get_icon:()=>null,get_attribute_uint64:()=>5,get_name:()=> 'test'}];},close_async(p,c,cb){cb(this,{});},close_finish(){closed++;}};
+assert.equal(context.stackView('fan',100),'fan');
+const many=[...files];many.totalCount=22;assert.equal(context.remainingCount(many,7),15);assert.equal(context.orderFiles(many,'name').totalCount,22);assert.equal(context.remainingCount([],7),0);
+let closed=0,batch=0;const enumerator={next_files_async(n,p,c,cb){cb(this,{});},next_files_finish(){return batch++ ? [] : [{get_is_hidden:()=>false,get_display_name:()=> 'test',get_icon:()=>null,get_attribute_uint64:()=>5,has_attribute:()=>false,get_content_type:()=> 'text/plain',get_name:()=> 'test'}];},close_async(p,c,cb){cb(this,{});},close_finish(){closed++;}};
 context.Gio={FileQueryInfoFlags:{NONE:0}};context.GLib={PRIORITY_DEFAULT:0};
 const stack=Object.create(context.DownloadsStack.prototype);stack.order='name';stack.folder={enumerate_children_async(a,f,p,c,cb){cb(this,{});},enumerate_children_finish(){return enumerator;},get_child:n=>n};
-(async()=>{const result=await stack.read({});assert.equal(result[0].file,'test');assert.equal(closed,1);console.log('Downloads: automatic fan/grid, nonmutating sort, async listing/close PASS');})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const result=await stack.read({});assert.equal(result[0].file,'test');assert.equal(closed,1);assert.equal(result.totalCount,1);
+let index=0;enumerator.next_files_finish=()=>{
+ const rows=[];for(let n=0;n<40&&index<315;n++,index++){const current=index;rows.push({get_is_hidden:()=>false,get_display_name:()=>String(current),get_icon:()=>null,get_attribute_uint64:()=>current,has_attribute:()=>true,get_content_type:()=> 'text/plain',get_name:()=>String(current)});}return rows;
+};
+stack.order='date';const large=await stack.read({});assert.equal(large.totalCount,315);assert.equal(large.length,200);assert.equal(large[0].time,314);assert.equal(context.remainingCount(large,7),308);assert.equal(closed,2);
+console.log('Downloads: automatic fan/grid, nonmutating sort, async listing/close PASS');})().catch(e=>{console.error(e);process.exitCode=1;});
