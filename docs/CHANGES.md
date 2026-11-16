@@ -142,3 +142,7 @@ The full automated suite passes, with lifecycle regressions for release, cancell
 ## Clock scope correction (2026-11-16)
 
 Login and lock-screen clocks omit seconds. The login overlay already uses `%H:%M`; the shared `clock-show-seconds` preference is now false. The panel alone opts into native `WallClock.force_seconds`, preserving its requested seconds format without propagating it to the lock screen or introducing another timer. Disabling the extension restores the panel clock's previous force-seconds property.
+
+## Emergency panel input recovery (2026-11-16)
+
+The panel pointer grab introduced in the drag repair blocked clicks outside the panel on the real desktop. Disabling the extension restored clicks, confirmed by the user. Removed that grab; dragging now observes stage events and has a button-only lost-release watchdog, active only during a drag. The current session keeps the extension disabled because GNOME caches loaded JavaScript modules; corrected source is installed for a fresh session. Automated lifecycle tests now prohibit acquiring a panel grab. Actual drag behavior still needs validation before declaring the feature fixed.

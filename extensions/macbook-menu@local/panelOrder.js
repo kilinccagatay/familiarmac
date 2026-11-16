@@ -54,8 +54,8 @@ export class PanelOrder {
     finish(commit = false) {
         const drag = this.drag;
         this.drag = null;
-        this.grab?.dismiss();
-        this.grab = null;
+        if (this.dragWatch) GLib.source_remove(this.dragWatch);
+        this.dragWatch = 0;
         if (!drag) return;
         if (commit && drag.moved) this.save();
         else this.apply(drag.before);
@@ -76,10 +76,15 @@ export class PanelOrder {
             this.touched = true;
             for (const {button} of this.entries()) button.menu?.close();
             this.drag = {id: entry.id, x, before: this.order(), moved: false};
-            // Keep the pointer sequence on the panel, including release outside
-            // the original button. Polling virtual modifier state used to abort
-            // valid drags, and an ungrabbed release could leave a sticky drag.
-            this.grab = global.stage.grab(Main.panel);
+            // Never grab the panel: that excludes desktop/window input and
+            // can also hide the release from the stage capture handler.
+            // Observe only while the mouse is down; a missed release cancels.
+            this.dragWatch = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+                if (this.held(global.get_pointer()[2])) return GLib.SOURCE_CONTINUE;
+                this.dragWatch = 0;
+                this.finish();
+                return GLib.SOURCE_REMOVE;
+            });
             return Clutter.EVENT_STOP;
         }
         if (!this.drag) return Clutter.EVENT_PROPAGATE;
