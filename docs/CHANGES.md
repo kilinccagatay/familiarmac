@@ -227,3 +227,8 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - User reported the static GRUB logo did not appear on reboot; the previous background-only approach is not visually verified.
 - Added an EFI-only explicit gfxterm redraw after the background is loaded, including the zero-timeout path. This is a testable follow-up, not a confirmed diagnosis. No sleep or timeout increase; early Nouveau is unchanged.
 - Redraw generator is included in install/restore and transaction rollback. Shell and GRUB syntax checked; privileged installation completed successfully on the target machine. Hardware validation pending.
+
+## 2026-11-16 — Battery Settings menu row
+
+- Separate separator from the settings action; left-align its label with battery information. Replace square hover fill with rounded blue hover/keyboard focus and explicit transparent idle state.
+- Preserve power-settings action and live battery state. Battery tests and JS syntax passed; installed for next session, visual validation pending.

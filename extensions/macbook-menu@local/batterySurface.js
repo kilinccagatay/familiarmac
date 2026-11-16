@@ -15,7 +15,10 @@ export class BatterySurface {
         this.source = new St.Label({style_class: 'fm-battery-status'});
         this.state = new St.Label({style_class: 'fm-battery-status'});
         this.actor.add_child(this.source); this.actor.add_child(this.state);
-        const settings = new St.Button({label: tr ? 'Pil Ayarları…' : 'Battery Settings…',
+        this.actor.add_child(new St.BoxLayout({style_class: 'fm-battery-separator'}));
+        const settings = new St.Button({child: new St.Label({
+            text: tr ? 'Pil Ayarları…' : 'Battery Settings…',
+            x_expand: true, x_align: Clutter.ActorAlign.START}),
             can_focus: true, x_align: Clutter.ActorAlign.FILL, style_class: 'fm-battery-settings'});
         settings.connect('clicked', () => { owner.panel.menu.close(); Util.spawn(['gnome-control-center', 'power']); });
         this.actor.add_child(settings);
