@@ -518,3 +518,8 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Preserved the 16 November 18:54 CET Nouveau context-switch timeout and Mesa segfault evidence. Earlier Xwayland render-target traps predate the latest Spotlight edit; an extension trigger has not been established.
 - Found and installed missing GK107M video firmware using Nouveau's documented extraction route. A targeted installer verifies all ten hashes, refuses conflicting destination files, checks the GPU/driver and records installed files. No firmware blobs are distributed.
 - Installation was verified on disk. No driver/kernel/network/boot configuration changed and no active module was reloaded. Video-engine retry and long-term crash resolution still need validation; this is not a confirmed fix for the entire crash chain.
+
+### Spotlight shortcut in modal mode
+
+- Temporarily allow the registered search accelerator in SYSTEM_MODAL while Spotlight is open. Mutter intercepts registered shortcuts before the entry's captured-event handler, so handling Super+Space only on that actor was insufficient.
+- Restore NORMAL-only scope on close, failed modal grab and destruction; other system dialogs do not gain a new Spotlight shortcut. Tests cover the scope lifecycle alongside calculator/input behavior.

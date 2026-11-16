@@ -185,6 +185,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
     destroy() {
         if (this._destroyed)
             return;
+        this._restoreShortcutMode();
         this._destroyed = true;
 
         if (this._timeoutId) {
@@ -232,8 +233,28 @@ class SearchDialog extends ModalDialog.ModalDialog {
         // St theme/style changes can replace actor margins when results appear.
         // Translation is independent of CSS and remains fixed as the card grows.
         this.dialogLayout._dialog.translation_y = Math.round(Main.layoutManager.currentMonitor.height * 0.20);
-        super.open(global.get_current_time());
+        // Mutter handles registered accelerators before actor captured-event.
+        // Allow the existing binding in our modal mode only while we own it.
+        Main.wm.allowKeybinding('search-shortcut',
+            Shell.ActionMode.NORMAL | Shell.ActionMode.SYSTEM_MODAL);
+        this._shortcutModalEnabled = true;
+        if (!super.open(global.get_current_time())) {
+            this._restoreShortcutMode();
+            return;
+        }
         this._entry.grab_key_focus();
+    }
+
+    _restoreShortcutMode() {
+        if (!this._shortcutModalEnabled)
+            return;
+        this._shortcutModalEnabled = false;
+        Main.wm.allowKeybinding('search-shortcut', Shell.ActionMode.NORMAL);
+    }
+
+    close(timestamp = global.get_current_time()) {
+        this._restoreShortcutMode();
+        super.close(timestamp);
     }
 
     toggle() {

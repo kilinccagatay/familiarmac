@@ -74,3 +74,37 @@ window deformation effects can be isolated before considering broader
 rendering changes. Avoid speculative kernel flags, firmware mode switches,
 GPU switching, full software rendering or unreviewed third-party driver
 patch bundles: none has been demonstrated necessary by this incident.
+
+## Hardware decode validation: FAILED (16 November, 19:14 CET)
+
+After a user-initiated reboot, `vainfo --display drm --device
+/dev/dri/renderD128` successfully initialized Mesa Nouveau NVE7 and advertised
+H.264 VLD. That probe alone did not establish working decoding.
+
+A locally generated 5-second H.264 High 8-bit 4:2:0 test pattern (1280x720,
+30 fps) was decoded with FFmpeg 6.1.1, explicitly targeting Nouveau VA-API:
+
+```sh
+LIBVA_DRIVER_NAME=nouveau ffmpeg -nostdin -hwaccel vaapi \
+  -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi \
+  -i sample-720p.mp4 -vf 'hwdownload,format=nv12' -an -f framemd5 gpu.md5
+```
+
+The test process exited 139, with `RT_WIDTH_OVERRUN`, `RT_HEIGHT_OVERRUN`,
+and `MSVLD PRIV_VIOLATION` followed by a Mesa `libgallium` segfault. The
+reported instruction offset `b2b187` matches the earlier Shell crash.
+No further hardware stress tests were run.
+
+A CPU-only control decoded the same clip with `-hwaccel none -pix_fmt nv12`:
+150 frames completed, exit 0. The Shell PID remained 1897, Wi-Fi and Ethernet
+remained connected, and no additional kernel events appeared immediately
+after the failed decode. Test executables and dependencies were extracted
+from distro packages to `/tmp`; no packages or persistent environment
+settings were installed or changed.
+
+This reproduces a driver-path failure in a separate FFmpeg process, without
+invoking the custom menus. It does **not** prove that extensions can never
+trigger a related failure, or that the precise cause of the idle Shell
+crash has been identified. Missing firmware is repaired, but hardware decode
+and the overall stability issue are **not fixed**. Do not enable accelerated
+video globally based on the successful `vainfo` probe.
