@@ -47,9 +47,17 @@ export class DockOrder {
     trackSeparator(actor) {
         if (!actor.has_style_class_name?.('dash-separator') || this.separators.has(actor)) return;
         const visible = actor.visible;
+        const showOnSetParent = actor.show_on_set_parent;
+        // Dash removes/reinserts this actor when favorites or running apps change.
+        // Clutter may show it again on reparent; a transparent zero-width child
+        // still adds an extra BoxLayout gap. Keep it out of layout throughout.
+        actor.show_on_set_parent = false;
+        const visibilitySignal = actor.connect('notify::visible', () => {
+            if (actor.visible) actor.hide();
+        });
         const signal = actor.connect('destroy', () => this.separators.delete(actor));
-        this.separators.set(actor, {visible, signal});
-        actor.hide(); // Zero width alone still leaves the box's inter-child spacing.
+        this.separators.set(actor, {visible, signal, visibilitySignal, showOnSetParent});
+        actor.hide();
     }
     track(icon) {
         if (this.icons.has(icon)) return;
@@ -66,8 +74,10 @@ export class DockOrder {
         this.icons.set(icon,{draggable,original,blocked,signal,container,trash});
     }
     destroy() {
-        for (const [actor, {visible, signal}] of this.separators) {
+        for (const [actor, {visible, signal, visibilitySignal, showOnSetParent}] of this.separators) {
             actor.disconnect(signal);
+            actor.disconnect(visibilitySignal);
+            actor.show_on_set_parent = showOnSetParent;
             if (visible) actor.show();
         }
         this.separators.clear();

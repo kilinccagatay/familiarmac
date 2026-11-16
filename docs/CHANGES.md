@@ -481,3 +481,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - The three explicit keyd translations separate Command from Control; existing keyboard/touchpad mappings remain intact. The incremental installer backs up and merges the running profile. No destructive Power/Restart shortcuts are added, nor shortcuts invented for About/System Settings.
 - Local parser, exported-action, collision/cleanup and real keyd tests passed. Installed Shell changes activate at next login; live keyboard/UI validation is still required.
 - Apple reference: https://support.apple.com/en-us/102650 . Menu hints reflect the shortcuts implemented on Linux, not an assertion that every macOS-only command is supported.
+
+### Equal pinned/running Dock gaps after redisplay
+
+- Keep the native favorites/running separator hidden when Dash reparents or shows it during icon updates. The previous one-time hide allowed an invisible separator to re-enter BoxLayout and add a second gap.
+- Preserve the existing pinned-icon spacing; the Downloads/Trash divider is unchanged. Restore the separator's prior visibility and reparent behavior when disabled. No new polling loop.
+- Redisplay/re-show and cleanup regression tests pass; installed for next login, with visual spacing confirmation still pending.

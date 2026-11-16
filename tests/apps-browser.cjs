@@ -31,8 +31,21 @@ const suggested=browser.suggestedApps(apps,{a:1000000,b:999999,c:0},[mk('a'),mk(
 assert.deepEqual(Array.from(suggested,a=>a.get_id()),['a','b','c','d','e']);
 assert.equal(browser.suggestedApps(apps,{a:1},[],2000000).length,0);
 let hidden=0,shown=0,disconnected=0;
-const sep={visible:true,has_style_class_name:()=>true,connect:()=>4,disconnect(){disconnected++},hide(){hidden++},show(){shown++}};
-const dock=new order.DockOrder();dock.trackSeparator(sep);dock.trackSeparator(sep);assert.equal(hidden,1);dock.destroy();assert.equal(shown,1);assert.equal(disconnected,1);
+const signals=new Map();let nextSignal=0;
+const sep={visible:true,show_on_set_parent:true,has_style_class_name:()=>true,
+ connect:(name,fn)=>{signals.set(++nextSignal,{name,fn});return nextSignal;},
+ disconnect(id){signals.delete(id);disconnected++},
+ hide(){hidden++;this.visible=false;},
+ show(){shown++;this.visible=true;for(const {name,fn} of signals.values())if(name==='notify::visible')fn();}};
+const dock=new order.DockOrder();dock.trackSeparator(sep);dock.trackSeparator(sep);
+assert.equal(hidden,1);assert.equal(sep.show_on_set_parent,false);
+// Simulate dock redisplay trying to reveal the favorites/running separator.
+sep.show();assert.equal(sep.visible,false);assert.equal(hidden,2);
+// Hidden actors contribute neither their own width nor an extra box spacing.
+const gap=6,dockLayout=[{visible:true,width:54},sep,{visible:true,width:54}];
+const visible=dockLayout.filter(a=>a.visible);
+assert.equal(visible.reduce((n,a)=>n+a.width,0)+(visible.length-1)*gap,114);
+dock.destroy();assert.equal(sep.visible,true);assert.equal(sep.show_on_set_parent,true);assert.equal(disconnected,2);
 
 const css=fs.readFileSync('extensions/macbook-menu@local/stylesheet.css','utf8');
 assert.match(css,/\.modal-dialog\.familiarmac-apps \.modal-dialog-content-box \{ margin: 0; padding: 0; max-width: 560px;/);
