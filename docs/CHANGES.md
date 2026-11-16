@@ -176,3 +176,7 @@ Use equal 140px content width/height plus equal padding for a square volume/brig
 ### Rounded hardware level endpoints (2026-11-16)
 
 Round only the outer corners of the first and last hardware OSD segments. Interior segment edges stay square; the same geometry applies to filled and empty segments for sound, display and keyboard brightness.
+
+### Brightness-down visual feedback (2026-11-16)
+
+The zero-capable gmux brightness-down helper bypasses GNOME's native brightness key path and previously did not request an OSD. After a successful logind hardware change it now sends the normalized level to a narrowly scoped session-bus extension method. The extension invokes the same styled native OSD as other brightness controls, including zero. It ignores requests on the lock/greeter screens and clamps levels. An unavailable extension never prevents the hardware adjustment. Native brightness-up remains unchanged. No polling or persistent helper added. Endpoint tests cover zero, clamping, lock-screen suppression and teardown. A new login is required to load the extension method.

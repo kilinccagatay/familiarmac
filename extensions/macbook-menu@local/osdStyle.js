@@ -1,3 +1,4 @@
+import Gio from 'gi://Gio';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -14,6 +15,15 @@ export class OsdStyle {
             this.original.call(this.manager, index, icon, ...args);
         };
         this.manager._showOsdWindow = this.wrapper;
+        // Narrow session endpoint for the zero-capable brightness helper.
+        this.bus = Gio.DBusExportedObject.wrapJSObject(
+            '<node><interface name="org.familiarmac.HardwareOSD"><method name="ShowBrightness"><arg type="d" direction="in"/></method></interface></node>', this);
+        this.bus.export(Gio.DBus.session, '/org/familiarmac/HardwareOSD');
+    }
+    ShowBrightness(level) {
+        if (!Number.isFinite(level) || Main.sessionMode.isLocked || Main.sessionMode.isGreeter) return;
+        this.manager.show(-1, Gio.ThemedIcon.new('display-brightness-symbolic'), null,
+            Math.max(0, Math.min(1, level)), 1);
     }
     style(window) {
         if (this.saved.has(window)) return;
@@ -49,6 +59,7 @@ export class OsdStyle {
         this.saved.delete(window);
     }
     destroy() {
+        this.bus.unexport();
         if (this.manager._showOsdWindow === this.wrapper) this.manager._showOsdWindow = this.original;
         for (const window of [...this.saved.keys()]) this.restore(window);
     }

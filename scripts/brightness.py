@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """On-demand gmux backlight control through active-session logind permissions."""
 from pathlib import Path
-import argparse,fcntl,os
+import argparse,fcntl,os,sys
 
 def next_brightness(current,maximum,direction):
     if maximum<=0:raise ValueError('Invalid backlight range')
@@ -25,4 +25,15 @@ def main():
             'org.freedesktop.login1.Session','SetBrightness',
             GLib.Variant('(ssu)',('backlight','gmux_backlight',target)),None,
             Gio.DBusCallFlags.NONE,2000,None)
+        # The native down binding is replaced to reach zero; explicitly retain
+        # visual feedback through the extension after the hardware call succeeds.
+        try:
+            session=Gio.bus_get_sync(Gio.BusType.SESSION,None)
+            session.call_sync('org.gnome.Shell','/org/familiarmac/HardwareOSD',
+                'org.familiarmac.HardwareOSD','ShowBrightness',
+                GLib.Variant('(d)',(target/maximum,)),None,
+                Gio.DBusCallFlags.NONE,500,None)
+        except GLib.Error as error:
+            # A missing/disabled extension must never prevent dimming to zero.
+            print(f'Brightness changed; indicator unavailable: {error.message}',file=sys.stderr)
 if __name__=='__main__':main()

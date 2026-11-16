@@ -7,14 +7,18 @@ class Actor {
 }
 const window=new Actor({_hbox:new Actor({vertical:false}),_vbox:new Actor(),_level:new Actor({value:0.5})});
 let shown=0;const original=()=>shown++;const manager={_osdWindows:[window],_showOsdWindow:original};
-const ctx={St:{BoxLayout:Actor,Widget:Actor},Main:{osdWindowManager:manager}};
+let unexported=false,displayed;manager.show=(...args)=>{displayed=args};
+const ctx={Gio:{DBus:{session:{}},DBusExportedObject:{wrapJSObject:()=>({export(){},unexport(){unexported=true}})},ThemedIcon:{new:name=>name}},St:{BoxLayout:Actor,Widget:Actor},Main:{osdWindowManager:manager,sessionMode:{isLocked:false,isGreeter:false}}};
 const code=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/osdStyle.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 vm.runInNewContext(code+';globalThis.C=OsdStyle',ctx);const style=new ctx.C();
 for(const name of ['audio-volume-high-symbolic','display-brightness-symbolic','keyboard-brightness-symbolic'])manager._showOsdWindow(0,{to_string:()=>name});
 assert.equal(shown,3);assert.equal(style.saved.size,1);assert.equal(window._hbox.vertical,true);
 const ticks=window._vbox.children[0].children;assert.equal(ticks.length,16);assert.equal(ticks.filter(t=>t.classes.has('filled')).length,8);
 manager._showOsdWindow(0,{to_string:()=> 'other-symbolic'});assert.equal(style.saved.size,0);assert.equal(window._hbox.vertical,false);assert.equal(window._level.opacity,255);
-style.destroy();assert.equal(manager._showOsdWindow,original);assert.equal(window._level.signals.size,0);
+style.ShowBrightness(0);assert.equal(displayed[3],0);
+style.ShowBrightness(2);assert.equal(displayed[3],1);
+ctx.Main.sessionMode.isLocked=true;style.ShowBrightness(0.5);assert.equal(displayed[3],1);
+style.destroy();assert.equal(unexported,true);assert.equal(manager._showOsdWindow,original);assert.equal(window._level.signals.size,0);
 console.log('OSD hardware-only styling, segments, reuse and complete restoration PASS');
 
 const css=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/stylesheet.css','utf8');
