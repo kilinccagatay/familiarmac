@@ -1,3 +1,4 @@
+import {settingsCommand} from './settingsCommand.js';
 import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
@@ -25,7 +26,7 @@ export class SoundSurface {
         this.actor.add_child(new St.BoxLayout({style_class: 'fm-battery-separator'}));
         const settings = new PopupMenu.PopupMenuItem(tr ? 'Ses Ayarları…' : 'Sound Settings…');
         settings.connect('activate', () => {
-            owner.panel.menu.close(); Util.spawn(['gnome-control-center', 'sound']);
+            owner.panel.menu.close(); Util.spawn([settingsCommand(), 'sound']);
         });
         this.actor.add_child(settings);
         this.signal = this.native?.connect('stream-updated', () => this.sync());

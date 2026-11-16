@@ -1,3 +1,4 @@
+import {settingsCommand} from './settingsCommand.js';
 import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
@@ -24,7 +25,7 @@ export class WifiSurface {
         this.actor.add_child(new St.BoxLayout({style_class: 'fm-battery-separator'}));
         const settings = new PopupMenu.PopupMenuItem(tr ? 'Wi-Fi Ayarları…' : 'Wi-Fi Settings…');
         settings.connect('activate', () => {
-            owner.panel.menu.close(); Util.spawn(['gnome-control-center', 'wifi']);
+            owner.panel.menu.close(); Util.spawn([settingsCommand(), 'wifi']);
         });
         this.actor.add_child(settings);
         if (this.wireless) {

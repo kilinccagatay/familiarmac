@@ -213,6 +213,7 @@ with tempfile.TemporaryDirectory() as tmp:
     write(appmenu_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
 # Compact search: keep the vendor archive intact; apply reviewable overrides.
 write(appmenu_dir/'searchDialog.js', (ROOT/'overrides/appmenu/searchDialog.js').read_text())
+write(appmenu_dir/'settingsCommand.js', (ROOT/'extensions/macbook-menu@local/settingsCommand.js').read_text())
 write(appmenu_dir/'launcherDrag.js', (ROOT/'extensions/macbook-menu@local/launcherDrag.js').read_text())
 write(appmenu_dir/'menuManager.js', (ROOT/'overrides/appmenu/menuManager.js').read_text())
 for name in ('realMenuManager.js', 'gtkMenuModel.js', 'calculator.js'):

@@ -157,7 +157,7 @@ export default class MacBookMenu extends Extension {
         const settingsWrapper = GLib.build_filenamev([GLib.get_home_dir(), '.local/bin/familiarmac-settings']);
         addApp(label('About This Mac', 'Bu Mac Hakkında'), 'computer-symbolic', [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center', 'system', 'about']);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        addApp(label('System Settings…', 'Sistem Ayarları…'), 'preferences-system-symbolic', ['gnome-control-center']);
+        addApp(label('System Settings…', 'Sistem Ayarları…'), 'preferences-system-symbolic', [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center']);
         addApp(label('App Store', 'Uygulama Mağazası'), 'org.gnome.Software-symbolic', ['gnome-software']);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const recent = new PopupMenu.PopupSubMenuMenuItem(label('Recent Items', 'Son Kullanılanlar'));

@@ -1,3 +1,4 @@
+import {settingsCommand} from './settingsCommand.js';
 import {calculate, formatCalculation} from './calculator.js';
 import {launcherAppButton} from './launcherDrag.js';
 import Clutter from 'gi://Clutter';
@@ -485,7 +486,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
             Gio.AppInfo.launch_default_for_uri(item.uri, null);
         } else if (item.type === 'settings') {
             try {
-                const argv = item.panel ? ['gnome-control-center', item.panel] : ['gnome-control-center'];
+                const argv = item.panel ? [settingsCommand(), item.panel] : [settingsCommand()];
                 Gio.Subprocess.new(argv, Gio.SubprocessFlags.NONE);
             } catch (_e) {
                 // Ignore missing Settings app or invalid panel names.

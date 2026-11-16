@@ -460,3 +460,10 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 
 - Install GJS and D-Bus explicitly on the clean Ubuntu runner before testing. Recent runs stopped at the GMenu integration test because `gjs` was missing, after earlier tests had passed.
 - Fail early with an actionable dependency message for local test environments too; no tests are skipped.
+
+### About illustration launch-path correction
+
+- Route FamiliarMac System Settings, Wi-Fi, sound, battery, display, notification and Spotlight settings actions through the same guarded launcher used by About This Mac. Previously opening Settings through these routes first created a native process without the About resource overlay; later About requests reused it.
+- Add a reversible user D-Bus activation service for Settings so native desktop activation also uses the launcher. Existing service overrides are backed up and restored. No system package files are replaced.
+- Correct the About GtkPicture property from invalid `filename` to `file` with a file URI. The invalid property caused the entire native About template to fail once the launcher was actually used. Verified the installed picture using the real GTK4 builder (320px SVG paintable), and reopened the native About page with no template errors in its log.
+- Redrew the original A1398 SVG against Apple's Early 2013 15-inch Retina reference, correcting the black glass bezel, 16:10 panel and thin, level silver base. Reference: https://support.apple.com/en-gb/118465 . The repository contains our vector illustration, not Apple's product photograph.

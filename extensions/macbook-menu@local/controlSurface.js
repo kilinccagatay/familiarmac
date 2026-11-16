@@ -1,3 +1,4 @@
+import {settingsCommand} from './settingsCommand.js';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -86,7 +87,7 @@ export class ControlSurface {
         this.owner.statusButtons.open(key, button);
         if (key !== '_network') this.owner.panel[key]?.quickSettingsItems?.find(i => i.visible && i.menu)?.menu.open();
     }
-    settings(panel) { this.owner.panel.menu.close(); Util.spawn(['gnome-control-center', panel]); }
+    settings(panel) { this.owner.panel.menu.close(); Util.spawn([settingsCommand(), panel]); }
     syncMedia() {
         if (this.playerSignal) this.player.disconnect(this.playerSignal);
         if (this.playerClosedSignal) this.player.disconnect(this.playerClosedSignal);

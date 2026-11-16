@@ -1,13 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200">
-<title>MacBook Pro A1398 — original FamiliarMac illustration</title>
-<defs><linearGradient id="metal" x2="0" y2="1"><stop stop-color="#e6e8eb"/><stop offset="1" stop-color="#969da5"/></linearGradient><linearGradient id="screen" x2="1" y2="1"><stop stop-color="#283746"/><stop offset="1" stop-color="#101820"/></linearGradient></defs>
-<rect x="42" y="12" width="236" height="156" rx="9" fill="url(#metal)" stroke="#737d88" stroke-width="1.5"/>
-<rect x="46" y="16" width="228" height="147" rx="6" fill="#171a1e"/>
-<rect x="53" y="24" width="214" height="134" rx="1" fill="url(#screen)"/>
-<path d="M54 25H266V79L54 134Z" fill="#fff" opacity=".035"/>
-<circle cx="160" cy="20" r="1.3" fill="#647c8e"/>
-<path d="M42 168H278L309 182Q309 188 296 189H24Q11 188 11 182Z" fill="url(#metal)" stroke="#737d88" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M12 182H308M140 169H180L184 174H136Z" fill="none" stroke="#77818b" stroke-width="1.2"/>
-<path d="M132 182H188Q186 185 181 185H139Q134 185 132 182Z" fill="#818a94"/>
-<path d="M48 166H272" stroke="#101318" stroke-width="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="550" height="330" viewBox="0 0 550 330">
+<title>MacBook Pro Retina 15-inch, Early 2013 (A1398)</title>
+<desc>Original vector drawing based on the proportions of Apple's Early 2013 product reference: black glass bezel, 16:10 display, thin silver unibody and central opening recess.</desc>
+<defs>
+ <linearGradient id="rim" x2="0" y2="1"><stop stop-color="#b7b9bb"/><stop offset=".18" stop-color="#777a7c"/><stop offset="1" stop-color="#414345"/></linearGradient>
+ <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#151719"/><stop offset=".55" stop-color="#070809"/><stop offset="1" stop-color="#1d1e20"/></linearGradient>
+ <linearGradient id="deck"><stop stop-color="#6c6e70"/><stop offset=".025" stop-color="#e8e9e9"/><stop offset=".12" stop-color="#b6b9bc"/><stop offset=".5" stop-color="#f3f4f4"/><stop offset=".87" stop-color="#b4b7ba"/><stop offset=".975" stop-color="#edeef0"/><stop offset="1" stop-color="#606365"/></linearGradient>
+ <linearGradient id="lip" x2="0" y2="1"><stop stop-color="#d7d9da"/><stop offset=".55" stop-color="#979b9e"/><stop offset="1" stop-color="#4b4f52"/></linearGradient>
+ <linearGradient id="display" x2="0" y2="1"><stop stop-color="#568aa0"/><stop offset=".55" stop-color="#324f68"/><stop offset="1" stop-color="#172b3b"/></linearGradient>
+ <linearGradient id="recess" x2="0" y2="1"><stop stop-color="#5c6063"/><stop offset="1" stop-color="#c4c7c9"/></linearGradient>
+ <clipPath id="screen"><path d="M69 22H481V280H69Z"/></clipPath>
+</defs>
+<!-- Thin polished aluminium edge around the black glass lid. -->
+<rect x="55" y="5" width="440" height="295" rx="15" fill="url(#rim)"/>
+<rect x="57" y="7" width="436" height="291" rx="13" fill="url(#glass)" stroke="#27292a"/>
+<!-- Native Retina display aspect ratio is 16:10; no notch or lower wordmark. -->
+<path d="M69 22H481V280H69Z" fill="url(#display)"/>
+<g clip-path="url(#screen)">
+ <path d="M60 270L166 151L218 198L320 75L392 184L449 131L495 211V290H60Z" fill="#84969f"/>
+ <path d="M166 151L181 204L218 198L259 171L320 75L304 172L350 155L392 184L365 237L449 131L429 234L495 211V290H60Z" fill="#334a5c"/>
+ <path d="M280 125L320 75L343 118L324 111L312 136L304 126L284 149Z" fill="#d2dce0"/>
+ <path d="M60 280L183 231L235 251L351 205L412 247L495 222V290H60Z" fill="#182f40"/>
+</g>
+<circle cx="275" cy="14" r="2" fill="#06090a" stroke="#303b3e" stroke-width=".7"/>
+<circle cx="275.4" cy="13.7" r=".7" fill="#254b59"/>
+<!-- Subtle reflection across the glass, not a heavy silver display frame. -->
+<path d="M323 8H480Q492 8 492 20V281Z" fill="#fff" opacity=".035"/>
+<path d="M59 296H491" stroke="#080909" stroke-width="3"/>
+<!-- Front-facing A1398 base: nearly level, narrow edge, no exaggerated wedge. -->
+<path d="M4 300H546V309H4Z" fill="url(#deck)"/>
+<path d="M4 309H546Q538 320 510 320H40Q12 320 4 309Z" fill="url(#lip)"/>
+<path d="M239 300H311V303Q309 308 303 308H247Q241 308 239 303Z" fill="url(#recess)"/>
+<path d="M5 300H545" stroke="#f2f3f4" stroke-width="1"/>
+<path d="M44 320H506" stroke="#33373a" stroke-opacity=".45"/>
 </svg>

@@ -1,3 +1,4 @@
+import {settingsCommand} from './settingsCommand.js';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
@@ -20,7 +21,7 @@ export class BatterySurface {
             text: tr ? 'Pil Ayarları…' : 'Battery Settings…',
             x_expand: true, x_align: Clutter.ActorAlign.START}),
             can_focus: true, x_align: Clutter.ActorAlign.FILL, style_class: 'fm-battery-settings'});
-        settings.connect('clicked', () => { owner.panel.menu.close(); Util.spawn(['gnome-control-center', 'power']); });
+        settings.connect('clicked', () => { owner.panel.menu.close(); Util.spawn([settingsCommand(), 'power']); });
         this.actor.add_child(settings);
         if (this.proxy) this.signal = this.proxy.connect('g-properties-changed', () => this.sync());
         this.sync();

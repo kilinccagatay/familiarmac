@@ -1,3 +1,5 @@
+import {settingsCommand} from './settingsCommand.js';
+import GLib from 'gi://GLib';
 import {CalendarLanguage} from './calendarLanguage.js';
 import {NotificationDrawer} from './notificationDrawer.js';
 import Gio from 'gi://Gio';
@@ -59,7 +61,7 @@ export class NotificationCenter {
         this.toggle.connect('toggled', (_item, state) => this.settings.set_boolean('show-banners', !state));
         this.button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.button.menu.addAction(_('Notification Settings'), () =>
-            Gio.AppInfo.create_from_commandline('gnome-control-center notifications', null,
+            Gio.AppInfo.create_from_commandline(GLib.shell_quote(settingsCommand()) + ' notifications', null,
                 Gio.AppInfoCreateFlags.NONE).launch([], global.create_app_launch_context(0, -1)));
         const position = Main.panel._rightBox.get_children().indexOf(this.date.container);
         Main.panel.addToStatusArea('familiarmac-focus', this.button, position, 'right');

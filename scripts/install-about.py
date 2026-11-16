@@ -9,6 +9,9 @@ if '--restore' in sys.argv:
  if (base/'installed').exists():
   if (base/'desktop.before').exists(): shutil.copy2(base/'desktop.before',desktop)
   else: desktop.unlink(missing_ok=True)
+  service=home/'.local/share/dbus-1/services/org.gnome.Settings.service'
+  if (base/'service.before').exists(): shutil.copy2(base/'service.before',service)
+  elif (base/'service-installed').exists(): service.unlink(missing_ok=True)
   (home/'.local/bin/familiarmac-settings').unlink(missing_ok=True)
   shutil.rmtree(base)
  raise SystemExit(0)
@@ -31,7 +34,7 @@ box=ET.Element('object',{'class':'GtkBox'})
 parent.remove(logo);parent.append(box)
 ET.SubElement(box,'child').append(logo)
 picture=ET.SubElement(ET.SubElement(box,'child'),'object',{'class':'GtkPicture'})
-for name,value in [('filename',str(base/'device.svg')),('alternative-text','MacBook Pro A1398'),('can-shrink','True'),('content-fit','contain'),('hexpand','True')]:
+for name,value in [('file',(base/'device.svg').as_uri()),('alternative-text','MacBook Pro A1398'),('can-shrink','True'),('content-fit','contain'),('hexpand','True')]:
  ET.SubElement(picture,'property',name=name).text=value
 ET.ElementTree(tree).write(base/'cc-about-page.ui',encoding='utf-8',xml_declaration=True)
 sha=hashlib.sha256(binary.read_bytes()).hexdigest()
@@ -48,4 +51,10 @@ if not (base/'installed').exists():
 s=(pathlib.Path('/usr/share/applications/org.gnome.Settings.desktop')).read_text()
 s='\n'.join('Exec='+str(wrapper)+line[len('Exec=gnome-control-center'):] if line.startswith('Exec=gnome-control-center') else 'DBusActivatable=false' if line.startswith('DBusActivatable=') else line for line in s.splitlines())+'\n'
 desktop.write_text(s)
+service=home/'.local/share/dbus-1/services/org.gnome.Settings.service'
+service.parent.mkdir(parents=True,exist_ok=True)
+if not (base/'service-installed').exists():
+ if service.exists(): shutil.copy2(service,base/'service.before')
+ (base/'service-installed').touch()
+service.write_text('[D-BUS Service]\nName=org.gnome.Settings\nExec='+str(wrapper)+'\n')
 print('About illustration installed for the next Settings process; package files unchanged.')
