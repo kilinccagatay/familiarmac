@@ -1,6 +1,7 @@
+import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 
-// Called only by the GTK source's NO_TARGET drag-failed handler, not drag-leave
+// Called only by the GTK source's NO_TARGET/ERROR drag-failed handler, not drag-leave
 // (which also fires on cancellation). Mutter's Xdnd monitor does not provide
 // the Wayland GTK drag lifecycle; do not require its enter/position signals.
 export class TrashDrop {
@@ -22,7 +23,8 @@ export class TrashDrop {
         this.icons.set(icon, {signal, opacity});
     }
     ConsumeDrop() {
-        const [x, y] = global.get_pointer();
+        const [x, y, modifiers] = global.get_pointer();
+        if (modifiers & Clutter.ModifierType.BUTTON1_MASK) return false;
         // Hit-test the actual visible icon, not the drag-image actor that can
         // cover it. This includes monitor offsets and HiDPI transformations.
         for (const icon of this.icons.keys()) {

@@ -501,3 +501,8 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Files move to Trash asynchronously, never permanently delete. The installed sound theme's `trash-empty` event plays only after every selected file finishes successfully, when `canberra-gtk-play` is available. This is the system sound, not a bundled Apple audio asset.
 - All StatusNotifier/AppIndicator popups share FamiliarMac's compact Dock-menu styling and system light/dark preference. App-defined actions and labels are preserved; newly appearing indicators are handled through actor events, without polling.
 - Regression tests cover Trash's first menu opening, empty state, hidden/off-target drops, cancellation, completion-only sound, newly added tray apps and cleanup. Live drag/drop and visual verification require the updated Shell code to load in a new login.
+
+### Verified Wayland desktop-to-Dock Trash drop
+
+- Live testing showed GTK reports `Gtk.DragResult.ERROR` (5), not `NO_TARGET`, when releasing a desktop file over this Wayland Dock. Accept that release path only after checking the visible Trash target; explicit user cancellation remains excluded. The Shell bridge also rejects a still-held primary button.
+- On 16 November 2026, a disposable desktop text file was dragged to the Dock by the user: its original disappeared and its file appeared in the user's Trash. The user also confirmed hearing the completion sound. No personal files were used or permanently deleted.

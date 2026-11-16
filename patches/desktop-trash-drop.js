@@ -1,8 +1,8 @@
-        // FamiliarMac: GTK reports NO_TARGET when releasing over Shell chrome.
+        // FamiliarMac: GTK reports NO_TARGET or ERROR over Wayland Shell chrome.
         // Ask the compositor whether that exact drag ended over the dock trash.
         // Cancellation, timeouts and failed transfers must never trash anything.
         this.connectSignal(widget, 'drag-failed', (w, context, result) => {
-            if (result !== Gtk.DragResult.NO_TARGET) return false;
+            if (result !== Gtk.DragResult.NO_TARGET && result !== Gtk.DragResult.ERROR) return false;
             const files = this._desktopManager._fileList
                 .filter(item => (item.isSelected || item.isKeyboardSelected) && !item.isSpecial)
                 .map(item => item.file.get_uri());
