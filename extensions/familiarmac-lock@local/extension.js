@@ -43,6 +43,11 @@ export default class FamiliarMacLock extends Extension {
             return result;
         });
         this._modeSignal = Main.sessionMode.connect('updated', () => this._syncPanel());
+        // Panel rebuilds can show the clock after the session-mode callback.
+        this._panelActor = Main.panel.statusArea.dateMenu?.container;
+        this._panelVisibleSignal = this._panelActor?.connect('notify::visible', () => {
+            if (Main.sessionMode.currentMode === 'unlock-dialog') this._syncPanel();
+        });
         this._syncPanel();
         const dialog = Main.screenShield?._dialog;
         if (dialog instanceof UnlockDialog) this._safeAttach(dialog);
@@ -85,7 +90,8 @@ export default class FamiliarMacLock extends Extension {
             date.text = `${day.format(value)} ${now.get_day_of_month()} ${month.format(value)}`;
             time.text = now.format('%H:%M');
         };
-        const record = {parent, original:parent.layout_manager, clock, opacity:dialog._clock.opacity};
+        const record = {parent, original:parent.layout_manager, clock, opacity:dialog._clock.opacity,
+            clockLabels: [dialog._clock._time, dialog._clock._date].filter(Boolean).map(actor => ({actor, opacity:actor.opacity}))};
         this._records.set(dialog, record);
         parent.add_child(clock);
         parent.layout_manager = new LoginLayout(record.original, dialog, clock);
@@ -95,6 +101,8 @@ export default class FamiliarMacLock extends Extension {
             if (dialog._clock.opacity !== 0) dialog._clock.opacity = 0;
         });
         dialog._clock.opacity = 0;
+        // Native transition animations modify the parent opacity, never these labels.
+        for (const {actor} of record.clockLabels) actor.opacity = 0;
         record.tickSignal = dialog._clock._wallClock.connect('notify::clock', update);
         record.keyboardSignal = Main.layoutManager.keyboardBox.connect('notify::height', () => parent.queue_relayout());
         record.destroySignal = dialog.connect('destroy', () => this._detach(dialog, true));
@@ -110,12 +118,16 @@ export default class FamiliarMacLock extends Extension {
             if (r.destroySignal) dialog.disconnect(r.destroySignal);
             r.parent.layout_manager = r.original;
             dialog._clock.opacity = r.opacity;
+            for (const {actor, opacity} of r.clockLabels) actor.opacity = opacity;
             dialog.remove_style_class_name('fm-lock');
             r.clock.destroy();
         }
     }
     disable() {
         this._injections?.clear();
+        if (this._panelVisibleSignal) this._panelActor.disconnect(this._panelVisibleSignal);
+        this._panelVisibleSignal = 0;
+        this._panelActor = null;
         if (this._modeSignal) Main.sessionMode.disconnect(this._modeSignal);
         this._modeSignal = 0;
         for (const dialog of [...this._records.keys()]) this._detach(dialog);
