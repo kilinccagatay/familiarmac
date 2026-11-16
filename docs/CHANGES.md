@@ -373,3 +373,11 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - New Shell JavaScript takes effect after the next login; subsequent appearance changes update live.
 
 Native keyboard-brightness detail menus use the same appearance palette, compact inset and blue slider/white handle; the nested slider background is removed.
+
+## Local typography and Apps content allocation
+
+- Apps overrides the inherited modal content margin (32px/40px) and 28em maximum width. Five columns now have the intended content budget instead of clipping the fifth behind the scrollbar. Other dialogs retain their own layout.
+- Login time prefers SF Rounded, matching the user's `home-assistant-legacy-panels` Tessera clock. Shell and GDM prefer locally installed SF Pro Text with Inter fallback.
+- Optional `sudo bash scripts/install-local-fonts.sh /path/to/fonts` imports locally supplied fonts and rebuilds GDM styling; `python3 scripts/apply-local-typography.py` applies UI settings with a saved settings backup (`--restore` reverses these settings). No Apple font binaries or automatic downloads are distributed by FamiliarMac. Obtain and use fonts under their applicable terms: https://developer.apple.com/fonts/ . The public installer remains usable with Inter.
+- Font source reference: `kilinccagatay/home-assistant-legacy-panels`, commit `ec63cb64401dc4d5e8b6266589d79d2cfe40438e`, `examples/panel-v2/tessera.css`. Its local SF Rounded weights are used only on this user's machine.
+- Boot/logout visual corruption remains unresolved: early Nouveau is still active, GRUB logo experiments remain removed, and the current mux snapshot has NVIDIA driving the internal display. The earlier Dock disposal fix does not establish a graphics fix. Old Plymouth traces predate the latest report; collect a new boot trace before selecting another workaround.

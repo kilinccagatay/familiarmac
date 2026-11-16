@@ -63,3 +63,6 @@
   color: #aaaaaa !important;
   background-color: #383838;
 }
+
+/* Optional local SF Pro; retain the free default when it is unavailable. */
+stage { font-family: "SF Pro Text", "Inter", sans-serif; }

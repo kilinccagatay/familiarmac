@@ -33,3 +33,6 @@ assert.equal(browser.suggestedApps(apps,{a:1},[],2000000).length,0);
 let hidden=0,shown=0,disconnected=0;
 const sep={visible:true,has_style_class_name:()=>true,connect:()=>4,disconnect(){disconnected++},hide(){hidden++},show(){shown++}};
 const dock=new order.DockOrder();dock.trackSeparator(sep);dock.trackSeparator(sep);assert.equal(hidden,1);dock.destroy();assert.equal(shown,1);assert.equal(disconnected,1);
+
+const css=fs.readFileSync('extensions/macbook-menu@local/stylesheet.css','utf8');
+assert.match(css,/\.modal-dialog\.familiarmac-apps \.modal-dialog-content-box \{ margin: 0; padding: 0; max-width: 560px;/);

@@ -48,7 +48,7 @@
 #dashtodockContainer.bottom .dash-separator { width: 0; margin: 0; background-color: transparent; }
 #dashtodockContainer.bottom .familiarmac-trash-end { border-left: 1px solid rgba(255,255,255,0.22); padding-left: 8px; margin-left: 5px; }
 .modal-dialog.familiarmac-apps { width: 560px; padding: 16px; border-radius: 24px; }
-.familiarmac-apps .modal-dialog-content-box { padding: 0; spacing: 12px; }
+.modal-dialog.familiarmac-apps .modal-dialog-content-box { margin: 0; padding: 0; max-width: 560px; spacing: 12px; }
 .familiarmac-apps-toolbar { spacing: 10px; }
 .familiarmac-apps-categories { spacing: 4px; }
 .familiarmac-apps-category { padding: 6px 9px; border-radius: 12px; font-size: 9pt; }
