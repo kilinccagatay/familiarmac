@@ -5,7 +5,7 @@ const root = __dirname + '/..';
 let source = fs.readFileSync(root+'/extensions/macbook-menu@local/controlCenter.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 const panelClasses=new Set(), menuClasses=new Set(); let added=0,destroyed=0;
 const panel={add_style_class_name:x=>panelClasses.add(x),remove_style_class_name:x=>panelClasses.delete(x),menu:{connect:()=>1,disconnect:()=>{},box:{add_style_class_name:x=>menuClasses.add(x),remove_style_class_name:x=>menuClasses.delete(x)}},_indicators:{add_child:()=>added++}};
-const ctx={StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
+const ctx={ControlSurface:class{constructor(){this.actor={}}syncMedia(){}destroy(){}},StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
 vm.runInNewContext(source+'\nglobalThis.C=ControlCenter;',ctx);
 const c=new ctx.C('/tmp');assert.equal(added,1);assert.equal(menuClasses.size,1);c.destroy();c.destroy();assert.equal(destroyed,1);assert.equal(menuClasses.size,0);assert.equal(panelClasses.size,0);
 ctx.Main.panel.statusArea.quickSettings=null;new ctx.C('/tmp').destroy();
@@ -21,7 +21,7 @@ console.log('Panel control cleanup and localized Help ordering passed');
 function actor(name){return {name,visible:true,get_parent:()=>grid,connect:()=>1,disconnect(){},destroy(){const i=children.indexOf(this);if(i>=0)children.splice(i,1)}}}
 const children=[];const grid={get_children:()=>children.slice(),set_child_at_index(a,i){children.splice(children.indexOf(a),1);children.splice(i,0,a)}};
 const hardware={};for(const name of ['_system','_brightness','_volumeOutput','_network','_bluetooth','_darkMode']){hardware[name]={quickSettingsItems:[actor(name)]};children.push(...hardware[name].quickSettingsItems)}
-const before=children.slice();Object.assign(panel,hardware);panel.menu._grid=grid;panel.menu.addItem=a=>children.push(a);
+const before=children.slice();Object.assign(panel,hardware);grid.show=()=>{};panel.menu.box.insert_child_at_index=()=>{};panel.menu._grid=grid;panel.menu.addItem=a=>children.push(a);
 ctx.Main.panel.statusArea.quickSettings=panel;ctx.GLib={get_language_names:()=>['en_US']};let banners=true;
 ctx.Gio.Settings=class{get_boolean(){return banners}set_boolean(k,v){banners=v}connect(){return 1}disconnect(){}};
 ctx.QuickSettings={QuickToggle:class{constructor(){Object.assign(this,actor('focus'));delete this.connect;}connect(n,fn){this.click=fn;return 1}}};ctx.St.Label=class{constructor(){Object.assign(this,actor('label'))}};

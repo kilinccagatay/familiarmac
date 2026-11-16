@@ -1,3 +1,4 @@
+import {ControlSurface} from './controlSurface.js';
 import {StatusButtons} from './statusButtons.js';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
@@ -21,7 +22,7 @@ export class ControlCenter {
         this.originalOrder = null;
         this.labels = [];
         this.openSignal = this.panel.menu.connect('open-state-changed', (_menu, open) => {
-            if (open) this.arrange();
+            if (open) { this.arrange(); this.syncSurface(); }
         });
         this.statusButtons = new StatusButtons(this);
     }
@@ -60,11 +61,24 @@ export class ControlCenter {
         ordered.forEach((item, index) => {
             if (item.get_parent() === grid) grid.set_child_at_index(item, index);
         });
+        this.surface = new ControlSurface(this, tr);
+        menu.box.insert_child_at_index(this.surface.actor, 0);
+        this.syncSurface();
+    }
+
+    syncSurface() {
+        if (!this.surface) return;
+        this.surface.actor.visible = !this.detail;
+        this.panel.menu._grid.visible = Boolean(this.detail);
+        if (!this.detail) this.surface.syncMedia();
     }
 
     destroy() {
         this.statusButtons?.destroy();
         this.statusButtons = null;
+        this.surface?.destroy();
+        this.surface = null;
+        if (this.panel?.menu?._grid) this.panel.menu._grid.show();
         if (this.openSignal) this.panel.menu.disconnect(this.openSignal);
         this.openSignal = 0;
         if (this.notifySignal) this.notifications.disconnect(this.notifySignal);

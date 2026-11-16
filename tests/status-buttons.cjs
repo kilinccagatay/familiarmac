@@ -12,3 +12,17 @@ c.open('_volumeOutput',button);assert.equal(sound.visible,true);assert.equal(net
 hidden.visible=true;assert.equal(hidden.visible,false);c.restore();assert.equal(network.visible,true);assert.equal(hidden.visible,true);
 c.open('_volumeOutput',button);c.open('_volumeOutput',button);assert.equal(menu.isOpen,false);assert.equal(network.visible,true);assert.equal(c.mask.length,0);
 console.log('Independent status detail filtering, state changes, repeated click and restoration passed');
+// Ethernet and Wi-Fi can both be active: the Wi-Fi target must still select
+// and expand the wireless native submenu, without exposing wired/VPN cards.
+ctx.BoxPointer={PopupAnimation:{NONE:0}};
+let expanded=0;network.menu={open(animation){assert.equal(animation,0);expanded++}};
+c.panel._network={_wirelessToggle:network,quickSettingsItems:[sound,network]};
+c.open('_network',button);assert.equal(expanded,1);assert.equal(sound.visible,false);assert.equal(network.visible,true);c.restore();
+// Closing a detail must hide its parent BEFORE restoring native controls.
+let handler;const order=[];
+const closeMenu={connect(_name,fn){handler=fn;return 1},actor:{hide(){order.push('hide')}},close(animation){order.push(animation);handler(null,false)}};
+ctx.C.prototype.install=function(){};
+const manager=new ctx.C({panel:{menu:closeMenu,_system:{}},labels:[]});
+manager.active={};manager.restore=()=>order.push('restore');closeMenu.close(99);
+assert.deepEqual(order,['hide',0,'restore']);
+console.log('Wi-Fi expands with Ethernet active; close hides shared surface before restoration PASS');

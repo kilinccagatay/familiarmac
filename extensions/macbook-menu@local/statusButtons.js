@@ -1,6 +1,8 @@
 import {PanelOrder} from './panelOrder.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import St from 'gi://St';
+import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
@@ -12,7 +14,16 @@ export class StatusButtons {
         this.buttons = [];
         this.mask = [];
         this.spans = [];
-        this.closedSignal = this.panel.menu.connect('open-state-changed', (_m, open) => {
+        const menu = this.panel.menu;
+        this.originalClose = menu.close;
+        this.closeWrapper = animate => {
+            // Hide before restoring the shared grid, including submenu collapse.
+            // No full Control Center frame may paint while a detail closes.
+            if (this.active) menu.actor.hide();
+            this.originalClose.call(menu, this.active ? BoxPointer.PopupAnimation.NONE : animate);
+        };
+        menu.close = this.closeWrapper;
+        this.closedSignal = menu.connect('open-state-changed', (_m, open) => {
             if (!open) this.restore();
         });
         let attempts = 0;
@@ -37,7 +48,27 @@ export class StatusButtons {
             button.add_style_class_name('familiarmac-status-single');
             box.remove_child(indicator);
             button.add_child(indicator);
-            const sync = () => { button.visible = indicator.visible; };
+            let wirelessIcon = null;
+            const wireless = key === '_network' ? indicator._wirelessToggle : null;
+            const bindings = [];
+            if (wireless) {
+                // Wi-Fi status remains Wi-Fi when Ethernet owns the default route.
+                indicator.hide();
+                wirelessIcon = new St.Icon({style_class: 'system-status-icon'});
+                button.add_child(wirelessIcon);
+                const updateWifi = () => {
+                    wirelessIcon.icon_name = wireless.icon_name;
+                    wirelessIcon.visible = wireless.visible;
+                    indicator.visible = !wireless.visible;
+                };
+                bindings.push(wireless.connect('notify::icon-name', updateWifi),
+                    wireless.connect('notify::visible', updateWifi));
+                updateWifi();
+            }
+            const sync = () => {
+                button.visible = Boolean(wireless?.visible || indicator.visible);
+                if (wireless?.visible && indicator.visible) indicator.hide();
+            };
             const signal = indicator.connect('notify::visible', sync);
             sync();
             // PanelMenu dispatches both mouse press and touch to menu.toggle.
@@ -49,7 +80,7 @@ export class StatusButtons {
             });
             const position = Main.panel._rightBox.get_children().indexOf(this.panel.container);
             Main.panel.addToStatusArea(`familiarmac-status-${key}`, button, Math.max(0, position), 'right');
-            this.buttons.push({indicator, index, button, signal});
+            this.buttons.push({indicator, index, button, signal, wireless, bindings, wirelessIcon});
         }
         this.panelOrder = new PanelOrder();
     }
@@ -60,8 +91,11 @@ export class StatusButtons {
         menu.close();
         this.restore();
         if (same) return;
+        this.owner.detail = true;
         this.owner.arrange();
-        const selected = new Set(this.panel[key]?.quickSettingsItems ?? []);
+        this.owner.syncSurface?.();
+        const wireless = key === '_network' ? this.panel._network?._wirelessToggle : null;
+        const selected = new Set(wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
         for (const item of menu._grid.get_children()) {
             if (selected.has(item) || item === menu._grid.layout_manager._overlay) continue;
@@ -91,6 +125,7 @@ export class StatusButtons {
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
         menu.open();
+        if (wireless?.visible && wireless.menu) wireless.menu.open(BoxPointer.PopupAnimation.NONE);
         // Native QuickSettings marks its source active even for our detail view.
         // Only the independently clicked status button should be highlighted.
         this.panel.remove_style_pseudo_class('active');
@@ -112,6 +147,8 @@ export class StatusButtons {
         }
         this.active?.remove_style_pseudo_class('active');
         this.active = null;
+        this.owner.detail = false;
+        this.owner.syncSurface?.();
         this.panel.menu.box.remove_style_class_name('familiarmac-status-detail');
     }
 
@@ -122,9 +159,12 @@ export class StatusButtons {
         this.timer = 0;
         this.panel.menu.close();
         this.panel.menu.disconnect(this.closedSignal);
+        if (this.panel.menu.close === this.closeWrapper) this.panel.menu.close = this.originalClose;
         this.restore();
         const box = this.panel._indicators;
-        for (const {indicator, index, button, signal} of this.buttons.reverse()) {
+        for (const {indicator, index, button, signal, wireless, bindings} of this.buttons.reverse()) {
+            for (const id of bindings) wireless.disconnect(id);
+            if (wireless) indicator.show();
             indicator.disconnect(signal);
             button.remove_child(indicator);
             box.insert_child_at_index(indicator, Math.min(index, box.get_n_children()));

@@ -146,3 +146,36 @@
 #panel .familiarmac-status-single .system-status-icon { icon-size: 16px; }
 #panel .familiarmac-status-single StLabel { font-size: 10pt; font-weight: normal; }
 .familiarmac-control-center.familiarmac-status-detail { width: 300px; }
+
+/* Reference layout: connections left, focus and two small tiles right. */
+.familiarmac-control-center.quick-settings { background-color: rgba(184,199,210,0.96); color: #20262b; }
+.fm-controls { spacing: 10px; }
+.fm-controls-top, .fm-control-small { spacing: 10px; }
+.fm-control-right { spacing: 10px; width: 166px; }
+.fm-connections { width: 166px; padding: 6px; }
+.fm-card { border-radius: 14px; background-color: rgba(241,247,250,0.50); border: 1px solid rgba(255,255,255,0.26); }
+.fm-control-row { padding: 8px 6px; border-radius: 10px; color: #20262b; }
+.fm-control-row:hover { background-color: rgba(255,255,255,0.40); }
+.fm-control-row:focus { box-shadow: inset 0 0 0 2px #2878e7; }
+.fm-control-row-content { spacing: 7px; }
+.fm-control-row StLabel { font-size: 9pt; font-weight: 600; }
+.fm-control-symbol { icon-size: 18px; padding: 6px; border-radius: 999px; background-color: rgba(70,80,90,0.24); }
+.fm-control-symbol.enabled { background-color: #2878e7; color: white; }
+.fm-focus { min-height: 48px; }
+.fm-small-tile { min-height: 55px; }
+.fm-small-tile .fm-control-row-content { spacing: 4px; }
+.fm-small-tile StLabel { max-width: 65px; font-size: 8pt; }
+.fm-slider-card { padding: 10px; spacing: 6px; }
+.fm-card-heading { font-size: 10pt; font-weight: bold; }
+.fm-slider-row { spacing: 8px; }
+.fm-slider-row .slider { min-width: 190px; -barlevel-height: 17px; -slider-handle-radius: 9px; -barlevel-background-color: rgba(61,74,84,0.25); -barlevel-active-background-color: white; color: white; }
+.fm-slider-symbol { icon-size: 16px; }
+.fm-media { padding: 10px; spacing: 10px; }
+.fm-media StLabel { max-width: 190px; font-size: 10pt; }
+.fm-media-icon { icon-size: 28px; padding: 7px; background-color: rgba(100,110,120,0.20); border-radius: 7px; }
+.osd-window.fm-hardware-osd { width: 140px; min-width: 0; padding: 18px; spacing: 16px; border-radius: 22px; background-color: rgba(211,218,224,0.92); color: #24292e; margin-bottom: 70px; }
+.osd-window.fm-hardware-osd > StIcon { icon-size: 58px; }
+.osd-window.fm-hardware-osd StLabel { font-size: 9pt; text-align: center; }
+.fm-osd-segments { spacing: 2px; height: 7px; }
+.fm-osd-tick { background-color: rgba(30,35,40,0.28); }
+.fm-osd-tick.filled { background-color: white; }
