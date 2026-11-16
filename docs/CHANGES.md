@@ -221,3 +221,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Added an opt-in GRUB background renderer and reversible installer for a centred Apple logo without progress, before Plymouth starts.
 - Preserves timeout, graphics mode and the successful early Nouveau initialization. Firmware time before GRUB remains outside its control.
 - Renderer and shell syntax validated; installed on the target machine. Visual reboot validation pending.
+
+## 2026-11-16 — Early logo redraw follow-up
+
+- User reported the static GRUB logo did not appear on reboot; the previous background-only approach is not visually verified.
+- Added an EFI-only explicit gfxterm redraw after the background is loaded, including the zero-timeout path. This is a testable follow-up, not a confirmed diagnosis. No sleep or timeout increase; early Nouveau is unchanged.
+- Redraw generator is included in install/restore and transaction rollback. Shell and GRUB syntax checked; privileged installation completed successfully on the target machine. Hardware validation pending.
