@@ -36,3 +36,5 @@ python3 tests/app-integrations.py
 python3 tests/quiet-kernel-entry.py
 
 python3 tests/console-init.py
+
+python3 tests/desktop-extension.py

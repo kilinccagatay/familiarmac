@@ -487,3 +487,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Keep the native favorites/running separator hidden when Dash reparents or shows it during icon updates. The previous one-time hide allowed an invisible separator to re-enter BoxLayout and add a second gap.
 - Preserve the existing pinned-icon spacing; the Downloads/Trash divider is unchanged. Restore the separator's prior visibility and reparent behavior when disabled. No new polling loop.
 - Redisplay/re-show and cleanup regression tests pass; installed for next login, with visual spacing confirmation still pending.
+
+### Lock/unlock extension recovery
+
+- Fixed the desktop-to-Dock trash installer shadowing Zorin's built-in desktop extension UUID. Zorin 46 skips user copies of mode extensions; its loader leaves an undefined entry in the initialization list. The rejected initialization promise then prevents normal extension restoration after unlocking.
+- The patched desktop extension now has its own `familiarmac-desktop-icons@local` identity. The installer selects a single desktop owner, retains the upstream package, checks managed-file hashes and keeps a recovery copy outside extension discovery. Restore removes the managed copy and restores the original desktop selection.
+- Existing installations need one new login after migration to clear GNOME's rejected initialization promise and discover the new extension. Dock/menu recovery in the current session does not itself clear that cached promise. Lock/unlock and suspend/resume still require live verification after the new login.
