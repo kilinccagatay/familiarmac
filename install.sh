@@ -44,6 +44,7 @@ if [[ $mode == full ]]; then
 fi
 run env MACBOOK_INPUT_PRESET="$input" python3 scripts/desktop.py
 run python3 scripts/install-rounded-corners.py
+run python3 scripts/install-apps.py
 run python3 scripts/install-dock-icons.py
 run python3 scripts/install-trash-drop.py
 if [[ $brightness == 1 ]]; then run python3 scripts/install-brightness.py; fi

@@ -36,3 +36,10 @@ Brightness behavior reference: [GNOME 46 gsd-backlight.c](https://github.com/GNO
 The installer patches a user-local copy of the system-installed `zorin-desktop-icons@zorinos.com` (Zorin's Desktop Icons NG fork). Original source headers credit Sergio Costas, Sundeep Mediratta and Carlos Soriano; GPL-3.0. The installed extension's source/license headers are preserved. Only our insertion patch is shipped in this repository. Dock target detection uses Zorin Dash's existing location-app interface (`locations.js`). No upstream desktop-extension code is bundled by this addition.
 
 `overrides/appmenu/searchDialog.js` derives from the pinned AppMenu search dialog above; retains its upstream license. Local changes: compact empty state, bounded results, fixed top anchor and outside-click dismissal. `overrides/appmenu/search.css` contains the accompanying FamiliarMac styling.
+
+### Apps and Downloads behavior references
+- [Apple: View and open apps](https://support.apple.com/en-ie/guide/mac-help/mh35840/27/mac/27): floating Apps search, categories and Grid/List behavior.
+- [Apple: Use folders in the Dock](https://support.apple.com/en-mide/guide/mac-help/mchl231f08fb/mac): folder-stack Fan/Grid/List and open/collapse behavior.
+- Evaluated [Dock Stacks](https://github.com/dragosol/dock-stacks): current metadata supports GNOME 49/50, not this GNOME 46 target.
+- Evaluated [Dash2Dock Lite](https://github.com/icedman/dash2dock-lite/tree/98ef2ae08dfc0210f71767e4a1b6a10cdb06d6d8): its Downloads fan is coupled to that replacement dock’s renderer/animation engine.
+Neither evaluated dock is installed or vendored. `appsBrowser.js` and `downloadsStack.js` are FamiliarMac implementations using the installed GNOME Shell widgets and Gio file APIs; no code from those candidate docks was copied.

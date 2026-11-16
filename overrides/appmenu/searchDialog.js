@@ -123,6 +123,15 @@ class SearchDialog extends ModalDialog.ModalDialog {
             if (event.type() !== Clutter.EventType.KEY_PRESS)
                 return Clutter.EVENT_PROPAGATE;
             const key = event.get_key_symbol();
+            if (key === Clutter.KEY_1 && (event.get_state() & Clutter.ModifierType.CONTROL_MASK)) {
+                this.close();
+                Gio.DBus.session.call('org.gnome.Shell', '/org/familiarmac/Apps',
+                    'org.familiarmac.Apps', 'Show', null, null, Gio.DBusCallFlags.NONE,
+                    1000, null, (connection, result) => {
+                        try { connection.call_finish(result); } catch (error) { console.warn(error.message); }
+                    });
+                return Clutter.EVENT_STOP;
+            }
             if (key === Clutter.KEY_Escape) {
                 this.close();
                 return Clutter.EVENT_STOP;

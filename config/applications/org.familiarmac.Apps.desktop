@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Apps
+Name[tr]=Uygulamalar
+Comment=Browse installed applications
+Icon=view-app-grid
+Exec=FAMILIARMAC_LAUNCHER
+Terminal=false
+Categories=Utility;
+StartupNotify=false

@@ -1,0 +1,113 @@
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+
+export const APPS_ID = 'org.familiarmac.Apps.desktop';
+export function matchesApp(app, query, category) {
+    const info = app.get_app_info();
+    const text = `${app.get_name()} ${app.get_description() ?? ''} ${info?.get_keywords?.()?.join(' ') ?? ''}`.toLocaleLowerCase();
+    return text.includes(query.trim().toLocaleLowerCase()) &&
+        (!category || (info?.get_categories?.() ?? '').split(';').includes(category));
+}
+
+const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends ModalDialog.ModalDialog {
+    constructor() {
+        super({styleClass: 'familiarmac-apps'});
+        this._apps = Shell.AppSystem.get_default().get_installed()
+            .filter(app => app.get_id() !== APPS_ID && app.get_app_info()?.should_show())
+            .sort((a, b) => a.get_name().localeCompare(b.get_name()));
+        this._category = '';
+        this._list = false;
+        this._timer = 0;
+        this._buttons = [];
+        const toolbar = new St.BoxLayout({style_class: 'familiarmac-apps-toolbar'});
+        this._entry = new St.Entry({hint_text: 'Search applications', can_focus: true, x_expand: true});
+        toolbar.add_child(this._entry);
+        const view = new St.Button({label: 'List', can_focus: true, style_class: 'button'});
+        view.connect('clicked', () => { this._list = !this._list; view.label = this._list ? 'Grid' : 'List'; this._render(); });
+        toolbar.add_child(view);
+        this.contentLayout.add_child(toolbar);
+        const categories = new St.BoxLayout({style_class: 'familiarmac-apps-categories'});
+        this._categoryButtons = [];
+        for (const [title, category] of [['All', ''], ['Internet', 'Network'], ['Office', 'Office'], ['Media', 'AudioVideo'], ['Graphics', 'Graphics'], ['Development', 'Development']]) {
+            const button = new St.Button({label: title, can_focus: true, style_class: 'familiarmac-apps-category'});
+            button.connect('clicked', () => { this._category = category; this._render(); });
+            categories.add_child(button);this._categoryButtons.push([button, category]);
+        }
+        this.contentLayout.add_child(categories);
+        this._scroll = new St.ScrollView({style_class: 'familiarmac-apps-scroll', overlay_scrollbars: true});
+        this._scroll.set_policy(St.PolicyType.NEVER, St.PolicyType.AUTOMATIC);
+        this._results = new St.BoxLayout({vertical: true, style_class: 'familiarmac-apps-results'});
+        this._scroll.set_child(this._results);
+        this.contentLayout.add_child(this._scroll);
+        this.buttonLayout.hide();
+        this._entry.clutter_text.connect('text-changed', () => {
+            if (this._timer) GLib.source_remove(this._timer);
+            this._timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+                this._timer = 0; this._render(); return GLib.SOURCE_REMOVE;
+            });
+        });
+        this.connect('captured-event', (_actor, event) => {
+            if (event.type() === Clutter.EventType.BUTTON_PRESS || event.type() === Clutter.EventType.TOUCH_BEGIN) {
+                const [x,y] = event.get_coords();
+                const [left,top] = this.dialogLayout._dialog.get_transformed_position();
+                const [w,h] = this.dialogLayout._dialog.get_transformed_size();
+                if (x < left || x >= left+w || y < top || y >= top+h) { this.close(); return Clutter.EVENT_STOP; }
+            }
+            if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
+            const key = event.get_key_symbol();
+            if (key === Clutter.KEY_Escape) {this.close();return Clutter.EVENT_STOP;}
+            const steps = new Map([[Clutter.KEY_Right,1],[Clutter.KEY_Left,-1],[Clutter.KEY_Down,this._list ? 1 : 6],[Clutter.KEY_Up,this._list ? -1 : -6]]);
+            if (steps.has(key) && this._buttons.length) {
+                this._index = Math.max(0,Math.min(this._buttons.length-1,this._index + steps.get(key)));
+                this._buttons[this._index].grab_key_focus();return Clutter.EVENT_STOP;
+            }
+            if ((key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter) && this._buttons.length) {
+                this._buttons[Math.max(0,this._index)].activate();return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+        this.connect('destroy', () => {if (this._timer) GLib.source_remove(this._timer);this._timer=0;});
+        this._render();
+    }
+    _render() {
+        this._results.destroy_all_children();this._buttons=[];this._index=-1;
+        for (const [button, category] of this._categoryButtons) {
+            if (category === this._category) button.add_style_pseudo_class('checked');
+            else button.remove_style_pseudo_class('checked');
+        }
+        const apps=this._apps.filter(app=>matchesApp(app,this._entry.get_text(),this._category));
+        let row;
+        for (const [index,app] of apps.entries()) {
+            if (this._list || index%6===0) {row=new St.BoxLayout({style_class:'familiarmac-apps-row'});this._results.add_child(row);}
+            const button=new St.Button({can_focus:true,track_hover:true,x_expand:this._list,style_class:this._list?'familiarmac-apps-list-item':'familiarmac-apps-tile'});
+            const box=new St.BoxLayout({vertical:!this._list,style_class:'familiarmac-apps-item-content'});
+            box.add_child(app.create_icon_texture(this._list?28:48));
+            const label=new St.Label({text:app.get_name(),x_expand:true,x_align:this._list?Clutter.ActorAlign.START:Clutter.ActorAlign.CENTER});
+            box.add_child(label);button.set_child(box);
+            button.activate=()=>{this.close();app.activate();};button.connect('clicked',button.activate);
+            row.add_child(button);this._buttons.push(button);
+        }
+        if (!apps.length) this._results.add_child(new St.Label({text:'No applications found',style_class:'familiarmac-apps-empty'}));
+        this._scroll.vadjustment.value=0;
+    }
+    open() {super.open(global.get_current_time());this._entry.grab_key_focus();}
+});
+
+export class AppsBrowser {
+    constructor() {
+        this.bus=Gio.DBusExportedObject.wrapJSObject('<node><interface name="org.familiarmac.Apps"><method name="Show"/></interface></node>',this);
+        this.bus.export(Gio.DBus.session,'/org/familiarmac/Apps');
+    }
+    Show() {
+        if (this.dialog) {this.dialog.close();return;}
+        this.dialog=new AppsDialog();
+        this.dialog.connect('destroy',()=>{this.dialog=null;});this.dialog.open();
+    }
+    destroy() {this.dialog?.destroy();this.bus.unexport();}
+}

@@ -44,3 +44,38 @@
   margin-top: 2px;
   margin-bottom: 2px;
 }
+/* One separator immediately before the fixed Trash, including running apps. */
+#dashtodockContainer.bottom .dash-separator { width: 0; margin: 0; background-color: transparent; }
+#dashtodockContainer.bottom .familiarmac-trash-end { border-left: 1px solid rgba(255,255,255,0.22); padding-left: 8px; margin-left: 5px; }
+.modal-dialog.familiarmac-apps { width: 660px; padding: 16px; border-radius: 20px; }
+.familiarmac-apps .modal-dialog-content-box { padding: 0; spacing: 12px; }
+.familiarmac-apps-toolbar { spacing: 10px; }
+.familiarmac-apps-categories { spacing: 4px; }
+.familiarmac-apps-category { padding: 6px 9px; border-radius: 12px; font-size: 9pt; }
+.familiarmac-apps-category:checked { background-color: rgba(128,128,128,0.35); }
+.familiarmac-apps-scroll { height: 350px; }
+.familiarmac-apps-row { spacing: 6px; }
+.familiarmac-apps-results { spacing: 6px; }
+.familiarmac-apps-tile { width: 96px; height: 88px; padding: 4px; border-radius: 10px; }
+.familiarmac-apps-item-content { spacing: 7px; }
+.familiarmac-apps-tile StLabel { max-width: 94px; font-size: 9pt; }
+.familiarmac-apps-list-item { padding: 8px; border-radius: 8px; }
+.familiarmac-apps-tile:hover, .familiarmac-apps-tile:focus,
+.familiarmac-apps-list-item:hover, .familiarmac-apps-list-item:focus { background-color: rgba(128,128,128,0.25); }
+.familiarmac-apps-empty { padding: 24px; text-align: center; }
+#dashtodockContainer.bottom .familiarmac-trash-with-downloads { border-left: 0; padding-left: 0; margin-left: 0; }
+#dashtodockContainer.bottom .familiarmac-downloads-start { border-left: 1px solid rgba(255,255,255,0.22); padding-left: 8px; margin-left: 5px; }
+#dashtodockContainer.bottom .familiarmac-downloads-button { padding: 10px 6px; border-radius: 10px; }
+.familiarmac-stack .popup-menu-content { border-radius: 16px; padding: 10px; }
+.familiarmac-stack-scroll { max-height: 390px; max-width: 510px; }
+.familiarmac-stack-content { spacing: 5px; }
+.familiarmac-stack-row { spacing: 6px; }
+.familiarmac-stack-tile { width: 108px; padding: 7px; border-radius: 10px; }
+.familiarmac-stack-file { padding: 5px 8px; border-radius: 10px; }
+.familiarmac-stack-file-content { spacing: 8px; }
+.familiarmac-stack-label { max-width: 245px; font-size: 10pt; }
+.familiarmac-stack-tile .familiarmac-stack-label { max-width: 104px; font-size: 9pt; }
+.familiarmac-stack-tile:hover,.familiarmac-stack-tile:focus,
+.familiarmac-stack-file:hover,.familiarmac-stack-file:focus { background-color: rgba(128,128,128,0.25); }
+.familiarmac-stack-fan { max-height: 470px; }
+.familiarmac-stack.fan .familiarmac-stack-label { padding: 4px 8px; border-radius: 8px; background-color: rgba(30,30,34,0.9); }

@@ -1,3 +1,6 @@
+import {DownloadsStack} from './downloadsStack.js';
+import {AppsBrowser} from './appsBrowser.js';
+import {DockOrder} from './dockOrder.js';
 import {TrashDrop} from './trashDrop.js';
 import {DockLaunch} from './dockLaunch.js';
 import {CaptureBindings} from './capture.js';
@@ -27,6 +30,9 @@ export default class MacBookMenu extends Extension {
         this._clock.add_style_class_name('macbook-panel-clock');
         this._captureBindings = new CaptureBindings();
         this._trashDrop = new TrashDrop();
+        this._appsBrowser = new AppsBrowser();
+        this._dockOrder = new DockOrder();
+        this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
         this._dockLaunch = new DockLaunch();
@@ -43,8 +49,10 @@ export default class MacBookMenu extends Extension {
         const updateFinder = () => {
             const seen = new Set();
             const visit = actor => {
+                if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
                     this._dockLaunch.track(actor);
+                    this._dockOrder.track(actor);
                     const previousRunning = actor._macbookBackgroundRunning;
                     actor._macbookBackgroundRunning = actor.app.get_id() === 'org.gnome.Nautilus.desktop'
                         || this._processTracker.isRunning(actor.app);
@@ -182,6 +190,12 @@ export default class MacBookMenu extends Extension {
             this._clock.remove_style_class_name('macbook-panel-clock');
         }
         this._clock = this._clockParent = null;
+        this._downloadsStack?.destroy();
+        this._downloadsStack = null;
+        this._appsBrowser?.destroy();
+        this._appsBrowser = null;
+        this._dockOrder?.destroy();
+        this._dockOrder = null;
         this._trashDrop?.destroy();
         this._trashDrop = null;
         this._captureBindings?.destroy();

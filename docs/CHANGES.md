@@ -58,7 +58,17 @@ Reference: [Apple screenshot shortcuts](https://support.apple.com/en-euro/guide/
 Added a desktop drag-source/Shell bridge for dropping selected desktop files onto dock Trash. Uses the existing desktop file-operations service, rejects cancellations and stale/off-target drops, excludes special desktop icons, and adds no polling. Source integration is version-guarded and reversible. Covered by logic tests; live drag verification pending next login.
 
 ### Search and installed applications
-Command+Space opens AppMenu's existing floating search for installed applications, settings and recent files. Removed competing overview/input-source bindings for this chord; Control+Up still opens the overview. The dock's built-in Show Applications button is enabled at the right edge, keeping Finder first, providing the installed-app grid without a separate background launcher.
+Command+Space opens AppMenu's existing floating search for installed applications, settings and recent files. Removed competing overview/input-source bindings for this chord; Control+Up still opens the overview. Apps is a normal movable dock launcher, initially after Finder, opening the floating application browser.
 
 ### Compact floating search
 Search opens as a 460-logical-pixel input with no initial suggestions; typing expands results downward from a fixed upper-screen anchor, capped at five results. Clearing collapses immediately. Clicking/touching outside the dialog closes it; inside clicks, arrow-key selection, Enter and Escape retain their behavior. Overrides are layered after the pinned AppMenu archive, without altering it.
+
+### Fixed dock endpoints and movable Apps
+Finder is maintained at position zero and Finder/Trash drag starts are blocked. Other favorite ordering is preserved, including Apps. The native extra Show Applications endpoint is hidden. A separator is drawn immediately before Trash rather than between favorites and running apps. Apps offers installed-app search, category filters, Grid/List, keyboard navigation and outside-click dismissal; no daemon or app-list polling. Installation uses the existing desktop rollback journal.
+
+Reference: [Apple — View and open apps](https://support.apple.com/en-ie/guide/mac-help/mh35840/27/mac/27). Functional unit tests pass; live shell layout and physical dragging await next login.
+
+Dragging a favorite dock icon at least 48 logical pixels upward and releasing removes only its favorite entry through GNOME’s native favorites service (with Undo support). Running applications remain running and may stay visible as running icons. Finder/Trash and overview-grid drags are excluded. No application files are deleted.
+
+### Downloads stack
+The dock folder section is now `separator | Downloads | Trash`. Downloads opens a native popup with Auto/Fan/Grid/List, modified-date/name sorting and Open in Files. Auto uses Fan for up to seven items and Grid above that. Clicking a file opens its default application; outside-click/Escape closes the popup. Enumeration is asynchronous, cancelled on close, and limited to 200 entries; hidden files are omitted. Preferences are saved in `~/.config/familiarmac-stacks.json`. No polling or thumbnail-generation service is added. macOS Quick Look, file dragging from the popup and thumbnail previews are not implemented. Live fan/grid layout verification awaits next login.
