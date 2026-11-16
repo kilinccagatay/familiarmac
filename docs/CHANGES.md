@@ -253,3 +253,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Calendar date/month/weekday labels follow LC_MESSAGES (UI language), independent of LC_TIME; existing week-start preference retained. Month navigation re-localizes names. Equal calendar columns correct asymmetric spacing.
 - Clock pill gets explicit internal horizontal/vertical spacing; neighbouring status-button rules unchanged.
 - Complete suite passed, including locale/navigation and drawer geometry/callback/restoration tests. Installed for next session. Live GNOME animation, scaling and visual results still require validation. Wi-Fi, Sound, Battery, Dock and boot code unchanged in this revision.
+
+## 2026-11-16 — Percentage inside battery glyph
+
+- Replace the separate status battery/percentage with a vector-drawn 38×18 glyph containing the numeric percentage. Actual level fill, contrasting digits, green charging with bolt, red low/discharging state; no polling.
+- Reuses the native UPower proxy and existing battery menu/hit target. Missing battery hides the target; native indicator restores on disable. No changes to date, Wi-Fi, sound or boot behavior.
+- Reference image and description: https://www.iclarified.com/102441/how-to-show-battery-percentage-on-mac-video (macOS 27); Apple battery behavior: https://support.apple.com/guide/mac-help/monitor-your-macs-battery-mchlp1115/mac . Original Cairo implementation, no copied raster artwork.
+- Suite and dedicated battery state tests passed. Real GJS/Cairo rendered full/half/low/charging previews; installed for next login, live panel validation pending.

@@ -302,3 +302,6 @@
 #panel #panelRight .panel-button.clock-display .clock {
   padding: 2px 7px !important; margin: 2px 0; border-radius: 999px;
 }
+
+/* Only the battery status glyph; percentage is drawn within the outline. */
+#panel #panelRight .fm-panel-battery { width: 38px; height: 18px; margin: 0; padding: 0; }

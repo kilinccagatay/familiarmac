@@ -1,3 +1,4 @@
+import {BatteryIcon} from './batteryIcon.js';
 import {PanelOrder} from './panelOrder.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
@@ -59,6 +60,13 @@ export class StatusButtons {
             const content = new St.BoxLayout();
             button.add_child(content);
             content.add_child(indicator);
+            let batteryIcon = null;
+            const powerProxy = key === '_system' ? indicator._systemItem?.powerToggle?._proxy : null;
+            if (powerProxy) {
+                batteryIcon = new BatteryIcon(powerProxy, present => { button.visible = present; });
+                content.add_child(batteryIcon.actor);
+                indicator.hide();
+            }
             let wirelessIcon = null;
             const wireless = key === '_network' ? indicator._wirelessToggle : null;
             const bindings = [];
@@ -78,6 +86,11 @@ export class StatusButtons {
                 updateWifi();
             }
             const sync = () => {
+                if (batteryIcon) {
+                    button.visible = batteryIcon.state.present;
+                    if (indicator.visible) indicator.hide();
+                    return;
+                }
                 button.visible = Boolean(wireless?.visible || indicator.visible);
                 if (wireless?.visible && indicator.visible) indicator.hide();
             };
@@ -92,7 +105,7 @@ export class StatusButtons {
             });
             const position = Main.panel._rightBox.get_children().indexOf(this.panel.container);
             Main.panel.addToStatusArea(`familiarmac-status-${key}`, button, Math.max(0, position), 'right');
-            this.buttons.push({indicator, index, button, signal, wireless, bindings, wirelessIcon});
+            this.buttons.push({indicator, index, button, signal, wireless, bindings, wirelessIcon, batteryIcon});
         }
         this.panelOrder = new PanelOrder();
     }
@@ -182,10 +195,14 @@ export class StatusButtons {
         if (this.panel.menu.close === this.closeWrapper) this.panel.menu.close = this.originalClose;
         this.restore();
         const box = this.panel._indicators;
-        for (const {indicator, index, button, signal, wireless, bindings} of this.buttons.reverse()) {
+        for (const {indicator, index, button, signal, wireless, bindings, batteryIcon} of this.buttons.reverse()) {
             for (const id of bindings) wireless.disconnect(id);
             if (wireless) indicator.show();
             indicator.disconnect(signal);
+            if (batteryIcon) {
+                indicator.visible = batteryIcon.state.present;
+                batteryIcon.destroy();
+            }
             indicator.get_parent().remove_child(indicator);
             box.insert_child_at_index(indicator, Math.min(index, box.get_n_children()));
             button.destroy();
