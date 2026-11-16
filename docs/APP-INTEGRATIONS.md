@@ -101,3 +101,48 @@ All installed Flatpaks receive the same managed GTK3/GTK4 control stylesheet, pr
 The event-driven inventory also prepares Chrome, Chromium, Brave and Ungoogled Chromium Flatpak launchers using one Chromium-family adapter. It preserves desktop actions and URL forwarding, selects X11 for native menu export, and sets system window decorations before starting an unlocked profile. Locked profiles are left unchanged. A fresh profile is prepared before first launch; existing unrelated preferences are preserved. Restore refuses to overwrite externally modified launchers.
 
 Validated locally: Chrome system decorations, global menu and dark GTK theme; Blanket and Eyedropper GTK4 controls. The inventory currently contains 98 visible launchers, including 37 Flatpaks; every Flatpak receives the shared appearance configuration. This is not a claim that every application was opened or supports a traditional exported menu. Custom-rendered interfaces and applications without an exported menu remain toolkit-dependent. Restart an already-running application to load new sandbox permissions and CSS.
+
+## Repeating installation and visual checks on another machine
+
+Use the supported desktop baseline in [INSTALL.md](INSTALL.md). Run the public
+installer as that machine's desktop user; do not copy another user's `.var/app`,
+browser profiles, absolute home paths or Flatpak overrides. The installer copies
+shared CSS/SVG assets, detects installed apps and enables the installation-event
+watcher. It does not launch all applications during installation.
+
+For an existing FamiliarMac setup, update these components with:
+
+```bash
+python3 scripts/install-app-integrations.py
+```
+
+Already-running apps must fully quit and reopen to load sandbox permissions and
+GTK CSS. Closing the last browser window may leave its background process alive.
+Do not terminate processes holding unsaved work. Future supported installations
+are prepared through the same watcher; no per-machine app list is required.
+
+The audit tool defaults to read-only inventory:
+
+```bash
+python3 scripts/audit-applications.py
+python3 scripts/audit-applications.py --run
+# Or inspect a small subset:
+python3 scripts/audit-applications.py --run --app org.gnome.Calculator.desktop
+```
+
+The interactive audit launches only one selected application at a time, reserves
+1800 MiB of available memory, and waits for normal closure before proceeding.
+Skip existing work, installers and privileged tools. It never force-quits apps,
+automatically accepts a dialog or alters system settings. Appearance and actual
+menu export must be visually checked; a successful launch is not a pass.
+Optional screenshots and results stay in `~/.local/state/familiarmac/audits/`.
+Screenshots can contain personal information; review before publishing. The
+operator confirms closure because GNOME Wayland does not offer this tool a
+universal, reliable ownership-safe application shutdown API.
+
+`tests/app-integration-install.py` runs the actual component installer in an empty
+temporary home with service calls mocked, checks all runtime assets and repeated
+installation, and verifies that restore stops the watcher before restoring
+launchers. Together with Chromium/Firefox empty-profile and CSS-preservation
+tests this checks reproducibility without changing host preferences. It does not
+replace a full install test on a clean supported OS.

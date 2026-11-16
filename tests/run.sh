@@ -46,3 +46,5 @@ python3 tests/native-trash-target.py
 python3 tests/chromium-integrations.py
 
 python3 tests/flatpak-appearance.py
+
+python3 tests/app-integration-install.py

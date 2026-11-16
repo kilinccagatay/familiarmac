@@ -7,8 +7,8 @@ home=Path.home();dest=home/'.local/lib/familiarmac'
 state=home/'.local/state/familiarmac'
 state.mkdir(parents=True,exist_ok=True)
 if '--restore' in sys.argv:
-    subprocess.run(['/usr/bin/python3',str(root/'scripts/chromium-integrations.py'),'--restore'],check=True)
     subprocess.run(['systemctl','--user','disable','--now','familiarmac-app-integrations.path','familiarmac-app-integrations.service'],check=True)
+    subprocess.run(['/usr/bin/python3',str(root/'scripts/chromium-integrations.py'),'--restore'],check=True)
     if (state/'toolkits/gtk.json').exists():
         subprocess.run(['/usr/bin/python3',str(root/'scripts/toolkit-integrations.py'),'--restore'],check=True)
     if (state/'firefox-menu/desktop.installed').exists():

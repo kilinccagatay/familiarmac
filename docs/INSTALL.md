@@ -118,3 +118,12 @@ Install via `python3 scripts/install-apps.py` (included in `install.sh`). New Sh
 
 ## Downloads folder stack
 After loading the new Shell code, Downloads appears immediately left of Trash in the separate folder section. Click or right-click it, right-click for separate **Sort by**, **Display as** and **View content as** sections. Choose Fan/Grid/List/Automatic and Folder/Stack. **Options** sets a fan maximum of 5/7/10/12 files (default 7; reduced to fit short screens). Click a file to open it, or **Open in Files** for the complete folder. Uses your XDG Downloads folder, including localized folder paths. The popup counts all visible folder entries asynchronously, retains at most 200 for rendering and omits hidden files. Fan shows its remaining count at the top as **N More in Finder**, which opens the Downloads folder. Use the file manager for the complete folder. Date Added is disabled because Linux does not reliably expose the time a file entered this folder; Date Created sorts by birth time where available, with undated files last. Stack preferences are kept in `~/.config/familiarmac-stacks.json`. Disabling the FamiliarMac menu extension removes the stack UI, leaving Downloads files untouched.
+
+## Reproducible application appearance checks
+
+The application integration installer supplies shared control assets and
+installation-event detection for the current user. Use the
+[repeatable application audit](APP-INTEGRATIONS.md#repeating-installation-and-visual-checks-on-another-machine)
+to review installed apps one at a time after installation. The default command
+only lists applications; `--run` explicitly starts an interactive visual review.
+No applications are launched automatically by `install.sh`.

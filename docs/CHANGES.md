@@ -587,3 +587,14 @@ Control size follow-up: shared fixed-size 14px SVG backgrounds replace allocatio
 Spacing verification: GTK4 controls use 22 logical pixels center-to-center. Live Eyedropper capture measured 28px diameter and 44px centers at 2x, matching ChatGPT.
 
 GTK4 header bars use a compact 32px minimum height, with centered titles and controls; verified in Eyedropper after restart.
+
+### Repeatable application integration verification
+
+- Added an opt-in sequential visual audit with a memory reserve, private reports,
+  explicit normal-closure confirmation and separate launch/visual outcomes.
+- Added an empty-home test of the real component installer, repeat installation,
+  copied CSS/SVG/runtime assets and watcher-first restore ordering.
+- Fixed restore ordering so application installation watchers stop before
+  Chromium launchers are restored.
+- Documented how another supported machine installs the shared rules and repeats
+  checks without copying this user's profiles or home-directory configuration.
