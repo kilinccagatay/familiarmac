@@ -29,3 +29,5 @@ python3 tests/lean-initramfs.py
 
 GIO_USE_VFS=local dbus-run-session -- gjs -m tests/gtk-menu-model.js
 python3 tests/app-integrations.py
+
+python3 tests/quiet-kernel-entry.py

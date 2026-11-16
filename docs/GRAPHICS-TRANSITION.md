@@ -247,3 +247,34 @@ updates are held/removed; however the explicit boot preference remains on the
 selected version until changed/restored. Revisit it when testing updated kernels
 rather than treating this version as a permanent security-update policy.
 No GPU mux, Wi-Fi, acceleration or runtime-power setting was changed.
+
+## Targeted console initialization after the 16:19 recurrence
+
+The 16:19 boot is confirmed 6.17, disproving a kernel-version-only fix. Comparison
+of recent journals shows fbcon takeover around 2.07s during traced boots, including
+the user-observed clean 15:49 boot. All subsequent untraced boots retain deferred
+fbcon takeover. This is correlation, not proof of the scanout corruption's cause.
+
+An opt-in MacBookPro10,1/Nouveau init-premount action now writes clear-screen
+sequences to tty1/tty7 after forced Nouveau loading, before Plymouth. It triggers
+console initialization without switching VT, changing GPU, disabling acceleration,
+or modifying Wi-Fi. It is a hypothesis-targeted workaround requiring physical boot
+and logout observation. It cannot guarantee removal of any artifact occurring
+inside the driver's initial modeset, before this userspace action runs.
+
+Install with `sudo bash scripts/install-console-init.sh` on the selected 6.17 host;
+restore with the same command plus `--restore` before other initramfs changes.
+The current initrd and GRUB preference/configuration are saved under
+`/var/lib/macbook-zorin/console-init`. The installer's rollback covers generation
+failure. The run marker is `/run/familiarmac/console-init`.
+
+The two top-left lines were confirmed by the user to be GRUB loading messages,
+not warnings. A separate generator clones the distro's selected normal kernel entry,
+removes only its two status echoes and assigns a managed ID. Original kernel,
+initrd, video/module commands and recovery entries are preserved. The distro's
+package-owned GRUB generator is unchanged. This optional host-specific setup is
+not enabled by the general FamiliarMac installer. The explicit 6.17 preference
+remains a temporary diagnostic choice, not evidence that 6.17 fixes corruption.
+
+Source for deferred console behavior:
+https://www.kernel.org/doc/html/latest/fb/fbcon.html .

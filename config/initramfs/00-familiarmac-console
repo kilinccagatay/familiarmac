@@ -1,0 +1,15 @@
+#!/bin/sh
+# Initialize the native Nouveau console before Plymouth; no modeset or GPU switch.
+case "${1:-}" in prereqs) exit 0;; esac
+[ "$(cat /sys/class/dmi/id/product_name 2>/dev/null)" = MacBookPro10,1 ] || exit 0
+[ ! -e /run/plymouth/pid ] || exit 0
+case "$(cat /sys/class/graphics/fb0/name 2>/dev/null)" in nouveaudrmfb|nouveaufb) ;; *) exit 0;; esac
+# Writing to the console triggers deferred fbcon takeover and clears its backing
+# surface before the splash opens a graphics VT. Do not switch the active VT.
+for tty in /dev/tty1 /dev/tty7; do
+    [ -c "$tty" ] || continue
+    printf '\033[0m\033[40m\033[2J\033[H\033[?25l' > "$tty" 2>/dev/null || true
+done
+mkdir -p /run/familiarmac
+printf 'Nouveau console initialized before Plymouth\n' > /run/familiarmac/console-init
+exit 0
