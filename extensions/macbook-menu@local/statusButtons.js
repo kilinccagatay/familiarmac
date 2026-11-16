@@ -1,3 +1,4 @@
+import {PanelOrder} from './panelOrder.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -49,6 +50,7 @@ export class StatusButtons {
             Main.panel.addToStatusArea(`familiarmac-status-${key}`, button, Math.max(0, position), 'right');
             this.buttons.push({indicator, index, button, signal});
         }
+        this.panelOrder = new PanelOrder();
     }
 
     open(key, button) {
@@ -88,6 +90,8 @@ export class StatusButtons {
     }
 
     destroy() {
+        this.panelOrder?.destroy();
+        this.panelOrder = null;
         if (this.timer) GLib.source_remove(this.timer);
         this.timer = 0;
         this.panel.menu.close();

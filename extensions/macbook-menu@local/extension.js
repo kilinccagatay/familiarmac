@@ -1,3 +1,4 @@
+import {PanelClock} from './panelClock.js';
 import {SessionDialog} from './sessionDialog.js';
 import {ControlCenter} from './controlCenter.js';
 import {DownloadsStack} from './downloadsStack.js';
@@ -32,6 +33,7 @@ export default class MacBookMenu extends Extension {
         this._clock.add_style_class_name('macbook-panel-clock');
         this._controlCenter = new ControlCenter(this.path);
         this._sessionDialog = new SessionDialog();
+        this._panelClock = new PanelClock();
         this._captureBindings = new CaptureBindings();
         this._trashDrop = new TrashDrop();
         this._appsBrowser = new AppsBrowser();
@@ -188,6 +190,8 @@ export default class MacBookMenu extends Extension {
     }
 
     disable() {
+        this._panelClock?.destroy();
+        this._panelClock = null;
         this._sessionDialog?.destroy();
         this._sessionDialog = null;
         this._controlCenter?.destroy();

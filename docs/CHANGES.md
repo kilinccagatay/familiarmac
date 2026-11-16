@@ -96,3 +96,8 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Network, Bluetooth, volume and battery now have separate panel hit targets with their live native indicators. The Control Center icon opens the full panel; separate buttons show only their corresponding native controls. Repeated click closes the detail. Keyboard Enter/Space/Down is supported.
 - Controls remain in their native grid, preserving submenu overlay metadata. Other controls are temporarily hidden with state-change tracking and restored on close/disable. No duplicate network/audio daemons; startup readiness wait is bounded and removed on disable. Privacy indicators remain in the native area.
 - Tests cover filtering, changing visibility, repeated activation and restoration. Full test suite passed. Installed for next login; live pointer/keyboard behavior still needs physical verification.
+
+### Movable status icons and explicit clock format
+- Command-drag reorders right-side status buttons; with this setup keyd exposes physical Command as Control, so Control-drag also works. Super is accepted for unmapped keyboards. Escape cancels; dropping outside the status buttons restores the previous order. Normal clicks keep opening menus. Order persists in `~/.config/familiarmac-panel-order.json`; stale/duplicate IDs are ignored. No polling or per-frame timer.
+- Date now uses English abbreviated day/month with seconds: `Mon 16 Nov 10:50:30`, using the system timezone and GNOME's native wall-clock updates. Other system locale preferences are unchanged.
+- Installed for next login. Automated order/format tests pass; physical dragging still needs post-login verification.
