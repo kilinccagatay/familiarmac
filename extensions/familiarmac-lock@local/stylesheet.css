@@ -1,0 +1,7 @@
+.fm-lock-clock { color: rgba(255,255,255,0.92); spacing: 2px; font-family: "SF Pro Text", Inter, sans-serif; font-size: 18px; font-weight: 600; }
+.fm-lock-time { font-family: ".SF NS Rounded", SF Pro Rounded, Inter; font-size: 80px; font-weight: 700; }
+.fm-lock .login-dialog-prompt-layout { width: 17em; spacing: 6px; }
+.fm-lock .user-widget.vertical .user-widget-label { font-size: 11pt; }
+.fm-lock .user-widget.vertical .user-icon { icon-size: 48px; width: 48px; height: 48px; }
+.fm-lock .user-widget.vertical .user-icon StIcon { icon-size: 40px; }
+.fm-lock .login-dialog-prompt-entry { color: white; background-color: rgba(30,30,36,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: 16px; padding: 8px 12px; }

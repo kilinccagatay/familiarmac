@@ -1,0 +1,1 @@
+{"uuid":"familiarmac-lock@local","name":"FamiliarMac Lock Screen","description":"Login-style presentation for the native GNOME unlock screen","shell-version":["46"],"session-modes":["user","unlock-dialog"],"version":1}

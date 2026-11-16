@@ -569,3 +569,7 @@ Hide the redundant top-panel clock only in the GDM greeter, retaining the large 
 ### Global-menu screenshots
 
 Added real Firefox and Files/Finder captures with File menus open in the top bar. Both READMEs include detail crops linked to the full gallery images.
+
+### Login-style unlock screen
+
+Added a separate GNOME 46 extension for user and unlock-dialog session modes. It places an HH:MM clock and UI-language date above the native password prompt, uses the login appearance, hides the redundant panel clock while locked, and reserves room for the on-screen keyboard and notifications. Native authentication and modal grabs remain unchanged; disabling restores the original layout. Fresh desktop installations enable this extension too. Geometry and existing regression tests pass; visual verification after a new login is pending.
