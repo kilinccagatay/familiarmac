@@ -35,3 +35,17 @@ const latePanel={menu:{close(){},connect(){return 1}},_indicators:{connect(_n,fn
 const late=new ctx.C({panel:latePanel});childAdded();assert.equal(installs,0);
 latePanel._system={};idle();assert.equal(installs,1);assert.equal(disconnections,1);assert.equal(late.timer,0);
 console.log('Startup indicators install on readiness without a polling delay PASS');
+// Regression: custom details used to hide EVERY native row. GNOME 46 then
+// computes (0 - 1) * row_spacing = -20 and can abort the entire session.
+c.restore();
+c.owner.wifi={show(){},hide(){}};
+c.owner.sound={native:{},show(){},hide(){}};
+for(const key of ['_network','_volumeOutput','_system']) {
+ c.open(key,button);
+ const rows=menu._grid.get_children().filter(a=>a!==overlay&&a.visible);
+ assert.ok(rows.length>0,`${key}: native layout must retain rows`);
+ assert.ok((rows.length-1)*20>=0,'native preferred spacing must not be negative');
+ assert.equal(c.mask.length,0,'parent-hidden details must not mask children');
+ c.restore();
+}
+console.log('Wi-Fi, sound, battery preserve native rows: fatal negative-height regression PASS');

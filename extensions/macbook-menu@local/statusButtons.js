@@ -124,7 +124,11 @@ export class StatusButtons {
         const customSound = key === '_volumeOutput' && Boolean(this.owner.sound?.native);
         const selected = new Set(key === '_system' || customWifi || customSound ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
-        for (const item of menu._grid.get_children()) {
+        // GNOME 46 QuickSettingsLayout computes (rows.length - 1) * spacing.
+        // Hiding every child produces a negative preferred height and a fatal
+        // Clutter warning, even while the grid parent is hidden. Custom surfaces
+        // already hide the parent in syncSurface(); keep its rows intact.
+        for (const item of selected.size ? menu._grid.get_children() : []) {
             if (selected.has(item) || item === menu._grid.layout_manager._overlay) continue;
             const saved = {item, visible: item.visible, guard: false};
             saved.signal = item.connect('notify::visible', () => {

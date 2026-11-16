@@ -278,3 +278,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 
 - The reduced image did not resolve the reported late logo/pre-logo artifact.
 - Added optional reversible Plymouth boot tracing, without changing rendering or GPU settings, to diagnose the remaining transition.
+
+### Critical: status popup could terminate GNOME Shell
+
+- Fixed Wi-Fi/sound/battery custom detail opening hiding every native Quick Settings grid child. GNOME 46 computes row spacing as `(rows.length - 1) * row_spacing`; zero rows produced a negative minimum height and a fatal Clutter warning (observed twice immediately before `gnome-shell` trapped in GLib).
+- Custom detail surfaces now hide only the native grid parent and retain its rows; ordinary filtered native details keep their existing behavior.
+- Added regression coverage for all three custom details. Full test suite passed. Installed into the user extension and recovered GNOME's crash-disabled user extensions without logging out; physical menu-click verification remains separate.
