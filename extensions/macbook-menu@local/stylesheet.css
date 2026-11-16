@@ -556,3 +556,12 @@
 .fm-system-light .macbook-system-menu .fm-system-shortcut { color: #64676c; }
 .fm-system-light .macbook-system-menu .popup-menu-item:focus .fm-system-shortcut,
 .fm-system-light .macbook-system-menu .popup-menu-item:hover .fm-system-shortcut { color: rgba(255,255,255,0.78); }
+
+/* All StatusNotifier/AppIndicator menus share the existing menu palette. */
+.fm-indicator-menu .popup-menu-item { color: inherit; }
+.fm-system-dark .fm-indicator-menu .popup-menu-item:insensitive { color: #999ba3; }
+.fm-system-light .fm-indicator-menu .popup-menu-item:insensitive { color: #73757d; }
+.fm-system-dark .fm-indicator-menu .popup-separator-menu-item { color: #aeb0b8; }
+.fm-system-light .fm-indicator-menu .popup-separator-menu-item { color: #62646c; }
+.fm-indicator-menu .popup-menu-item:hover,
+.fm-indicator-menu .popup-menu-item:focus { color: white; }

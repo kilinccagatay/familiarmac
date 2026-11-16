@@ -493,3 +493,11 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Fixed the desktop-to-Dock trash installer shadowing Zorin's built-in desktop extension UUID. Zorin 46 skips user copies of mode extensions; its loader leaves an undefined entry in the initialization list. The rejected initialization promise then prevents normal extension restoration after unlocking.
 - The patched desktop extension now has its own `familiarmac-desktop-icons@local` identity. The installer selects a single desktop owner, retains the upstream package, checks managed-file hashes and keeps a recovery copy outside extension discovery. Restore removes the managed copy and restores the original desktop selection.
 - Existing installations need one new login after migration to clear GNOME's rejected initialization promise and discover the new extension. Dock/menu recovery in the current session does not itself clear that cached promise. Lock/unlock and suspend/resume still require live verification after the new login.
+
+### Dock Trash and application indicator menus
+
+- Trash has only Open and Empty Trash (disabled when empty); it no longer inherits app-launch/GPU actions or running indicators.
+- Desktop drops use the GTK source's actual NO_TARGET release and the mapped Trash icon's transformed bounds. They no longer depend on Mutter's Xdnd enter/position events or picking through the drag image. Cancellation and drops outside the icon leave files untouched.
+- Files move to Trash asynchronously, never permanently delete. The installed sound theme's `trash-empty` event plays only after every selected file finishes successfully, when `canberra-gtk-play` is available. This is the system sound, not a bundled Apple audio asset.
+- All StatusNotifier/AppIndicator popups share FamiliarMac's compact Dock-menu styling and system light/dark preference. App-defined actions and labels are preserved; newly appearing indicators are handled through actor events, without polling.
+- Regression tests cover Trash's first menu opening, empty state, hidden/off-target drops, cancellation, completion-only sound, newly added tray apps and cleanup. Live drag/drop and visual verification require the updated Shell code to load in a new login.

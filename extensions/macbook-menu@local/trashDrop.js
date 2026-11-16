@@ -1,40 +1,45 @@
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
-import Clutter from 'gi://Clutter';
 
-// The desktop GTK drag source confirms an actual NO_TARGET release; never trash
-// from drag-leave alone (Escape and crossing a window also emit drag-leave).
+// Called only by the GTK source's NO_TARGET drag-failed handler, not drag-leave
+// (which also fires on cancellation). Mutter's Xdnd monitor does not provide
+// the Wayland GTK drag lifecycle; do not require its enter/position signals.
 export class TrashDrop {
     constructor() {
-        this.dnd = global.backend.get_dnd();
-        this.signals = [
-            this.dnd.connect('dnd-enter', () => { this.active = true; this.target = false; }),
-            this.dnd.connect('dnd-position-change', (_d, x, y) => { this.target = this.isTrash(x, y); }),
-            this.dnd.connect('dnd-leave', () => { this.active = false; this.ended = GLib.get_monotonic_time(); }),
-        ];
+        this.icons = new Map();
         this.bus = Gio.DBusExportedObject.wrapJSObject(
             '<node><interface name="org.familiarmac.TrashDrop"><method name="ConsumeDrop"><arg type="b" direction="out"/></method></interface></node>', this);
         this.bus.export(Gio.DBus.session, '/org/familiarmac/TrashDrop');
     }
-    isTrash(x, y) {
-        let actor = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x, y);
-        while (actor) {
-            const app = actor.app ?? actor._delegate?.app;
-            const uri = (app?.appInfo ?? app?.get_app_info?.())?.location?.get_uri?.();
-            if (uri === 'trash://' || uri === 'trash:///') return true;
-            actor = actor.get_parent();
-        }
-        return false;
+    track(icon) {
+        const app = icon.app;
+        const info = app?.appInfo ?? app?.get_app_info?.();
+        if (this.icons.has(icon) || !(app?.isTrash === true ||
+            ['trash://', 'trash:///'].includes(info?.location?.get_uri?.()))) return;
+        const indicators = [icon._dot, ...(icon._indicator?._indicators ?? []).map(i => i._area)].filter(Boolean);
+        const opacity = indicators.map(actor => [actor, actor.opacity]);
+        for (const actor of indicators) actor.opacity = 0;
+        const signal = icon.connect('destroy', () => this.icons.delete(icon));
+        this.icons.set(icon, {signal, opacity});
     }
     ConsumeDrop() {
         const [x, y] = global.get_pointer();
-        const valid = !!this.target && this.isTrash(x, y) && (this.active ||
-            GLib.get_monotonic_time() - (this.ended ?? 0) < 750000);
-        this.target = false;
-        return valid;
+        // Hit-test the actual visible icon, not the drag-image actor that can
+        // cover it. This includes monitor offsets and HiDPI transformations.
+        for (const icon of this.icons.keys()) {
+            if (!icon.mapped) continue;
+            const [left, top] = icon.get_transformed_position();
+            const [width, height] = icon.get_transformed_size();
+            if (width > 0 && height > 0 && x >= left && x < left + width &&
+                y >= top && y < top + height) return true;
+        }
+        return false;
     }
     destroy() {
         this.bus.unexport();
-        for (const id of this.signals) this.dnd.disconnect(id);
+        for (const [icon, {signal, opacity}] of this.icons) {
+            icon.disconnect(signal);
+            for (const [actor, value] of opacity) actor.opacity = value;
+        }
+        this.icons.clear();
     }
 }

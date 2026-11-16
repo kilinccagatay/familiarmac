@@ -49,7 +49,8 @@ export class DockMenus {
     track(icon) {
         if (this.icons.has(icon) || typeof icon.popupMenu !== 'function') return;
         const info = icon.app.get_app_info();
-        if (!info?.get_filename?.()) return; // Trash and virtual locations keep their menus.
+        const trash = icon.app.isTrash === true || ['trash://', 'trash:///'].includes((icon.app.appInfo ?? info)?.location?.get_uri?.());
+        if (!trash && !info?.get_filename?.()) return;
         const record = {icon};
         record.open = icon.connect('menu-state-changed', (_icon, open) => {
             if (!open || !icon._menu || record.menu) return;
@@ -62,6 +63,7 @@ export class DockMenus {
             // Rebuild only while visible; native window updates must not access
             // the old dock menu's removed preview/quit items.
             menu.update = () => { if (menu.isOpen) this.build(record); };
+            if (trash) this.build(record);
         });
         record.destroy = icon.connect('destroy', () => {
             this.dispose(record, false); this.icons.delete(icon);
@@ -104,6 +106,12 @@ export class DockMenus {
         menu.removeAll();
         menu.actor.add_style_class_name('fm-dock-menu');
         const app = icon.app, info = app.get_app_info();
+        if (app.isTrash === true || ['trash://', 'trash:///'].includes((app.appInfo ?? info)?.location?.get_uri?.())) {
+            menu.addAction('Open', () => app.activate());
+            const empty = menu.addAction('Empty Trash', () => app.launch_action('empty-trash', global.get_current_time(), -1));
+            empty.setSensitive(info.list_actions().includes('empty-trash'));
+            return;
+        }
         const {running, fixed} = dockMenuState(app, icon._macbookBackgroundRunning);
         const windows = app.get_windows().filter(w => !w.is_override_redirect() && !w.skip_taskbar);
         const separator = () => menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());

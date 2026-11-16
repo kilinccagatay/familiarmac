@@ -13,7 +13,28 @@
                 (connection, response) => {
                     try {
                         const [accepted] = connection.call_finish(response).deep_unpack();
-                        if (accepted) imports.dbusUtils.RemoteFileOperations.TrashURIsRemote(files);
+                        if (!accepted) return;
+                        // Gio completion means the move finished, unlike a file
+                        // manager D-Bus acknowledgement that can just queue it.
+                        let index = 0, failed = false;
+                        const next = () => {
+                            if (index === files.length) {
+                                if (!failed && GLib.find_program_in_path('canberra-gtk-play')) {
+                                    try {
+                                        GLib.spawn_async(null, ['canberra-gtk-play', '--id=trash-empty',
+                                            '--description=Move to Trash'], null, GLib.SpawnFlags.SEARCH_PATH, null);
+                                    } catch (error) { log(`Trash sound unavailable: ${error.message}`); }
+                                }
+                                return;
+                            }
+                            const file = Gio.File.new_for_uri(files[index++]);
+                            file.trash_async(GLib.PRIORITY_DEFAULT, null, (source, result) => {
+                                try { if (!source.trash_finish(result)) failed = true; }
+                                catch (error) { failed = true; log(`Move to Trash failed: ${error.message}`); }
+                                next();
+                            });
+                        };
+                        next();
                     } catch (error) {
                         // Unsupported/unloaded Shell bridge: leave files untouched.
                         log(`FamiliarMac dock trash unavailable: ${error.message}`);

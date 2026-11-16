@@ -69,3 +69,16 @@ for(const scale of [1,2]) {
  const p=context.position({x:100,width:200*scale},120,{width:180*scale,height:150},{x:0,y:0,width:2000,height:700},scale);
  assert.equal(100+200*scale-p.x,6*scale);
 }
+
+// Virtual Trash is handled on its first opening despite no desktop filename.
+let emptied=0;
+const trashInfo={get_filename:()=>null,list_actions:()=>['empty-trash']};
+const trashIcon=new Item();Object.assign(trashIcon,{app:{isTrash:true,get_app_info:()=>trashInfo,activate:()=>opened++,launch_action:action=>{assert.equal(action,'empty-trash');emptied++;}},popupMenu(){},_menu:new Menu()});
+context.global.get_current_time=()=>123;
+const trashMenus=new context.Controller();trashMenus.track(trashIcon);
+trashIcon.signals['menu-state-changed'](trashIcon,true);
+assert.deepEqual(trashIcon._menu.items.map(i=>i.label),['Open','Empty Trash']);
+trashIcon._menu.items[1].action();assert.equal(emptied,1);
+trashInfo.list_actions=()=>[];trashIcon._menu._rebuildMenu();
+assert.equal(trashIcon._menu.items[1].sensitive,false);
+trashMenus.destroy();
