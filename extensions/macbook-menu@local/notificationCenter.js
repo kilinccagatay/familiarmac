@@ -20,6 +20,12 @@ export class NotificationCenter {
         this.signals = [];
         const list = this.date?._messageList;
         if (!list || !this.date._calendar || !this.date._date) return;
+        this.placeholder = list._placeholder;
+        if (this.placeholder) {
+            this.placeholderLayout = {expand: this.placeholder.x_expand, align: this.placeholder.x_align};
+            this.placeholder.x_expand = true;
+            this.placeholder.x_align = Clutter.ActorAlign.FILL;
+        }
         this.list = list;
         this.listLayout = {expand: list.y_expand, align: list.y_align};
         list.y_expand = false;
@@ -85,6 +91,10 @@ export class NotificationCenter {
     destroy() {
         this.date?.menu.close();
         this.drawer?.destroy();
+        if (this.placeholder) {
+            this.placeholder.x_expand = this.placeholderLayout.expand;
+            this.placeholder.x_align = this.placeholderLayout.align;
+        }
         if (this.list) {this.list.y_expand = this.listLayout.expand; this.list.y_align = this.listLayout.align;}
         this.language?.destroy();
         if (this.settingSignal) this.settings.disconnect(this.settingSignal);

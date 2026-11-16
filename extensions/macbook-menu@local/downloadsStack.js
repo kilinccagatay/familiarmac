@@ -61,6 +61,8 @@ export class DownloadsStack {
             const options=new PopupMenu.PopupMenu(button,0.5,St.Side.BOTTOM);
             options.actor.add_style_class_name('familiarmac-stack-options');Main.uiGroup.add_child(options.actor);options.actor.hide();manager.addMenu(options);
             item={button,image,container,menu,options,manager,trash};
+            // Dock parents can destroy our sibling before the Trash icon itself.
+            item.containerSignal=container.connect('destroy',()=>{item.container=null;});
             button.connect('clicked',()=>{if(menu.isOpen)menu.close();else this.open(item);});
             button.connect('button-press-event',(_button,event)=>{
                 if(event.get_button()!==3)return Clutter.EVENT_PROPAGATE;
@@ -70,6 +72,7 @@ export class DownloadsStack {
             item.signal=icon.connect('destroy',()=>{this.dispose(item);this.items.delete(icon);});
             this.items.set(icon,item);
         }
+        if (!item.container) return;
         if (item.container.get_parent()!==box) {
             item.container.get_parent()?.remove_child(item.container);box.insert_child_below(item.container,trash);
         } else {
@@ -212,7 +215,15 @@ export class DownloadsStack {
     }
     dispose(item) {
         if(item.disposed)return;item.disposed=true;
-        item.previewCancellable?.cancel();item.cancellable?.cancel();item.menu.destroy();item.options.destroy();item.manager.removeMenu(item.menu);item.manager.removeMenu(item.options);item.container.destroy();
+        item.previewCancellable?.cancel();item.cancellable?.cancel();
+        item.manager.removeMenu(item.menu);item.manager.removeMenu(item.options);
+        item.menu.destroy();item.options.destroy();
+        if (item.container) {
+            const container=item.container;
+            item.container=null;
+            container.disconnect(item.containerSignal);
+            container.destroy();
+        }
     }
     destroy() {
         this.stopped=true;

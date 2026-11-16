@@ -1,3 +1,4 @@
+import {SystemAppearance} from './systemAppearance.js';
 import {OsdStyle} from './osdStyle.js';
 import {NotificationCenter} from './notificationCenter.js';
 import {PanelClock} from './panelClock.js';
@@ -26,6 +27,7 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 export default class MacBookMenu extends Extension {
     enable() {
+        this._appearance = new SystemAppearance();
         // macOS places date/time after all status icons, at the far right.
         this._clock = Main.panel.statusArea.dateMenu.container;
         this._clockParent = this._clock.get_parent();
@@ -195,6 +197,8 @@ export default class MacBookMenu extends Extension {
     }
 
     disable() {
+        this._appearance?.destroy();
+        this._appearance = null;
         this._osdStyle?.destroy();
         this._osdStyle = null;
         this._panelClock?.destroy();

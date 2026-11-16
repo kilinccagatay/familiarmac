@@ -359,3 +359,17 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Notification empty state has its own card. Remove forced full-screen height so the calendar follows notifications; keep the existing right-edge animation and native notification actions.
 - Focus/Do Not Disturb popup shares the light status-popover palette and compact row spacing.
 - Reference: Apple's Apps browsing view includes suggestions and categories (https://support.apple.com/en-ie/guide/mac-help/mh35840/27/mac/27). The exact new/frequent selection rule here is FamiliarMac's user-requested policy, not a claim to reproduce Apple's private ranking.
+
+## Empty-card alignment and logout cleanup
+
+- Expand the GNOME notification placeholder across its parent width, matching sibling date/calendar cards; restore native alignment on disable.
+- Logout journal exposed Downloads disposing an already-destroyed St.Bin. Track sibling destruction, clear its reference and make cleanup idempotent; remove popup-manager references before destroying menus.
+- This repairs the observed extension teardown error, not a proven cure for the corrupt display frame. At 15:15 logout no new Nouveau reset was logged; an earlier 15:08 Xwayland CTXSW_TIMEOUT and missing nve7 video firmware are a separate finding. Drivers, GRUB, early KMS and Wi-Fi were not changed. Physical logout comparison remains required.
+
+## System appearance for custom status surfaces
+
+- Wi-Fi, Sound, Battery, Control Center, Focus and notification cards now follow `org.gnome.desktop.interface color-scheme` at startup and on change. Light/dark palettes cover text, cards, dividers, symbols and slider tracks; active controls retain blue accents and white handles. No theme polling or input/graphics changes.
+- Reference behavior: [Apple Appearance settings](https://support.apple.com/en-euro/guide/mac-help/mchlp1225/27/mac/27). Colors are a Linux adaptation, not extracted Apple assets.
+- New Shell JavaScript takes effect after the next login; subsequent appearance changes update live.
+
+Native keyboard-brightness detail menus use the same appearance palette, compact inset and blue slider/white handle; the nested slider background is removed.

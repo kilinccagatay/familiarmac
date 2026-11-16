@@ -16,3 +16,9 @@ let index=0;enumerator.next_files_finish=()=>{
 };
 stack.order='date';const large=await stack.read({});assert.equal(large.totalCount,315);assert.equal(large.length,200);assert.equal(large[0].time,314);assert.equal(context.remainingCount(large,7),308);assert.equal(closed,2);
 console.log('Downloads: automatic fan/grid, nonmutating sort, async listing/close PASS');})().catch(e=>{console.error(e);process.exitCode=1;});
+let destroyed=0,removed=0;
+const dead={container:null,menu:{destroy(){destroyed++}},options:{destroy(){destroyed++}},manager:{removeMenu(){removed++}}};
+stack.dispose(dead);stack.dispose(dead);assert.equal(destroyed,2);assert.equal(removed,2);
+const alive={container:{disconnect(){},destroy(){destroyed++}},containerSignal:1,menu:{destroy(){}},options:{destroy(){}},manager:{removeMenu(){}}};
+stack.dispose(alive);assert.equal(destroyed,3);assert.equal(alive.container,null);
+console.log('Downloads disposal: parent-first destruction and repeated cleanup PASS');

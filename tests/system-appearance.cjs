@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+let scheme='prefer-dark',change,disconnected=0;
+const classes=new Set();
+const context={Gio:{Settings:class{get_string(){return scheme}connect(_s,fn){change=fn;return 1}disconnect(){disconnected++}}},Main:{uiGroup:{add_style_class_name:c=>classes.add(c),remove_style_class_name:c=>classes.delete(c)}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/systemAppearance.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class')+'\nglobalThis.A=SystemAppearance',context);
+const a=new context.A();assert.deepEqual([...classes],['fm-system-dark']);
+scheme='default';change();assert.deepEqual([...classes],['fm-system-light']);
+scheme='prefer-dark';change();assert.deepEqual([...classes],['fm-system-dark']);
+a.destroy();assert.equal(classes.size,0);assert.equal(disconnected,1);
+console.log('System appearance: initial preference, live changes and cleanup PASS');

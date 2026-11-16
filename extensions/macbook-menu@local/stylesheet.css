@@ -369,3 +369,137 @@
 .fm-focus-menu .popup-menu-item:hover, .fm-focus-menu .popup-menu-item:focus { background-color: #0866ed; color: white; }
 .fm-focus-menu .popup-separator-menu-item { padding: 5px 8px; }
 .fm-focus-menu .popup-separator-menu-item-separator { background-color: rgba(30,40,50,0.20); }
+
+/* System appearance palettes: only FamiliarMac surfaces, geometry unchanged. */
+.fm-system-dark .familiarmac-control-center.quick-settings,
+.fm-system-dark .fm-focus-menu,
+.fm-system-dark .modal-dialog.familiarmac-apps { background-color: rgba(42,43,47,0.97); color: #f5f5f7; border-color: rgba(255,255,255,0.16); }
+.fm-system-dark .fm-wifi,
+.fm-system-dark .fm-sound,
+.fm-system-dark .fm-battery,
+.fm-system-dark .fm-control-row,
+.fm-system-dark .fm-sound-icon,
+.fm-system-dark .fm-slider-symbol,
+.fm-system-dark .fm-card-heading,
+.fm-system-dark .fm-wifi .popup-menu-item,
+.fm-system-dark .fm-sound .popup-menu-item,
+.fm-system-dark .fm-focus-menu .popup-menu-item,
+.fm-system-dark .familiarmac-control-center .fm-battery-settings { color: #f5f5f7; }
+.fm-system-dark .fm-battery-status,
+.fm-system-dark .fm-sound-output-heading { color: #b9bbc2; }
+.fm-system-dark .fm-card { background-color: rgba(73,75,81,0.94); border-color: rgba(255,255,255,0.16); color: #f5f5f7; }
+.fm-system-dark .fm-control-symbol,
+.fm-system-dark .fm-media-icon { background-color: rgba(255,255,255,0.20); color: #f5f5f7; }
+.fm-system-dark .fm-control-symbol.enabled { background-color: #2878e7; color: white; }
+.fm-system-dark .fm-battery-separator,
+.fm-system-dark .fm-focus-menu .popup-separator-menu-item-separator,
+.fm-system-dark .familiarmac-control-center .popup-separator-menu-item-separator,
+.fm-system-dark .familiarmac-apps-divider { background-color: rgba(255,255,255,0.16); }
+.fm-system-dark .fm-control-row:hover,
+.fm-system-dark .fm-sound-mute:hover,
+.fm-system-dark .fm-sound-mute:focus { background-color: rgba(255,255,255,0.20); }
+.fm-system-dark .familiarmac-control-center .slider { -barlevel-background-color: rgba(255,255,255,0.20); -barlevel-active-background-color: #1685f8; color: white; }
+.fm-system-dark .fm-wifi .popup-menu-item:hover,
+.fm-system-dark .fm-wifi .popup-menu-item:focus,
+.fm-system-dark .fm-sound .popup-menu-item:hover,
+.fm-system-dark .fm-sound .popup-menu-item:focus,
+.fm-system-dark .fm-focus-menu .popup-menu-item:hover,
+.fm-system-dark .fm-focus-menu .popup-menu-item:focus,
+.fm-system-dark .familiarmac-control-center .fm-battery-settings:hover,
+.fm-system-dark .familiarmac-control-center .fm-battery-settings:focus { background-color: #0866ed; color: white; }
+.fm-system-dark .fm-notification-center .datemenu-today-button,
+.fm-system-dark .fm-notification-center .message-list-placeholder,
+.fm-system-dark .fm-notification-center .calendar,
+.fm-system-dark .fm-notification-center .message { background-color: rgba(73,75,81,0.94); color: #f5f5f7; }
+.fm-system-dark .fm-notification-center .day-label,
+.fm-system-dark .fm-notification-center .date-label,
+.fm-system-dark .fm-notification-center .message-list-placeholder StLabel,
+.fm-system-dark .fm-notification-center .message-list-placeholder StIcon,
+.fm-system-dark .fm-notification-center .calendar-month-label,
+.fm-system-dark .fm-notification-center .calendar-day-heading,
+.fm-system-dark .fm-notification-center .calendar-change-month-back,
+.fm-system-dark .fm-notification-center .calendar-change-month-forward,
+.fm-system-dark .fm-notification-center .calendar-day,
+.fm-system-dark .fm-notification-center .message-title,
+.fm-system-dark .fm-notification-center .message-body { color: #f5f5f7; }
+.fm-system-dark .fm-notification-center .calendar-other-month { color: #b9bbc2; }
+.fm-system-dark .fm-notification-center .calendar-today { background-color: #0866ed; color: white; }
+.fm-system-light .familiarmac-control-center.quick-settings,
+.fm-system-light .fm-focus-menu,
+.fm-system-light .modal-dialog.familiarmac-apps { background-color: rgba(231,235,239,0.97); color: #20262b; border-color: rgba(30,40,50,0.18); }
+.fm-system-light .fm-wifi,
+.fm-system-light .fm-sound,
+.fm-system-light .fm-battery,
+.fm-system-light .fm-control-row,
+.fm-system-light .fm-sound-icon,
+.fm-system-light .fm-slider-symbol,
+.fm-system-light .fm-card-heading,
+.fm-system-light .fm-wifi .popup-menu-item,
+.fm-system-light .fm-sound .popup-menu-item,
+.fm-system-light .fm-focus-menu .popup-menu-item,
+.fm-system-light .familiarmac-control-center .fm-battery-settings { color: #20262b; }
+.fm-system-light .fm-battery-status,
+.fm-system-light .fm-sound-output-heading { color: #515b65; }
+.fm-system-light .fm-card { background-color: rgba(249,250,252,0.92); border-color: rgba(30,40,50,0.18); color: #20262b; }
+.fm-system-light .fm-control-symbol,
+.fm-system-light .fm-media-icon { background-color: rgba(40,50,60,0.26); color: #20262b; }
+.fm-system-light .fm-control-symbol.enabled { background-color: #2878e7; color: white; }
+.fm-system-light .fm-battery-separator,
+.fm-system-light .fm-focus-menu .popup-separator-menu-item-separator,
+.fm-system-light .familiarmac-control-center .popup-separator-menu-item-separator,
+.fm-system-light .familiarmac-apps-divider { background-color: rgba(30,40,50,0.18); }
+.fm-system-light .fm-control-row:hover,
+.fm-system-light .fm-sound-mute:hover,
+.fm-system-light .fm-sound-mute:focus { background-color: rgba(40,50,60,0.26); }
+.fm-system-light .familiarmac-control-center .slider { -barlevel-background-color: rgba(40,50,60,0.26); -barlevel-active-background-color: #1685f8; color: white; }
+.fm-system-light .fm-wifi .popup-menu-item:hover,
+.fm-system-light .fm-wifi .popup-menu-item:focus,
+.fm-system-light .fm-sound .popup-menu-item:hover,
+.fm-system-light .fm-sound .popup-menu-item:focus,
+.fm-system-light .fm-focus-menu .popup-menu-item:hover,
+.fm-system-light .fm-focus-menu .popup-menu-item:focus,
+.fm-system-light .familiarmac-control-center .fm-battery-settings:hover,
+.fm-system-light .familiarmac-control-center .fm-battery-settings:focus { background-color: #0866ed; color: white; }
+.fm-system-light .fm-notification-center .datemenu-today-button,
+.fm-system-light .fm-notification-center .message-list-placeholder,
+.fm-system-light .fm-notification-center .calendar,
+.fm-system-light .fm-notification-center .message { background-color: rgba(249,250,252,0.92); color: #20262b; }
+.fm-system-light .fm-notification-center .day-label,
+.fm-system-light .fm-notification-center .date-label,
+.fm-system-light .fm-notification-center .message-list-placeholder StLabel,
+.fm-system-light .fm-notification-center .message-list-placeholder StIcon,
+.fm-system-light .fm-notification-center .calendar-month-label,
+.fm-system-light .fm-notification-center .calendar-day-heading,
+.fm-system-light .fm-notification-center .calendar-change-month-back,
+.fm-system-light .fm-notification-center .calendar-change-month-forward,
+.fm-system-light .fm-notification-center .calendar-day,
+.fm-system-light .fm-notification-center .message-title,
+.fm-system-light .fm-notification-center .message-body { color: #20262b; }
+.fm-system-light .fm-notification-center .calendar-other-month { color: #515b65; }
+.fm-system-light .fm-notification-center .calendar-today { background-color: #0866ed; color: white; }
+
+.fm-system-dark .familiarmac-control-center .fm-battery-settings StLabel { color: #f5f5f7; }
+.fm-system-dark .familiarmac-control-center .fm-battery-settings:hover StLabel,
+.fm-system-dark .familiarmac-control-center .fm-battery-settings:focus StLabel { color: white; }
+
+.fm-system-light .familiarmac-control-center .fm-battery-settings StLabel { color: #20262b; }
+.fm-system-light .familiarmac-control-center .fm-battery-settings:hover StLabel,
+.fm-system-light .familiarmac-control-center .fm-battery-settings:focus StLabel { color: white; }
+
+/* Native keyboard/backlight details share the custom surfaces' palette. */
+.fm-system-dark .familiarmac-control-center .quick-toggle-menu { background-color: rgba(73,75,81,0.94); color: #f5f5f7; border-radius: 12px; padding: 8px; }
+.fm-system-dark .familiarmac-control-center .quick-toggle,
+.fm-system-dark .familiarmac-control-center .quick-toggle-arrow { background-color: rgba(73,75,81,0.94); color: #f5f5f7; }
+.fm-system-dark .familiarmac-control-center .quick-toggle:checked,
+.fm-system-dark .familiarmac-control-center .quick-toggle-arrow:checked { background-color: #2878e7; color: white; }
+.fm-system-dark .familiarmac-control-center .quick-slider { background-color: transparent; padding: 6px; border-radius: 8px; color: #f5f5f7; }
+.fm-system-dark .familiarmac-control-center .quick-slider .slider { -barlevel-height: 14px; -slider-handle-radius: 9px; -barlevel-active-background-color: #1685f8; color: white; }
+
+/* Native keyboard/backlight details share the custom surfaces' palette. */
+.fm-system-light .familiarmac-control-center .quick-toggle-menu { background-color: rgba(249,250,252,0.92); color: #20262b; border-radius: 12px; padding: 8px; }
+.fm-system-light .familiarmac-control-center .quick-toggle,
+.fm-system-light .familiarmac-control-center .quick-toggle-arrow { background-color: rgba(249,250,252,0.92); color: #20262b; }
+.fm-system-light .familiarmac-control-center .quick-toggle:checked,
+.fm-system-light .familiarmac-control-center .quick-toggle-arrow:checked { background-color: #2878e7; color: white; }
+.fm-system-light .familiarmac-control-center .quick-slider { background-color: transparent; padding: 6px; border-radius: 8px; color: #20262b; }
+.fm-system-light .familiarmac-control-center .quick-slider .slider { -barlevel-height: 14px; -slider-handle-radius: 9px; -barlevel-active-background-color: #1685f8; color: white; }
