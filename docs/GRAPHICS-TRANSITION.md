@@ -278,3 +278,29 @@ remains a temporary diagnostic choice, not evidence that 6.17 fixes corruption.
 
 Source for deferred console behavior:
 https://www.kernel.org/doc/html/latest/fb/fbcon.html .
+
+## 16:43 logout: erase-only initialization did not take over the console
+
+The boot is 6.17.0-20 without debug flags. The original marker existed, but
+sysfs still showed only the dummy console; no fbcon takeover appeared in the
+journal. The marker proved execution, not successful initialization. At logout
+there were no new DRM/Nouveau errors; GNOME Shell did emit teardown/GC warnings.
+These warnings alone do not identify the unreadable fragments on the display.
+
+Linux v6.17 dummycon_putcs explicitly ignores erase-only output. The revised hook
+writes a black-on-black non-space character on the active tty0 and clears it,
+without switching VT. It checks for a bound frame-buffer console for at most
+0.5 seconds and reports success or unconfirmed status accurately. It runs only
+on MacBookPro10,1 with Nouveau fb0 before Plymouth. Source:
+https://github.com/torvalds/linux/blob/v6.17/drivers/video/console/dummycon.c
+
+For an existing erase-only installation, run
+`sudo bash scripts/install-console-init.sh --repair`. The previous hook and
+initrd are backed up under `console-init/printable-trigger`; undo this repair
+before other initrd updates with `--restore-repair`. This repair updates only the
+selected kernel initrd and hook, not GRUB, drivers, Wi-Fi or live graphics state.
+The original `--restore` undoes the full console/quiet-entry experiment.
+
+The repair is installed and fixture tests pass. It is NOT yet a verified cure
+for boot/logout corruption. After restart check the marker, vtconsole bind and
+journal takeover, then visually check logout. No live logout was triggered.

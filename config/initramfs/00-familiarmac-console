@@ -4,12 +4,27 @@ case "${1:-}" in prereqs) exit 0;; esac
 [ "$(cat /sys/class/dmi/id/product_name 2>/dev/null)" = MacBookPro10,1 ] || exit 0
 [ ! -e /run/plymouth/pid ] || exit 0
 case "$(cat /sys/class/graphics/fb0/name 2>/dev/null)" in nouveaudrmfb|nouveaufb) ;; *) exit 0;; esac
-# Writing to the console triggers deferred fbcon takeover and clears its backing
-# surface before the splash opens a graphics VT. Do not switch the active VT.
-for tty in /dev/tty1 /dev/tty7; do
-    [ -c "$tty" ] || continue
-    printf '\033[0m\033[40m\033[2J\033[H\033[?25l' > "$tty" 2>/dev/null || true
-done
+# Erase-only sequences are ignored by dummycon_putcs in Linux 6.17.
+# Render a non-space black-on-black glyph on the active VT, then clear it.
+# No VT switch and no visible diagnostic text. Run only before Plymouth.
+[ -c /dev/tty0 ] || exit 0
+printf '\033[0m\033[30;40m\033[H.\033[2J\033[H\033[?25l' > /dev/tty0 2>/dev/null || exit 0
 mkdir -p /run/familiarmac
-printf 'Nouveau console initialized before Plymouth\n' > /run/familiarmac/console-init
+# fbcon takeover is scheduled work; record success only when actually bound.
+count=0
+while [ "$count" -lt 10 ]; do
+    for console in /sys/class/vtconsole/vtcon*; do
+        case "$(cat "$console/name" 2>/dev/null)" in
+            *"frame buffer"*)
+                if [ "$(cat "$console/bind" 2>/dev/null)" = 1 ]; then
+                    printf '\033[0m\033[40m\033[2J\033[H\033[?25l' > /dev/tty0 2>/dev/null || true
+                    printf 'Framebuffer console bound before Plymouth\n' > /run/familiarmac/console-init
+                    exit 0
+                fi;;
+        esac
+    done
+    count=$((count + 1))
+    sleep 0.05
+done
+printf 'Framebuffer console takeover not confirmed\n' > /run/familiarmac/console-init
 exit 0

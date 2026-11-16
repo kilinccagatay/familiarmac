@@ -6,6 +6,30 @@ kernel=$(uname -r)
 [[ $kernel == 6.17.0-20-generic ]] || { echo 'Requires the selected comparison kernel'; exit 2; }
 state=/var/lib/macbook-zorin/console-init
 hook=/etc/initramfs-tools/scripts/init-premount/00-familiarmac-console
+# Upgrade the earlier erase-only experiment without touching GRUB or drivers.
+if [[ ${1:-} == --repair || ${1:-} == --restore-repair ]]; then
+ repair="$state/printable-trigger"
+ if [[ ${1:-} == --restore-repair ]]; then
+  [[ -f "$repair/hook.before" && -f "$repair/initrd.before" ]] || exit 2
+  cp -p "$repair/hook.before" "$hook"
+  cp -p "$repair/initrd.before" "/boot/initrd.img-$kernel"
+  exit 0
+ fi
+ [[ -f "$hook" && ! -e "$repair" ]] || { echo 'Repair requires original hook and no prior repair backup'; exit 2; }
+ install -d -m700 "$repair"
+ cp -p "$hook" "$repair/hook.before"
+ cp -p "/boot/initrd.img-$kernel" "$repair/initrd.before"
+ repair_rollback() {
+  cp -p "$repair/hook.before" "$hook"
+  cp -p "$repair/initrd.before" "/boot/initrd.img-$kernel"
+ }
+ trap repair_rollback ERR
+ install -m755 config/initramfs/00-familiarmac-console "$hook"
+ update-initramfs -u -k "$kernel"
+ trap - ERR
+ echo 'Console trigger repaired; no live VT switch or restart.'
+ exit 0
+fi
 if [[ ${1:-} == --restore ]]; then
  [[ -f "$state/initrd.before" ]] || exit 2
  rm -f "$hook" /etc/grub.d/09_familiarmac_quiet_kernel

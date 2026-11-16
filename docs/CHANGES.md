@@ -413,3 +413,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - List rows fill available width with left-aligned icons and names instead of centered content.
 - Suggested/recently installed apps retain the five-column tile row in both views; only the main application collection switches to a list.
 - Up/down keyboard navigation follows the mixed rows. Tests cover both view modes and suggestion/list layout; full suite passed. Installed JavaScript takes effect next login; live visual verification remains pending.
+
+## Correct deferred-console initialization experiment
+
+- Found the earlier clear-only hook ran without triggering fbcon takeover; Linux 6.17 ignores erase-only dummy-console output.
+- Use an invisible black-on-black non-space glyph followed by clear, before Plymouth; report actual bound status with a bounded check.
+- Add reversible repair installation and isolated fixture tests. No driver/Wi-Fi/GRUB changes in repair mode. Boot/logout visual confirmation remains pending.
