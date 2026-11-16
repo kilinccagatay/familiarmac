@@ -338,3 +338,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - User observed no standalone logo, about nine seconds before Plymouth and renewed display corruption. Static configuration checks did not predict this physical failure.
 - Restored distribution GRUB theme and removed the logo/paint-flush layer; disabled installation of this experiment while retaining --restore.
 - Preserve signed Broadcom module, initramfs and early Nouveau hook. Physical clean-boot confirmation remains necessary; delay is unresolved.
+
+### Event-driven application integrations
+- Added a shared registry/dispatcher for supported native and Flatpak apps, refreshed at login and package export changes. No polling and no monitoring of its own launcher writes.
+- Firefox Flatpak native menus now get required libraries, the registrar permission, XWayland and a managed preference block. System-style titlebar replaces Firefox's own window-control layout. Original profile content and launcher/permission backups retained.
+- Verified actual Firefox File/Edit/View/History/Bookmarks/Tools/Help export in an isolated profile; user confirmed the result. Shared service also applies the existing native Brave adapter. Unsupported apps remain unchanged rather than receiving fake menus or indiscriminate flags.
+- Wired the integration installer into desktop setup and documented scope, updates and rollback in APP-INTEGRATIONS.md.

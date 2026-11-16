@@ -240,5 +240,6 @@ extensions=[x for x in extensions if x not in ('zorin-menu@zorinos.com', 'x11ges
 for required in ['appmenu@ChathurangaBW.github.io','compiz-alike-magic-lamp-effect@hermes83.github.com','touchpad-gesture-customization@coooolapps.com','macbook-menu@local','keyd@keyd.rvaiya.github.com','user-theme@gnome-shell-extensions.gcampax.github.com']:
     if required not in extensions: extensions.append(required)
 s.set_strv('enabled-extensions',extensions)
+subprocess.run(['/usr/bin/python3', str(ROOT/'scripts/install-app-integrations.py')], check=True)
 Gio.Settings.sync()
 print(f'Masaüstü uygulandı. Yedek: {SAVE}. keyd entegrasyonu için oturumu yeniden açın.')

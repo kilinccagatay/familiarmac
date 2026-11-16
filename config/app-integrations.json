@@ -1,0 +1,4 @@
+[
+  {"id":"org.mozilla.firefox", "kind":"flatpak", "adapter":"firefox-global-menu.py"},
+  {"id":"brave-browser", "kind":"native", "adapter":"install-brave-global-menu.py"}
+]
