@@ -1,8 +1,9 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const code=fs.readFileSync(__dirname+'/../overrides/appmenu/searchDialog.js','utf8').replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
 let opened=false;
-const context={Clutter:{EventType:{BUTTON_PRESS:1,TOUCH_BEGIN:2,KEY_PRESS:3}},GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class {open(){opened=true;}}},GLib:{build_filenamev:p=>p.join('/'),get_user_data_dir:()=>'/tmp'},Main:{layoutManager:{currentMonitor:{height:900}}},global:{get_current_time:()=>1}};
-vm.runInNewContext(code+';globalThis.SearchDialog=SearchDialog;',context);
+let clipboard;
+const context={_:s=>s,St:{ClipboardType:{CLIPBOARD:1},Clipboard:{get_default:()=>({set_text:(_type,text)=>clipboard=text})}},Clutter:{EventType:{BUTTON_PRESS:1,TOUCH_BEGIN:2,KEY_PRESS:3}},GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class {open(){opened=true;}}},GLib:{build_filenamev:p=>p.join('/'),get_user_data_dir:()=>'/tmp'},Main:{layoutManager:{currentMonitor:{height:900}}},global:{get_current_time:()=>1}};
+vm.runInNewContext(fs.readFileSync('overrides/appmenu/calculator.js','utf8').replace(/^export /gm,'')+'\n'+code+';globalThis.SearchDialog=SearchDialog;',context);
 const p=context.SearchDialog.prototype;
 const obj=Object.create(p);Object.assign(obj,{_destroyed:false,_entry:{set_text(){},grab_key_focus(){}},dialogLayout:{_dialog:{}},_resultsBox:{visible:true,destroy_all_children(){},add_child(){throw Error('Blank query must not add results');}}});
 obj.open();assert.equal(opened,true);assert.equal(obj._resultsBox.visible,false);assert.equal(obj.dialogLayout._dialog.margin_top,180);
@@ -16,3 +17,6 @@ assert.equal(obj._closeOnOutsidePress({type:()=>1,get_coords:()=>[120,120]}),fal
 assert.equal(obj._closeOnOutsidePress({type:()=>1,get_coords:()=>[50,120]}),true);
 assert.equal(closed,1);assert.equal(obj._closeOnOutsidePress({type:()=>3}),false);
 console.log('Search dismissal: outside clicks close; inside clicks and keyboard preserved PASS');
+
+obj._search('700/12');assert.equal(results[0].type,'calculator');assert.equal(results[0].title,'58.3333333333');obj._activate(results[0]);assert.equal(clipboard,'58.3333333333');
+console.log('Search calculator result selection copies answer PASS');

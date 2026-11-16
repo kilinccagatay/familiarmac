@@ -1,3 +1,4 @@
+import {calculate, formatCalculation} from './calculator.js';
 import {launcherAppButton} from './launcherDrag.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
@@ -15,6 +16,7 @@ const MAX_RESULTS = 5;
 const MAX_RESULTS_PER_SECTION = 3;
 
 const RESULT_TYPE_ICONS = {
+    calculator: 'accessories-calculator-symbolic',
     app: 'application-x-executable-symbolic',
     file: 'text-x-generic-symbolic',
     settings: 'preferences-system-symbolic',
@@ -314,11 +316,18 @@ class SearchDialog extends ModalDialog.ModalDialog {
             .slice(0, MAX_RESULTS)
             .map(entry => entry.item);
 
+        const value = calculate(query);
+        if (value !== null) {
+            const answer = formatCalculation(value);
+            results.unshift({type: 'calculator', title: answer,
+                subtitle: `${query.trim()} = ${answer} · ${_('Copy result')}`, answer});
+        }
         this._renderResults(results);
     }
 
     _groupResults(results) {
         const groups = [
+            [_('Calculator'), results.filter(item => item.type === 'calculator')],
             [_('Applications'), results.filter(item => item.type === 'app').slice(0, MAX_RESULTS_PER_SECTION)],
             [_('Recent Files'), results.filter(item => item.type === 'file').slice(0, MAX_RESULTS_PER_SECTION)],
             [_('Settings'), results.filter(item => item.type === 'settings').slice(0, MAX_RESULTS_PER_SECTION)],
@@ -461,7 +470,9 @@ class SearchDialog extends ModalDialog.ModalDialog {
 
     _activate(item) {
         this.close(global.get_current_time());
-        if (item.type === 'app') {
+        if (item.type === 'calculator') {
+            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, item.answer);
+        } else if (item.type === 'app') {
             item.app.open_new_window(-1);
         } else if (item.type === 'file') {
             Gio.AppInfo.launch_default_for_uri(item.uri, null);

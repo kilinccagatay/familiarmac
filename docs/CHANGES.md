@@ -440,3 +440,11 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Native GNOME notification tray is aligned to the right with 340px cards, modest edge spacing, rounded corners and system light/dark palettes.
 - Queue, DND suppression, actions, close controls and native animation remain unchanged; no additional input surface or polling. Alignment and styles restore on disable.
 - Full tests passed including tray-state restoration. Installed for next Shell login; live visual confirmation remains pending.
+
+
+### Spotlight arithmetic
+
+- Calculator results appear before app/file/settings matches, without executing search text or starting a subprocess.
+- Supports addition, subtraction, multiplication, division, parentheses, powers (`^`), unary signs and postfix percentages (`15% = 0.15`). Both comma and dot are decimal separators, including mixed input (`52,5 + 52.5 = 105`); thousands separators are not supported.
+- Results use regional number formatting, up to 12 significant digits. Enter or clicking the result copies it to the clipboard. Invalid/incomplete expressions and non-finite results do not produce a calculator result.
+- Parser and search-to-clipboard integration tests passed. Installed Shell JavaScript takes effect at next login; live visual validation remains pending.

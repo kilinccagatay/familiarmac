@@ -215,7 +215,7 @@ with tempfile.TemporaryDirectory() as tmp:
 write(appmenu_dir/'searchDialog.js', (ROOT/'overrides/appmenu/searchDialog.js').read_text())
 write(appmenu_dir/'launcherDrag.js', (ROOT/'extensions/macbook-menu@local/launcherDrag.js').read_text())
 write(appmenu_dir/'menuManager.js', (ROOT/'overrides/appmenu/menuManager.js').read_text())
-for name in ('realMenuManager.js', 'gtkMenuModel.js'):
+for name in ('realMenuManager.js', 'gtkMenuModel.js', 'calculator.js'):
     write(appmenu_dir/name, (ROOT/'overrides/appmenu'/name).read_text())
 write(appmenu_dir/'stylesheet.css', (appmenu_dir/'stylesheet.css').read_text() + '\n' + (ROOT/'overrides/appmenu/search.css').read_text())
 for key, value in {

@@ -1,0 +1,10 @@
+const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert/strict');
+const code = fs.readFileSync('overrides/appmenu/calculator.js', 'utf8').replace(/export /g, '');
+const c = vm.createContext({Intl}); vm.runInContext(code, c);
+for (const [input, expected] of [['52,5',52.5],['52.5',52.5],['52,5+52.5',105],['700/12',58.3333333333],['2+3*4',14],['(2+3)*4',20],['-2^2',-4],['2^3^2',512],['2^-2',.25],['200*15%',30],['1,5+2,5',4],['0.1+0.2',.3],['6÷2',3],['3×4=',12],['1e3/2',500]]) assert.equal(c.calculate(input), expected, input);
+for (const input of ['firefox','1/0','0/0','2+','(2+3','2 3+4','process.exit()','2**3','9^9999','1+'.repeat(200),'3;4+5']) assert.equal(c.calculate(input), null, input);
+assert.equal(c.formatCalculation(c.calculate('700/12'), 'sv-SE'), '58,3333333333');
+assert.equal(c.formatCalculation(.3, 'en-US'), '0.3');
+console.log('Calculator: precedence, percentages, locale, invalid/unsafe and bounded input PASS');
