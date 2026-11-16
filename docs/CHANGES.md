@@ -557,3 +557,7 @@ Expanded the screenshot gallery with Wi-Fi, Sound, keyboard brightness, three ha
 ### Feature close-ups on the repository homepage
 
 Both READMEs now show cropped feature previews for Dock, About, Apps, Spotlight search/calculator, Control Center, notifications, Wi-Fi/audio, keyboard brightness, hardware OSDs and power dialogs. Each preview links to its full reviewed screenshot. `scripts/build-screenshot-details.py` reproduces the crops without altering source captures.
+
+### Actual login-screen capture
+
+Added the real GDM greeter to both README pages and the screenshot gallery. Account name is redacted. A user-approved temporary screenshot permission was reverted after capture; the original locked setting was verified restored. No boot, graphics, Wi-Fi, or authentication configuration was retained from the capture.

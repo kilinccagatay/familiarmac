@@ -38,6 +38,10 @@ Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmı
 | --- | --- |
 | [![Sistem ve güç menüsü](screenshots/details/power-menu.png)](screenshots/power-menu.png) | [![Yeniden başlatma onayı](screenshots/details/restart-dialog.png)](screenshots/restart-dialog.png) |
 
+**Giriş ekranı**
+
+[![Giriş ekranı](screenshots/login.png)](screenshots/login.png)
+
 **Klavye parlaklığı menüsü**
 
 [![Klavye parlaklığı](screenshots/details/keyboard.png)](screenshots/keyboard.png)

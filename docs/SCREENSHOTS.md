@@ -94,9 +94,11 @@ Sistem menüsü ve geri sayımlı yeniden başlatma onayı. Menü görüntüsün
 
 ## Login screen / Giriş ekranı
 
-A real GDM capture is still pending. On this installation the GDM profile locks `disable-save-to-disk=true`, and the screenshot tool could not save the greeter. The security setting was not changed. The lock screen is not substituted for the actual login screen.
+Actual GDM login screen, with the account name redacted. With explicit user approval, saving screenshots was temporarily enabled for this capture, then the original GDM database was restored and `disable-save-to-disk=true` verified. The existing desktop session remained open.
 
-Gerçek GDM görüntüsü hâlâ bekleniyor. Bu kurulumda GDM profili `disable-save-to-disk=true` değerini kilitliyor; ekran görüntüsü aracı giriş ekranını kaydedemedi. Güvenlik ayarı değiştirilmedi. Kilit ekranı, gerçek giriş ekranı yerine kullanılmamıştır.
+Gerçek GDM giriş ekranı; hesap adı gizlenmiştir. Kullanıcının açık onayıyla çekim için ekran görüntüsü kaydı geçici olarak açıldı, ardından özgün GDM veritabanı geri yüklendi ve `disable-save-to-disk=true` doğrulandı. Mevcut masaüstü oturumu açık kaldı.
+
+![Actual GDM login screen](screenshots/login.png)
 
 ## README detail crops / README ayrıntı görselleri
 

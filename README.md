@@ -40,6 +40,10 @@ Feature close-ups cropped from the installed desktop. Click an image to open the
 | --- | --- |
 | [![System and power menu](docs/screenshots/details/power-menu.png)](docs/screenshots/power-menu.png) | [![Restart confirmation](docs/screenshots/details/restart-dialog.png)](docs/screenshots/restart-dialog.png) |
 
+**Login screen**
+
+[![Login screen](docs/screenshots/login.png)](docs/screenshots/login.png)
+
 **Keyboard brightness menu**
 
 [![Keyboard brightness](docs/screenshots/details/keyboard.png)](docs/screenshots/keyboard.png)
