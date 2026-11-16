@@ -146,3 +146,7 @@ Login and lock-screen clocks omit seconds. The login overlay already uses `%H:%M
 ## Emergency panel input recovery (2026-11-16)
 
 The panel pointer grab introduced in the drag repair blocked clicks outside the panel on the real desktop. Disabling the extension restored clicks, confirmed by the user. Removed that grab; dragging now observes stage events and has a button-only lost-release watchdog, active only during a drag. The current session keeps the extension disabled because GNOME caches loaded JavaScript modules; corrected source is installed for a fresh session. Automated lifecycle tests now prohibit acquiring a panel grab. Actual drag behavior still needs validation before declaring the feature fixed.
+
+## Spotlight top-edge layout (2026-11-16)
+
+Keep the outer dialog wrapper expanded to the monitor allocation and place the top offset on the visible inner panel. Results grow below the entry rather than changing the wrapper's natural-size positioning. Search filtering/dismissal regressions pass; actual rendered position needs verification in the next session. Apps remains temporarily unavailable while the system-menu extension is disabled for input recovery; its next-session recovery launcher restores it.

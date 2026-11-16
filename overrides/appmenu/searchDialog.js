@@ -85,7 +85,12 @@ const SearchDialog = GObject.registerClass(
 class SearchDialog extends ModalDialog.ModalDialog {
     constructor() {
         super({ styleClass: 'appmenu-search-dialog', shellReactive: true });
-        this.dialogLayout.y_align = Clutter.ActorAlign.START;
+        // The wrapper must keep the monitor allocation when results change.
+        // Only the visible inner panel is top-aligned and offset.
+        this.dialogLayout.x_expand = true;
+        this.dialogLayout.y_expand = true;
+        this.dialogLayout.x_align = Clutter.ActorAlign.FILL;
+        this.dialogLayout.y_align = Clutter.ActorAlign.FILL;
         this.dialogLayout._dialog.y_align = Clutter.ActorAlign.START;
         this.buttonLayout.hide();
         this._timeoutId = 0;
@@ -213,7 +218,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
         this._lastQuery = '';
         this._entry.set_text('');
         this._renderResults([]);
-        this.dialogLayout.margin_top = Math.round(Main.layoutManager.currentMonitor.height * 0.20);
+        this.dialogLayout._dialog.margin_top = Math.round(Main.layoutManager.currentMonitor.height * 0.20);
         super.open(global.get_current_time());
         this._entry.grab_key_focus();
     }
