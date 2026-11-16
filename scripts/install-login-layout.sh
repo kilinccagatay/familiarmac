@@ -20,7 +20,7 @@ fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 python3 scripts/build-login-layout.py "$tmp/layout"
-node --input-type=module --check < "$tmp/layout/loginDialog.js"
+"${NODE:-node}" --input-type=module --check < "$tmp/layout/loginDialog.js"
 if [[ ! -f "$state/installed" ]]; then
   cp -a /usr/local/share/macbook-zorin/gdm.gresource "$state/gdm.gresource"
   if [[ -f "$fallback" ]]; then cp -a "$fallback" "$state/greeter.desktop"; fi

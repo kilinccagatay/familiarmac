@@ -8,6 +8,7 @@ import {DownloadsStack} from './downloadsStack.js';
 import {AppsBrowser} from './appsBrowser.js';
 import {DockOrder} from './dockOrder.js';
 import {TrashDrop} from './trashDrop.js';
+import {DockMenus} from './dockMenus.js';
 import {DockLaunch} from './dockLaunch.js';
 import {CaptureBindings} from './capture.js';
 import Gio from 'gi://Gio';
@@ -48,6 +49,7 @@ export default class MacBookMenu extends Extension {
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
         this._dockLaunch = new DockLaunch();
+        this._dockMenus = new DockMenus();
         this._finderIndicators = new Map();
         this._processTracker = new ProcessTracker();
         const restoreIndicator = (indicator, saved) => {
@@ -65,6 +67,7 @@ export default class MacBookMenu extends Extension {
                 if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
                     this._dockLaunch.track(actor);
+                    this._dockMenus.track(actor);
                     this._dockOrder.track(actor);
                     const previousRunning = actor._macbookBackgroundRunning;
                     actor._macbookBackgroundRunning = actor.app.get_id() === 'org.gnome.Nautilus.desktop'
@@ -231,6 +234,8 @@ export default class MacBookMenu extends Extension {
             this._restoreFinderIndicator(indicator, descriptor);
         this._finderIndicators?.clear();
         this._processTracker = null;
+        this._dockMenus?.destroy();
+        this._dockMenus = null;
         this._dockLaunch?.destroy();
         this._dockLaunch = null;
 

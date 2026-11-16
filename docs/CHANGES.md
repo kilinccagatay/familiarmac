@@ -387,3 +387,11 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Focus visibility changes animate allocated width and opacity over 180ms, moving adjacent panel items gradually. Initial login layout and disabled animations update immediately.
 - Rapid toggles cancel previous transitions; teardown cancels animations before destroying the button. No polling, global input layer or panel reordering is added.
 - Regression tests cover interrupted transitions, completed hiding and disabled animations. New Shell code loads at the next login.
+
+## Dock context menus and login date/font correction
+
+- Dock context menus distinguish stopped and running apps. Stopped apps show Options/Open; running apps show real window titles and desktop actions, Options, window previews, Hide and Quit. Options opens a compact side menu for pinning, login startup and revealing the desktop launcher in Files. Finder remains pinned and has no Quit entry. Virtual locations retain their existing menus.
+- Dock menu colors follow the desktop light/dark preference; compact padding is scoped to these menus. Per-icon hooks are restored when disabled and flyout modal grabs are closed with their parent.
+- Login date names now follow LC_MESSAGES (UI language) rather than LC_TIME (regional format). The clock remains HH:MM.
+- Diagnosed the clock font fallback with Pango: Fontconfig listed the local WOFF font but Pango loaded Noto Sans. The opt-in font installer now unwraps WOFF1 to desktop SFNT format, retaining its tables and recalculating the checksum. Pango now loads the local SF Rounded font. No proprietary font binaries are included in the repository.
+- The installer accepts NODE for environments without node in the system PATH. Login styling/layout was rebuilt without restarting GDM. These changes require a new session for visual verification.

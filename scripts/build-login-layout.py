@@ -8,6 +8,8 @@ def replace(old,new):
  global s
  if s.count(old)!=1:raise SystemExit('Unsupported login source; no installation performed: '+old[:70])
  s=s.replace(old,new)
+names=Path(__file__).resolve().parents[1].joinpath('extensions/macbook-menu@local/panelClock.js').read_text().split('export function dateNameFormatters',1)[1].split('export function formatPanelDate',1)[0]
+s='function dateNameFormatters'+names+'\n'+s
 replace('        this._userWidget = new UserWidget.UserWidget(this.user);','        this._userWidget = new UserWidget.UserWidget(this.user, Clutter.Orientation.VERTICAL);')
 replace('        parentActor.add_child(this);', '''        parentActor.add_child(this);
 
@@ -18,9 +20,11 @@ replace('        parentActor.add_child(this);', '''        parentActor.add_child
         this._macClock.add_child(this._macDate);
         this._macClock.add_child(this._macTime);
         this.add_child(this._macClock);
+        const names = dateNameFormatters(GLib.get_language_names_with_category('LC_MESSAGES'));
         const updateClock = () => {
             const now = GLib.DateTime.new_now_local();
-            this._macDate.text = now.format('%a %e %b');
+            const day = new Date(Date.UTC(now.get_year(), now.get_month() - 1, now.get_day_of_month()));
+            this._macDate.text = `${names.day.format(day)} ${now.get_day_of_month()} ${names.month.format(day)}`;
             this._macTime.text = now.format('%H:%M');
             return GLib.SOURCE_CONTINUE;
         };

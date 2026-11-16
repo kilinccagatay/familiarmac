@@ -503,3 +503,13 @@
 .fm-system-light .familiarmac-control-center .quick-toggle-arrow:checked { background-color: #2878e7; color: white; }
 .fm-system-light .familiarmac-control-center .quick-slider { background-color: transparent; padding: 6px; border-radius: 8px; color: #20262b; }
 .fm-system-light .familiarmac-control-center .quick-slider .slider { -barlevel-height: 14px; -slider-handle-radius: 9px; -barlevel-active-background-color: #1685f8; color: white; }
+
+/* Compact Dock context menus; scoped away from global/application menus. */
+.fm-dock-menu { min-width: 180px; }
+.fm-dock-menu .popup-menu-content { padding: 5px; border-radius: 12px; }
+.fm-dock-menu .popup-menu-item { padding: 5px 10px; spacing: 7px; min-height: 0; border-radius: 6px; }
+.fm-dock-menu .popup-separator-menu-item { padding: 3px 10px; }
+.fm-dock-menu .popup-menu-arrow { icon-size: 12px; }
+.fm-system-dark .fm-dock-menu .popup-menu-content { background-color: rgba(38,38,42,0.96); color: #f2f2f4; border: 1px solid rgba(255,255,255,0.18); }
+.fm-system-light .fm-dock-menu .popup-menu-content { background-color: rgba(240,240,244,0.96); color: #242428; border: 1px solid rgba(0,0,0,0.16); }
+.fm-dock-menu .popup-menu-item:focus, .fm-dock-menu .popup-menu-item:hover { background-color: #0868e9; color: white; }

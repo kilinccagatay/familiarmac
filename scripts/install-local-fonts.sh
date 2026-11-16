@@ -13,7 +13,13 @@ count=0
 for file in "$source_dir"/*.otf "$source_dir"/*.ttf "$source_dir"/*.woff; do
   [[ -f "$file" ]] || continue
   fc-scan "$file" >/dev/null || { echo "Invalid font: $file"; exit 1; }
-  install -m644 "$file" "$dest/"
+  if [[ $file == *.woff ]]; then
+    # Fontconfig can list WOFF although Pango cannot instantiate it.
+    python3 scripts/convert-local-woff.py "$file" "$dest/$(basename "${file%.woff}").ttf"
+    chmod 644 "$dest/$(basename "${file%.woff}").ttf"
+  else
+    install -m644 "$file" "$dest/"
+  fi
   count=$((count+1))
 done
 [[ $count -gt 0 ]] || { echo 'No supported fonts supplied.'; exit 1; }
