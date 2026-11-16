@@ -395,3 +395,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Login date names now follow LC_MESSAGES (UI language) rather than LC_TIME (regional format). The clock remains HH:MM.
 - Diagnosed the clock font fallback with Pango: Fontconfig listed the local WOFF font but Pango loaded Noto Sans. The opt-in font installer now unwraps WOFF1 to desktop SFNT format, retaining its tables and recalculating the checksum. Pango now loads the local SF Rounded font. No proprietary font binaries are included in the repository.
 - The installer accepts NODE for environments without node in the system PATH. Login styling/layout was rebuilt without restarting GDM. These changes require a new session for visual verification.
+
+## Dock cascading-menu dismissal and alignment
+
+- Options overlaps its parent by 6 logical pixels, with its first row aligned to Options. Placement flips left or clamps vertically at the work-area edge and scales with display scaling.
+- One outside click, touch or Escape closes the flyout and parent, releasing the inner native grab first. Clicks within the flyout retain normal behavior; no global input surface or handler is added.
+- Tests cover all three dismissal inputs, inside clicks, overlap geometry and screen-edge placement. New JavaScript loads next session; physical visual verification remains pending.

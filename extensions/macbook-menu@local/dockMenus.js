@@ -7,6 +7,33 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 
+export function flyoutPosition(parent, rowY, size, work, scale = 1) {
+    const overlap = 6 * scale;
+    const right = parent.x + parent.width - overlap;
+    const left = parent.x - size.width + overlap;
+    const desired = right + size.width <= work.x + work.width ? right : left;
+    return {x: Math.max(work.x, Math.min(desired, work.x + work.width - size.width)),
+        y: Math.max(work.y, Math.min(rowY - 5 * scale, work.y + work.height - size.height))};
+}
+
+// Keep native grabs, but treat the parent and its flyout as one dismissal group.
+export class DockFlyoutManager extends PopupMenu.PopupMenuManager {
+    constructor(icon, parent) { super(icon); this.parentMenu = parent; }
+    _onCapturedEvent(actor, event) {
+        const type = event.type();
+        const outside = (type === Clutter.EventType.BUTTON_PRESS || type === Clutter.EventType.TOUCH_BEGIN)
+            && !actor.contains(global.stage.get_event_actor(event))
+            && !this.parentMenu.actor.contains(global.stage.get_event_actor(event));
+        const escape = type === Clutter.EventType.KEY_PRESS && event.get_key_symbol() === Clutter.KEY_Escape;
+        if (outside || escape) {
+            this.activeMenu?.close(); // Release the nested grab first.
+            this.parentMenu.close();
+            return Clutter.EVENT_STOP;
+        }
+        return super._onCapturedEvent(actor, event);
+    }
+}
+
 export function dockMenuState(app, backgroundRunning) {
     return {running: app.state !== Shell.AppState.STOPPED || backgroundRunning,
         fixed: app.get_id() === 'org.gnome.Nautilus.desktop'};
@@ -95,8 +122,24 @@ export class DockMenus {
         const flyout = new PopupMenu.PopupMenu(options, 0, St.Side.LEFT);
         record.flyout = flyout;
         flyout.actor.add_style_class_name('fm-dock-menu');
+        flyout.actor.add_style_class_name('fm-dock-flyout');
+        const pointer = flyout._boxPointer;
+        const reposition = pointer._reposition;
+        pointer._reposition = function (box) {
+            reposition.call(this, box);
+            const [px, py] = menu.box.get_transformed_position();
+            const [pw] = menu.box.get_transformed_size();
+            const [, rowY] = options.get_transformed_position();
+            const [, , width, height] = this.get_preferred_size();
+            const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            const pos = flyoutPosition({x: px, y: py, width: pw}, rowY,
+                {width, height}, this._workArea, scale);
+            const [ok, x, y] = this.get_parent().transform_stage_point(pos.x, pos.y);
+            if (ok) box.set_origin(Math.floor(x), Math.floor(y));
+        };
         Main.uiGroup.add_child(flyout.actor); flyout.actor.hide();
-        record.manager ??= new PopupMenu.PopupMenuManager(icon);
+        record.manager ??= new DockFlyoutManager(icon, menu);
+        record.manager.parentMenu = menu;
         record.manager.addMenu(flyout);
         const favorites = AppFavorites.getAppFavorites(), pinned = favorites.isFavorite(app.get_id());
         const pin = flyout.addAction(running ? 'Keep in Dock' : (pinned ? 'Remove from Dock' : 'Keep in Dock'), () => {

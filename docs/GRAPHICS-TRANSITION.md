@@ -230,3 +230,20 @@ Runtime switching is a separate problem: see
 https://docs.kernel.org/gpu/vga-switcheroo.html and Apple's automatic selection
 behavior https://support.apple.com/en-us/102265 . An inactive Intel output in
 the current logs is not proof that the hardware cannot switch its panel.
+
+## 6.17 observation and return to 7.0
+
+User reported no visual corruption on the observed 6.17 boot. Plymouth tracing
+was removed, and the next boot was confirmed to use 6.17 without plymouth.debug.
+On the later 16:12 boot, corruption was reported again; uname/journal identify
+7.0.0-43, as expected after the one-shot 6.17 selection was consumed.
+This supports a kernel-related workaround but does not isolate the root cause.
+
+This host now prefers installed 6.17.0-20 via a separate GRUB drop-in.
+`scripts/select-installed-kernel.sh VERSION` validates installed images/modules,
+backs up generated GRUB configuration and rolls back on generation/syntax errors.
+`--restore` removes only the managed preference. Neither kernel packages nor
+updates are held/removed; however the explicit boot preference remains on the
+selected version until changed/restored. Revisit it when testing updated kernels
+rather than treating this version as a permanent security-update policy.
+No GPU mux, Wi-Fi, acceleration or runtime-power setting was changed.

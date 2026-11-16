@@ -513,3 +513,6 @@
 .fm-system-dark .fm-dock-menu .popup-menu-content { background-color: rgba(38,38,42,0.96); color: #f2f2f4; border: 1px solid rgba(255,255,255,0.18); }
 .fm-system-light .fm-dock-menu .popup-menu-content { background-color: rgba(240,240,244,0.96); color: #242428; border: 1px solid rgba(0,0,0,0.16); }
 .fm-dock-menu .popup-menu-item:focus, .fm-dock-menu .popup-menu-item:hover { background-color: #0868e9; color: white; }
+
+/* A cascading options menu shares the parent edge, without a pointing tail. */
+.fm-dock-flyout { -arrow-rise: 0; -arrow-base: 0; -boxpointer-gap: 0; }
