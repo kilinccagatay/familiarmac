@@ -56,3 +56,6 @@ Reference: [Apple screenshot shortcuts](https://support.apple.com/en-euro/guide/
 
 ### Desktop-to-dock Trash
 Added a desktop drag-source/Shell bridge for dropping selected desktop files onto dock Trash. Uses the existing desktop file-operations service, rejects cancellations and stale/off-target drops, excludes special desktop icons, and adds no polling. Source integration is version-guarded and reversible. Covered by logic tests; live drag verification pending next login.
+
+### Search and installed applications
+Command+Space opens AppMenu's existing floating search for installed applications, settings and recent files. Removed competing overview/input-source bindings for this chord; Control+Up still opens the overview. The dock's built-in Show Applications button is enabled at the left edge, providing the installed-app grid without a separate background launcher.

@@ -108,3 +108,8 @@ The installer generates a user-local inherited icon theme from installed favorit
 `python3 scripts/install-trash-drop.py` creates a guarded user-local copy of the installed Zorin Desktop Icons extension. The drag source confirms a real failed-target release; a Shell bridge validates that the pointer is still on dock Trash before the existing Nautilus trash operation runs. Escape/cancellation does nothing; files are moved to Trash, never permanently deleted. Multiple selected ordinary files are supported. This integration targets desktop-origin drags, not arbitrary file-manager windows.
 
 Log out/in after installation. The user copy shadows the distribution extension; rerun this installer after distribution desktop-icon updates to refresh it. Modified user copies are not overwritten automatically. Restore using `python3 scripts/install-trash-drop.py --restore`, then log out/in. Physical drag validation is still required after loading the new code.
+
+## Finding and launching applications
+Use **Command+Space** for floating app/settings/recent-file search; type a name, select with arrow keys and launch with Enter. Escape closes search. This uses AppMenu's existing search dialog, not Apple's Spotlight service or a full-disk index.
+
+Click the **colored application-grid button at the left end of the dock** to browse installed applications. Newly installed applications appear through GNOME's application registry. These settings take effect immediately on an existing FamiliarMac session; no logout is needed.

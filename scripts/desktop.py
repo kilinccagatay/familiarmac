@@ -91,10 +91,10 @@ values = {
  'org.gnome.desktop.wm.preferences': {'button-layout': "'close,minimize,maximize:'", 'action-double-click-titlebar': "'toggle-maximize'"},
  'org.gnome.desktop.interface': {'gtk-theme': "'ZorinGrey-Dark'", 'icon-theme': "'ZorinGrey-Dark'", 'color-scheme': "'prefer-dark'", 'enable-animations': 'true', 'enable-hot-corners': 'false', 'show-battery-percentage': 'true', 'clock-show-date': 'true'},
  'org.gnome.desktop.peripherals.touchpad': {'natural-scroll': 'true', 'tap-and-drag': 'false', 'speed': '-0.15', 'accel-profile': "'adaptive'", 'two-finger-scrolling-enabled': 'true', 'edge-scrolling-enabled': 'false', 'click-method': "'fingers'", 'disable-while-typing': 'true', 'middle-click-emulation': 'false'},
- 'org.gnome.shell.extensions.zorin-dash': {'dock-position': "'BOTTOM'", 'extend-height': 'false', 'dash-max-icon-size': '48', 'autohide': 'false', 'intellihide': 'false', 'dock-fixed': 'true', 'running-indicator-style': "'DOTS'", 'show-trash': 'true', 'show-mounts': 'true', 'apply-custom-theme': 'false', 'custom-background-color': 'true', 'background-color': "'#242424'", 'background-opacity': '0.82', 'transparency-mode': "'FIXED'"},
- 'org.gnome.desktop.wm.keybindings': {'switch-applications': "['<Alt>Tab']", 'switch-applications-backward': "['<Shift><Alt>Tab']", 'switch-windows': '@as []', 'switch-windows-backward': '@as []', 'minimize': "['<Super>h']", 'switch-to-workspace-left': "['<Control><Alt>Left', '<Super>Page_Up']", 'switch-to-workspace-right': "['<Control><Alt>Right', '<Super>Page_Down']", 'move-to-workspace-left': "['<Control><Alt><Shift>Left']", 'move-to-workspace-right': "['<Control><Alt><Shift>Right']"},
+ 'org.gnome.shell.extensions.zorin-dash': {'dock-position': "'BOTTOM'", 'extend-height': 'false', 'dash-max-icon-size': '48', 'autohide': 'false', 'intellihide': 'false', 'dock-fixed': 'true', 'running-indicator-style': "'DOTS'", 'show-trash': 'true', 'show-show-apps-button': 'true', 'show-apps-at-top': 'true', 'show-mounts': 'true', 'apply-custom-theme': 'false', 'custom-background-color': 'true', 'background-color': "'#242424'", 'background-opacity': '0.82', 'transparency-mode': "'FIXED'"},
+ 'org.gnome.desktop.wm.keybindings': {'switch-input-source': "['XF86Keyboard']", 'switch-applications': "['<Alt>Tab']", 'switch-applications-backward': "['<Shift><Alt>Tab']", 'switch-windows': '@as []', 'switch-windows-backward': '@as []', 'minimize': "['<Super>h']", 'switch-to-workspace-left': "['<Control><Alt>Left', '<Super>Page_Up']", 'switch-to-workspace-right': "['<Control><Alt>Right', '<Super>Page_Down']", 'move-to-workspace-left': "['<Control><Alt><Shift>Left']", 'move-to-workspace-right': "['<Control><Alt><Shift>Right']"},
  'org.gnome.mutter': {'dynamic-workspaces': 'true', 'workspaces-only-on-primary': 'false'},
- 'org.gnome.shell.keybindings': {'toggle-overview': "['<Super>space', '<Control>Up']", 'show-screenshot-ui': "['<Super><Shift>s']", 'screenshot': "['Print']"},
+ 'org.gnome.shell.keybindings': {'toggle-overview': "['<Control>Up']", 'show-screenshot-ui': "['<Super><Shift>s']", 'screenshot': "['Print']"},
 }
 # Initialize tap-to-click only once; preserve later user changes.
 identity = 'org.gnome.desktop.peripherals.touchpad|tap-to-click'
@@ -212,7 +212,7 @@ with tempfile.TemporaryDirectory() as tmp:
     write(appmenu_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
 for key, value in {
     'show-os-icon': 'true', 'show-user-switcher': 'false',
-    'show-workspace-indicator': 'false', 'search-shortcut': '@as []',
+    'show-workspace-indicator': 'false', 'search-shortcut': "['<Super>space']",
     'use-real-menus': 'true', 'prefer-macos-style': 'false',
 }.items(): setting('org.gnome.shell.extensions.appmenu', key, value)
 registrar = Path.home()/'.local/bin/macbook-appmenu-registrar.py'
