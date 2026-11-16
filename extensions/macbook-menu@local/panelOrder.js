@@ -48,10 +48,23 @@ export class PanelOrder {
             return x >= ax && x < ax + w && y >= ay && y < ay + h;
         });
     }
+    held(state) {
+        return Boolean(state & Clutter.ModifierType.BUTTON1_MASK) &&
+            Boolean(state & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.SUPER_MASK));
+    }
+    finish(commit = false) {
+        const drag = this.drag;
+        this.drag = null;
+        if (this.dragWatch) GLib.source_remove(this.dragWatch);
+        this.dragWatch = 0;
+        if (!drag) return;
+        if (commit && drag.moved) this.save();
+        else this.apply(drag.before);
+    }
     event(event) {
         const type = event.type();
         if (this.drag && type === Clutter.EventType.KEY_PRESS && event.get_key_symbol() === Clutter.KEY_Escape) {
-            this.apply(this.drag.before); this.drag = null; return Clutter.EVENT_STOP;
+            this.finish(); return Clutter.EVENT_STOP;
         }
         if (type === Clutter.EventType.BUTTON_PRESS && event.get_button() === 1 &&
             (event.get_state() & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.SUPER_MASK))) {
@@ -60,13 +73,29 @@ export class PanelOrder {
             const [x, y] = event.get_coords();
             const entry = this.hit(x, y);
             if (!entry) return Clutter.EVENT_PROPAGATE;
+            this.finish();
             this.touched = true;
             for (const {button} of this.entries()) button.menu?.close();
             this.drag = {id: entry.id, x, before: this.order(), moved: false};
+            // A press consumed by stage capture can lose its matching release.
+            // This watchdog exists only during a drag, never while idle.
+            this.dragWatch = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+                if (this.held(global.get_pointer()[2])) return GLib.SOURCE_CONTINUE;
+                this.dragWatch = 0;
+                this.finish();
+                return GLib.SOURCE_REMOVE;
+            });
             return Clutter.EVENT_STOP;
         }
         if (!this.drag) return Clutter.EVENT_PROPAGATE;
+        if (type === Clutter.EventType.KEY_RELEASE &&
+            [Clutter.KEY_Control_L, Clutter.KEY_Control_R, Clutter.KEY_Super_L, Clutter.KEY_Super_R, Clutter.KEY_Meta_L, Clutter.KEY_Meta_R].includes(event.get_key_symbol())) {
+            this.finish(); return Clutter.EVENT_PROPAGATE;
+        }
         if (type === Clutter.EventType.MOTION) {
+            if (!this.held(event.get_state())) {
+                this.finish(); return Clutter.EVENT_PROPAGATE;
+            }
             const [x, y] = event.get_coords();
             if (!this.drag.moved && Math.abs(x - this.drag.x) < 6) return Clutter.EVENT_STOP;
             this.drag.moved = true;
@@ -80,9 +109,8 @@ export class PanelOrder {
         }
         if (type === Clutter.EventType.BUTTON_RELEASE && event.get_button() === 1) {
             const [x, y] = event.get_coords();
-            if (!this.hit(x, y)) this.apply(this.drag.before);
-            else if (this.drag.moved) this.save();
-            this.drag = null; return Clutter.EVENT_STOP;
+            this.finish(Boolean(this.hit(x, y)));
+            return Clutter.EVENT_STOP;
         }
         return Clutter.EVENT_PROPAGATE;
     }
@@ -103,7 +131,7 @@ export class PanelOrder {
     destroy() {
         this.stopped = true;
         global.stage.disconnect(this.signal);
-        this.drag = null;
+        this.finish();
         this.apply(this.original);
     }
 }

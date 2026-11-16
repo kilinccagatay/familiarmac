@@ -77,6 +77,9 @@ export class StatusButtons {
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
         menu.open();
+        // Native QuickSettings marks its source active even for our detail view.
+        // Only the independently clicked status button should be highlighted.
+        this.panel.remove_style_pseudo_class('active');
     }
 
     restore() {

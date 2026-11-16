@@ -107,3 +107,8 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 
 ### Date names follow the interface language
 - Corrected the preceding locale change: weekday/month names now use GLib's LC_MESSAGES language preference list and cached Intl formatters, not LC_TIME/region. Fixed field order and 24-hour seconds remain unchanged. English UI with Turkish date-region settings produces `Mon 16 Nov 10:50:30`; Turkish UI produces `Pzt 16 Kas 10:50:30`. Tests cover both and the C-locale fallback.
+
+### Status interaction fixes
+- Command-drag now checks that the primary mouse button and modifier remain held; lost button release, modifier release and Escape cancel the drag. A 100ms guard runs only during dragging and is removed on completion/disable, preventing later hover from moving icons. Regression tests cover missed release and normal drop.
+- A detail menu highlights only its clicked status button. Removed the native Control Center active state that was also applied when its shared menu hosted a network/sound/battery detail view.
+- Installed for next login; live input validation pending.
