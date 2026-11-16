@@ -267,3 +267,9 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Disable new installation of that experiment; preserve --restore so existing users can remove both the background override and redraw generator and regenerate GRUB.
 - Restore completed successfully on the target machine; background override, redraw generator and image removed. Subsequent visual boot validation required. Early Nouveau initramfs hook remains installed.
 - Current boot: Nouveau framebuffer ready at approximately 1.95 seconds after kernel start. These logs do not measure the preceding firmware/bootloader delay. No timing claims about the full power-button-to-logo interval.
+
+### Optional fixed-hardware boot-image reduction
+
+- Added `scripts/install-lean-initramfs.sh` with install/check/restore and image backup/rollback.
+- On MacBookPro10,1 with only GT 650M NVIDIA hardware, omit modern GA102/TU102 GSP firmware from the initramfs; retain root firmware and the successful early Nouveau hook.
+- No extra logo stage, GRUB drawing or framebuffer mode changes. Physical boot timing remains to be verified.

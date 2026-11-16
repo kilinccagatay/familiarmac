@@ -24,3 +24,5 @@ python3 tests/installer-plan.py
 git diff --check
 
 python3 tests/brightness.py
+
+python3 tests/lean-initramfs.py

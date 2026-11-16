@@ -84,3 +84,38 @@ The former `sudo bash scripts/install-early-logo.sh --install` command added a s
 This can cover the GRUB portion of the black screen, not the firmware interval before GRUB executes. A seamless transition cannot be guaranteed until observed on hardware. The existing Plymouth logo/progress starts after the native driver is ready; no late-driver workaround is reintroduced.
 
 Reference: [GNU GRUB background configuration](https://www.gnu.org/software/grub/manual/grub/html_node/Simple-configuration.html). No Apple firmware modification or bootloader reinstall is involved.
+
+## Reduce pre-logo loading without another display handoff
+
+On this MacBookPro10,1 (NVIDIA PCI `10de:0fd5`, GK107M/Kepler), the
+191,269,179-byte initramfs contained about 100 MiB of GA102/TU102 GSP firmware.
+These are for newer GPUs, not this machine. The stock builder places already
+compressed firmware in an uncompressed CPIO segment, so simply increasing the
+outer compression level does not address the bulk of this image.
+
+Optional, hardware-guarded optimization:
+
+```sh
+sudo bash scripts/install-lean-initramfs.sh --install
+# Undo (rebuilds the current kernel image with the full firmware set):
+sudo bash scripts/install-lean-initramfs.sh --restore
+```
+
+The build hook removes only `nvidia/{ga102,tu102}/gsp/gsp-*.bin*` from the temporary
+initramfs tree. All installed `/usr/lib/firmware` files remain available. It
+requires the working early-KMS hook and skips trimming on a different Mac model
+or with any NVIDIA PCI device other than `0fd5`. It leaves module selection,
+early Nouveau ordering, Plymouth, GRUB and framebuffer settings unchanged.
+The current image is backed up under `/var/lib/macbook-zorin/lean-initramfs`;
+build/validation failure restores it. This optional fixed-hardware profile is
+not enabled by the generic installer.
+
+Installed image decreased from 191,269,179 bytes (183 MiB rounded) to approximately 83 MiB, about 55% smaller. Build validation confirmed Nouveau/gmux modules remain and modern GSP binaries are absent. Hardware-guard tests cover an additional NVIDIA GPU and the built-in HDMI audio device.
+
+Smaller bootloader reads are expected; **time to first logo and clean transitions
+must still be confirmed by a physical reboot**. Firmware time before GRUB is not
+measured by this system's `systemd-analyze` output and is not fixed by this change.
+
+Source: [NVIDIA's GSP firmware documentation for Nouveau](https://github.com/NVIDIA/open-gpu-kernel-modules/blob/main/nouveau/extract-firmware-nouveau.txt)
+(Turing and later). Build behavior was checked against the installed
+`/usr/sbin/mkinitramfs` and `initramfs.conf(5)`.

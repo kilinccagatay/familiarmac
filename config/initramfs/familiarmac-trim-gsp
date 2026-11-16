@@ -1,0 +1,24 @@
+#!/bin/sh
+# FamiliarMac: omit modern GSP firmware on the fixed Kepler MacBook profile.
+set -eu
+case "${1:-}" in prereqs) echo familiarmac-early-kms; exit 0;; esac
+[ "$(cat /sys/class/dmi/id/product_name)" = MacBookPro10,1 ] || exit 0
+found=no
+for dev in /sys/bus/pci/devices/*; do
+    case "$(cat "$dev/class")" in 0x03*) ;; *) continue;; esac
+    [ "$(cat "$dev/vendor")" = 0x10de ] || continue
+    [ "$(cat "$dev/device")" = 0x0fd5 ] || exit 0
+    found=yes
+done
+[ "$found" = yes ] || exit 0
+# DESTDIR is the temporary initramfs tree, never the installed firmware tree.
+: "${DESTDIR:?initramfs build directory required}"
+[ "$DESTDIR" != / ] || exit 1
+for arch in ga102 tu102; do
+    for base in usr/lib/firmware lib/firmware; do
+        for file in "$DESTDIR/$base/nvidia/$arch/gsp/"gsp-*.bin*; do
+            [ -f "$file" ] || [ -L "$file" ] || continue
+            rm -f -- "$file"
+        done
+    done
+done
