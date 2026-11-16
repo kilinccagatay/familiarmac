@@ -29,3 +29,24 @@ const cc=new ctx.C('/tmp');cc.arrange();cc.arrange();assert.equal(children.filte
 assert.ok(children.indexOf(hardware._network.quickSettingsItems[0])<children.indexOf(hardware._brightness.quickSettingsItems[0]));
 assert.equal(children.at(-1),hardware._system.quickSettingsItems[0]);cc.focus.checked=true;cc.focus.click();assert.equal(banners,false);
 cc.destroy();assert.deepEqual(children,before);
+
+// Shared hardware popup must follow every individual button and restore its
+// original Control Center anchor/grid after closing (including switching).
+const statusSource=fs.readFileSync(root+'/extensions/macbook-menu@local/statusButtons.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
+vm.runInNewContext(statusSource+'\nglobalThis.S=StatusButtons',ctx);
+const sm=Object.create(ctx.S.prototype);sm.mask=[];sm.spans=[];
+const detailGrid={layout_manager:{get_child_meta:(_g,item)=>item.meta},get_children:()=>[item]};
+const item={meta:{column_span:1},get_parent:()=>detailGrid};
+const control={};const detailMenu={sourceActor:control,focusActor:control,_arrowAlignment:0,_grid:detailGrid,
+ box:{add_style_class_name(){},remove_style_class_name(){}},close(){this.isOpen=false;sm.restore()},
+ open(){this.isOpen=true;this.openedAt=this.sourceActor}};
+sm.panel={menu:detailMenu,remove_style_pseudo_class(){}};sm.owner={labels:[],arrange(){}};
+for(const key of ['_network','_bluetooth','_volumeOutput','_system']){
+ sm.panel[key]={quickSettingsItems:[item]};
+ const button={add_style_pseudo_class(){},remove_style_pseudo_class(){}};
+ sm.open(key,button);assert.equal(detailMenu.openedAt,button);assert.equal(detailMenu.focusActor,button);
+ assert.equal(item.meta.column_span,2);assert.equal(detailMenu._arrowAlignment,0.5);
+ detailMenu.close();assert.equal(detailMenu.sourceActor,control);assert.equal(detailMenu.focusActor,control);
+ assert.equal(item.meta.column_span,1);assert.equal(detailMenu._arrowAlignment,0);
+}
+console.log('All hardware detail anchors, focus targets and grid spans restore correctly');

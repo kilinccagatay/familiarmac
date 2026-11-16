@@ -83,7 +83,7 @@ const SETTINGS_PANELS = [
 const SearchDialog = GObject.registerClass(
 class SearchDialog extends ModalDialog.ModalDialog {
     constructor() {
-        super({ styleClass: 'appmenu-search-dialog' });
+        super({ styleClass: 'appmenu-search-dialog', shellReactive: true });
         this.dialogLayout.y_align = Clutter.ActorAlign.START;
         this.dialogLayout._dialog.y_align = Clutter.ActorAlign.START;
         this.buttonLayout.hide();

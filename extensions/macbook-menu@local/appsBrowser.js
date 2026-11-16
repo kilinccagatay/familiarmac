@@ -24,7 +24,7 @@ export function installedApps(system) {
 
 const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends ModalDialog.ModalDialog {
     constructor() {
-        super({styleClass: 'familiarmac-apps'});
+        super({styleClass: 'familiarmac-apps', shellReactive: true});
         this._apps = installedApps(Shell.AppSystem.get_default());
         this._category = '';
         this._list = false;

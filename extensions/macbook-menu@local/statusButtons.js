@@ -11,6 +11,7 @@ export class StatusButtons {
         this.panel = owner.panel;
         this.buttons = [];
         this.mask = [];
+        this.spans = [];
         this.closedSignal = this.panel.menu.connect('open-state-changed', (_m, open) => {
             if (!open) this.restore();
         });
@@ -73,6 +74,19 @@ export class StatusButtons {
             saved.guard = true; item.hide(); saved.guard = false;
             this.mask.push(saved);
         }
+        // All status details share the native controls, but their popup anchor
+        // and focus return target must be the button actually used to open it.
+        this.anchor = {source: menu.sourceActor, focus: menu.focusActor,
+            alignment: menu._arrowAlignment};
+        menu.sourceActor = button;
+        menu.focusActor = button;
+        menu._arrowAlignment = 0.5;
+        for (const item of selected) {
+            if (item.get_parent() !== menu._grid) continue;
+            const meta = menu._grid.layout_manager.get_child_meta(menu._grid, item);
+            this.spans.push({meta, span: meta.column_span});
+            meta.column_span = 2;
+        }
         this.active = button;
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
@@ -87,6 +101,15 @@ export class StatusButtons {
             item.disconnect(signal); item.visible = visible;
         }
         this.mask = [];
+        for (const {meta, span} of this.spans) meta.column_span = span;
+        this.spans = [];
+        if (this.anchor) {
+            const menu = this.panel.menu;
+            menu.sourceActor = this.anchor.source;
+            menu.focusActor = this.anchor.focus;
+            menu._arrowAlignment = this.anchor.alignment;
+            this.anchor = null;
+        }
         this.active?.remove_style_pseudo_class('active');
         this.active = null;
         this.panel.menu.box.remove_style_class_name('familiarmac-status-detail');

@@ -49,14 +49,13 @@ export class PanelOrder {
         });
     }
     held(state) {
-        return Boolean(state & Clutter.ModifierType.BUTTON1_MASK) &&
-            Boolean(state & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.SUPER_MASK));
+        return Boolean(state & Clutter.ModifierType.BUTTON1_MASK);
     }
     finish(commit = false) {
         const drag = this.drag;
         this.drag = null;
-        if (this.dragWatch) GLib.source_remove(this.dragWatch);
-        this.dragWatch = 0;
+        this.grab?.dismiss();
+        this.grab = null;
         if (!drag) return;
         if (commit && drag.moved) this.save();
         else this.apply(drag.before);
@@ -77,14 +76,10 @@ export class PanelOrder {
             this.touched = true;
             for (const {button} of this.entries()) button.menu?.close();
             this.drag = {id: entry.id, x, before: this.order(), moved: false};
-            // A press consumed by stage capture can lose its matching release.
-            // This watchdog exists only during a drag, never while idle.
-            this.dragWatch = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
-                if (this.held(global.get_pointer()[2])) return GLib.SOURCE_CONTINUE;
-                this.dragWatch = 0;
-                this.finish();
-                return GLib.SOURCE_REMOVE;
-            });
+            // Keep the pointer sequence on the panel, including release outside
+            // the original button. Polling virtual modifier state used to abort
+            // valid drags, and an ungrabbed release could leave a sticky drag.
+            this.grab = global.stage.grab(Main.panel);
             return Clutter.EVENT_STOP;
         }
         if (!this.drag) return Clutter.EVENT_PROPAGATE;

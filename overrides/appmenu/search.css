@@ -2,7 +2,7 @@
 .modal-dialog.appmenu-search-dialog {
     width: 460px;
     padding: 8px;
-    border-radius: 16px;
+    border-radius: 24px;
 }
 .appmenu-search-dialog .modal-dialog-content-box { padding: 0; margin: 0; max-width: auto; spacing: 0; }
 .appmenu-search-dialog .appmenu-search-entry {

@@ -123,3 +123,10 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Spotlight-style search removes inherited WhiteSur content margins/max-width, uses a transparent search entry with search glyph, and left-aligns expanding result contents. Empty query still collapses results; existing keyboard, Escape and outside-click behavior remains.
 - Added read-only graphics transition diagnostic script. Session and greeter logs both selecting Nouveau/card2 argues against a persistent Intel/NVIDIA switch; does not exclude a transient hardware mux change. No GPU, firmware or boot settings changed.
 - Installed UI fixes for next login. Tests pass; live Apps/search verification pending.
+
+## Status popup anchors and undimmed launchers (2026-11-16)
+
+- Network, Bluetooth, sound and battery detail menus anchor to their own clicked status button and return keyboard focus there. Selected controls span the detail grid, eliminating its unused second column. Closing restores the Control Center anchor, focus and original column spans.
+- Spotlight and Apps use an undimmed modal surface: outside-click and Escape dismissal remain, without the GNOME Lightbox. Both have a 24 logical pixel outer radius. Spotlight reference: [Apple Spotlight guide](https://support.apple.com/en-gb/guide/mac-help/mchlp1008/mac).
+- Command-drag uses a Clutter pointer grab through release, instead of polling virtual modifier state every 100ms. Escape/modifier release cancel; mouse release ends the operation, so later hover cannot keep moving icons. Input/trackpad settings are unchanged.
+- Full automated suite passes, including every hardware popup's anchor/span restoration and drag/release lifecycle. Installed Shell JavaScript takes effect next login; actual pointer behavior and visual alignment still require desktop validation. No logout/restart is triggered by installation.

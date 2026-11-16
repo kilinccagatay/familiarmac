@@ -14,14 +14,23 @@ assert.equal(ctx.format(date,ctx.names(['tr_TR.UTF-8','C'])),'Pzt 16 Kas 10:50:3
 assert.equal(ctx.format(date,ctx.names(['C.UTF-8'])),'Mon 16 Nov 10:50:30');
 console.log('Panel order and UI-language names independent of regional date formats passed');
 ctx.Clutter={ModifierType:{BUTTON1_MASK:1,CONTROL_MASK:2,SUPER_MASK:4},EventType:{MOTION:1,BUTTON_RELEASE:2,KEY_PRESS:3,KEY_RELEASE:4,BUTTON_PRESS:5},KEY_Escape:9,KEY_Control_L:10,EVENT_STOP:1,EVENT_PROPAGATE:0};
-let removed=0,saved=0;ctx.GLib={source_remove(){removed++}};
+let removed=0,saved=0;
 p.save=()=>saved++;p.hit=()=>({});
-const begin=()=>{p.apply(['battery','sound','clock']);p.drag={before:['sound','battery','clock'],moved:true};p.dragWatch=123;};
+const begin=()=>{p.apply(['battery','sound','clock']);p.drag={before:['sound','battery','clock'],moved:true};p.grab={dismiss(){removed++}};};
 const ev=(type,state=0,key=0)=>({type:()=>type,get_state:()=>state,get_key_symbol:()=>key,get_button:()=>1,get_coords:()=>[0,0]});
 begin();p.event(ev(1,2));assert.equal(p.drag,null);assert.deepEqual(Array.from(p.order()),['sound','battery','clock']);
 // Further hover must not rearrange anything or create a new drag.
 p.event(ev(1,0));assert.equal(p.drag,null);assert.equal(saved,0);
 begin();p.event(ev(4,1,10));assert.equal(p.drag,null);assert.equal(saved,0);
 begin();p.event(ev(2));assert.equal(p.drag,null);assert.equal(saved,1);assert.equal(removed,3);
-assert.equal(p.held(3),true);assert.equal(p.held(2),false);assert.equal(p.held(1),false);
+assert.equal(p.held(3),true);assert.equal(p.held(2),false);assert.equal(p.held(1),true);
 console.log('Lost release, modifier release, subsequent hover and normal drop regressions passed');
+
+// Command is needed to start, not re-sampled from a virtual modifier on every motion.
+let grabs=0;ctx.global={stage:{grab(){grabs++;return {dismiss(){removed++}}}}};
+p.hit=()=>({id:'sound',actor:{get_transformed_position:()=>[0,0],get_transformed_size:()=>[100,30]}});
+p.event(ev(5,2));assert.equal(grabs,1);assert.equal(p.drag.id,'sound');
+p.event(ev(1,1));assert.ok(p.drag); // held mouse remains a drag even with no modifier bit
+p.event(ev(2));assert.equal(p.drag,null);assert.equal(p.grab,null);
+p.event(ev(1,0));assert.equal(p.drag,null);
+console.log('Grab lifecycle: start, held motion, outside release, and hover passed');
