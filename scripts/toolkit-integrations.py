@@ -9,6 +9,8 @@ import json
 import shutil
 import subprocess
 import sys
+import re
+import shlex
 from gi.repository import Gio, GLib
 
 HOME = Path.home()
@@ -30,6 +32,30 @@ def qt_capable(metadata, files):
         return True
     return (any(files.glob('lib/**/libQt*Widgets.so*')) and
             any(files.glob('lib/**/libqxcb.so')))
+
+
+def gtk3_capable(metadata, files):
+    """Inspect the default executable's app-owned ELF dependencies, never run it."""
+    if not shutil.which('readelf'): return False
+    command = shlex.split(metadata.get('Application', 'command', fallback=''))
+    if not command: return False
+    executable = files/'bin'/Path(command[0]).name
+    queue = [executable]; seen = set(); gtk3 = False
+    while queue and len(seen) < 32:
+        binary = queue.pop(0)
+        if binary in seen or not binary.is_file(): continue
+        seen.add(binary)
+        with binary.open('rb') as stream:
+            if stream.read(4) != b'\x7fELF': continue
+        result = subprocess.run(['readelf','-d',str(binary)],text=True,capture_output=True,timeout=5)
+        libraries = re.findall(r'\(NEEDED\).*?\[([^]]+)\]', result.stdout)
+        if 'libgtk-4.so.1' in libraries: return False
+        if 'libgtk-3.so.0' in libraries: gtk3 = True
+        for name in libraries:
+            if '/' in name: continue
+            queue.extend((files/'lib').glob(name))
+            queue.extend((files/'lib').glob('*/'+name))
+    return gtk3
 
 
 def restore():
@@ -82,6 +108,9 @@ def apply():
     saved.setdefault(key, {'before': before})['installed'] = s.get_value(key).print_(True)
     record.write_text(json.dumps(saved, indent=2))
     Gio.Settings.sync()
+    config = Path(__file__).with_name('appearance-config')
+    if not config.exists(): config = Path(__file__).resolve().parents[1]/'config'
+    appearance.apply(HOME, [], config, include_native=True)
     report = []
     if shutil.which('flatpak'):
         target = HOME / '.local/share/flatpak/overrides/global'
@@ -119,21 +148,23 @@ def apply():
                 files = Path(output('flatpak', 'info', '--show-location', app)) / 'files'
                 if app == 'org.mozilla.firefox':
                     status = 'dedicated Firefox adapter'
-                elif qt_capable(cfg, files):
+                elif qt_capable(cfg, files) or gtk3_capable(cfg, files):
                     target = HOME / '.local/share/flatpak/overrides' / app
                     record = STATE / ('flatpak-' + app + '.json')
                     data = json.loads(record.read_text()) if record.exists() else {
                         'id': app, 'before': target.read_text() if target.exists() else None}
+                    qt = qt_capable(cfg, files)
                     subprocess.run(['flatpak', 'override', '--user',
                                     '--talk-name=' + REGISTRAR, '--socket=x11',
-                                    '--nosocket=wayland', '--env=QT_QPA_PLATFORM=xcb', app], check=True)
+                                    '--nosocket=wayland',
+                                    '--env=QT_QPA_PLATFORM=xcb' if qt else '--env=GDK_BACKEND=x11', app], check=True)
                     data['installed'] = target.read_text()
                     record.write_text(json.dumps(data, indent=2))
-                    status = 'Qt Widgets: X11/menu permission configured; runtime menu needs verification'
+                    status = ('Qt Widgets' if qt else 'GTK3') + ': X11/menu permission configured; runtime menu needs verification'
                 else:
                     status = 'shared GTK3/GTK4 controls and theme access installed; menu export depends on toolkit'
                 report.append({'id': app, 'package': 'flatpak', 'status': status})
-            except (subprocess.CalledProcessError, OSError, configparser.Error) as e:
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, configparser.Error) as e:
                 report.append({'id': app, 'package': 'flatpak', 'status': 'error: ' + str(e)})
     # Include every visible installed launcher, without launching user applications.
     for app in Gio.AppInfo.get_all():

@@ -14,7 +14,7 @@ from pathlib import Path
 for p in list(Path('scripts').glob('*.py'))+list(Path('bridges').glob('*.py')):
     ast.parse(p.read_text(),filename=str(p))
 CHECK
-for f in extensions/familiarmac-lock@local/*.js extensions/macbook-menu@local/*.js extensions/familiarmac-icons@local/*.js overrides/appmenu/*.js overrides/rounded-window-corners/manager/*.js; do
+for f in extensions/familiarmac-panel-layout@local/*.js extensions/familiarmac-lock@local/*.js extensions/macbook-menu@local/*.js extensions/familiarmac-icons@local/*.js overrides/appmenu/*.js overrides/rounded-window-corners/manager/*.js; do
   "$NODE" --input-type=module --check < "$f"
 done
 for f in tests/*.cjs; do
@@ -48,3 +48,7 @@ python3 tests/chromium-integrations.py
 python3 tests/flatpak-appearance.py
 
 python3 tests/app-integration-install.py
+
+python3 tests/application-shortcuts.py
+
+python3 tests/toolkit-detection.py

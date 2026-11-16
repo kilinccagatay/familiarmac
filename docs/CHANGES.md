@@ -4,6 +4,7 @@ This inventory covers project behavior, not every typo or intermediate experimen
 
 | Area | Changes | Source / entry point |
 |---|---|---|
+| Shared header layout | GTK3 control centers match GTK4 (22 logical px); font-relative title reservation for GTK4 split-view headers; native and Flatpak installation | `config/fixed-traffic-lights.css`, `config/headerbar-spacing.css` |
 | Window controls | Left close/minimize/maximize; traffic-light colors; compact GTK4 header spacing so titles fit | `scripts/desktop.py`, `config/traffic-lights.css`, `config/headerbar-spacing.css` |
 | Desktop theme | Pinned WhiteSur dark GTK/Shell/icons, wallpaper, shared dialog contrast/buttons | `scripts/visual-system.sh`, `config/shell-refinements.css` |
 | Top panel | One Apple-style system menu, localized labels, left popup alignment, clock at far right; capsule selections inset 2 logical px | `extensions/macbook-menu@local/` |

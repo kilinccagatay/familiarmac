@@ -216,7 +216,7 @@ write(appmenu_dir/'searchDialog.js', (ROOT/'overrides/appmenu/searchDialog.js').
 write(appmenu_dir/'settingsCommand.js', (ROOT/'extensions/macbook-menu@local/settingsCommand.js').read_text())
 write(appmenu_dir/'launcherDrag.js', (ROOT/'extensions/macbook-menu@local/launcherDrag.js').read_text())
 write(appmenu_dir/'menuManager.js', (ROOT/'overrides/appmenu/menuManager.js').read_text())
-for name in ('realMenuManager.js', 'gtkMenuModel.js', 'calculator.js', 'shortcutHints.js'):
+for name in ('realMenuManager.js', 'gtkMenuModel.js', 'applicationShortcuts.js', 'exportedShortcuts.js', 'calculator.js', 'shortcutHints.js'):
     write(appmenu_dir/name, (ROOT/'overrides/appmenu'/name).read_text())
 write(appmenu_dir/'stylesheet.css', (appmenu_dir/'stylesheet.css').read_text() + '\n' + (ROOT/'overrides/appmenu/search.css').read_text())
 for key, value in {
@@ -238,12 +238,14 @@ for tray_schema in ('org.gnome.shell.extensions.zorin-appindicator', 'org.gnome.
 write(Path.home()/'.local/share/familiarmac/trash-drop-target.py', (ROOT/'scripts/trash-drop-target.py').read_text())
 for f in (ROOT/'extensions/macbook-menu@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/macbook-menu@local'/f.name,f.read_text())
+for f in (ROOT/'extensions/familiarmac-panel-layout@local').iterdir():
+    if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/familiarmac-panel-layout@local'/f.name,f.read_text())
 for f in (ROOT/'extensions/familiarmac-lock@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/familiarmac-lock@local'/f.name,f.read_text())
 s=setting('org.gnome.shell','enabled-extensions')
 extensions=s.get_strv('enabled-extensions')
 extensions=[x for x in extensions if x not in ('zorin-menu@zorinos.com', 'x11gestures@joseexposito.github.io')]
-for required in ['appmenu@ChathurangaBW.github.io','compiz-alike-magic-lamp-effect@hermes83.github.com','touchpad-gesture-customization@coooolapps.com','macbook-menu@local','familiarmac-lock@local','keyd@keyd.rvaiya.github.com','user-theme@gnome-shell-extensions.gcampax.github.com']:
+for required in ['appmenu@ChathurangaBW.github.io','compiz-alike-magic-lamp-effect@hermes83.github.com','touchpad-gesture-customization@coooolapps.com','macbook-menu@local','familiarmac-panel-layout@local','familiarmac-lock@local','keyd@keyd.rvaiya.github.com','user-theme@gnome-shell-extensions.gcampax.github.com']:
     if required not in extensions: extensions.append(required)
 s.set_strv('enabled-extensions',extensions)
 subprocess.run(['/usr/bin/python3', str(ROOT/'scripts/install-app-integrations.py')], check=True)

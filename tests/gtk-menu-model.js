@@ -11,7 +11,11 @@ const menu=new Gio.Menu();const file=new Gio.Menu();
 const item=Gio.MenuItem.new('Choose',null);
 item.set_action_and_target_value('app.pick',new GLib.Variant('s','target-document'));
 item.set_attribute_value('accel',new GLib.Variant('s','<Control>o'));
-file.append_item(item);menu.append_submenu('_File',file);
+file.append_item(item);
+const second=Gio.MenuItem.new('Localized label', 'app.pick');
+second.set_attribute_value('x-gtk-accel',new GLib.Variant('s','<Shift><Control>s'));
+file.append_item(second);
+const unknown=Gio.MenuItem.new('Save', 'app.pick');file.append_item(unknown);menu.append_submenu('_File',file);
 const section=new Gio.Menu();section.append_submenu('_File',file);menu.append_section(null,section);
 connection.export_action_group('/test/app',actions);
 connection.export_menu_model('/test/menu',menu);
@@ -23,6 +27,8 @@ proxy=new GtkMenuModel(connection.get_unique_name(),'/test/menu','/test/app',nul
  const tree=proxy.build('fixture');if(!tree)return;
  const child=tree.topLevelMenus[0]?.children[0];if(!child)return;
  check(child.shortcut==='<Control>o','native accelerator lost');
+ check(tree.topLevelMenus[0].children[1].shortcut==='<Shift><Control>s','GTK accelerator lost');
+ check(tree.topLevelMenus[0].children[2].shortcut==='', 'shortcut guessed from Save label');
  check(tree.topLevelMenus.length===1,'duplicate top-level menus');
  if(phase===0&&child.sensitive){
   const count=proxy._models.size;

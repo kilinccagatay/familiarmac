@@ -146,3 +146,42 @@ installation, and verifies that restore stops the watcher before restoring
 launchers. Together with Chromium/Firefox empty-profile and CSS-preservation
 tests this checks reproducibility without changing host preferences. It does not
 replace a full install test on a clean supported OS.
+
+### Actual menu shortcut hints
+
+The shared menu reader consumes `accel` / `x-gtk-accel` from GMenu and
+`shortcut` alternatives from D-BusMenu, independently of application name.
+Exported bindings take precedence, retain action targets and use the common
+muted shortcut style in both light and dark appearance. No global bindings are
+registered and translated labels are never used to guess keys.
+
+Apps that export actions but omit accelerators need a source-specific adapter.
+Inkscape's adapter reads its installed selected keymap and user overrides,
+including explicit unbindings and collisions. Unsupported exporters show no
+hint rather than a fabricated binding; this does not make every application's
+private shortcuts discoverable. Source changes are monitored, not polled.
+
+The installer includes the shared readers and optional adapter. Updates to
+already-imported GNOME Shell JavaScript take effect on the next normal login;
+reopening only the application is not sufficient for these reader updates.
+
+### Shared title and control spacing
+
+Native GTK and Flatpak GTK configs receive the same managed style block. GTK3
+header buttons use the toolkit's existing spacing without extra horizontal
+margins; at 2× scale their centers are 44 physical pixels apart, matching the
+22 logical pixel GTK4 spacing. Icon artwork remains 14 logical pixels.
+
+GTK4 AdwHeaderBar's internal title label and AdwWindowTitle reserve an 8em
+minimum title slot. This lets split-view sidebars account for all three window
+controls instead of truncating short application names. It follows font size
+and does not change custom toolbar/document labels or app-specific colors.
+Long document names may still ellipsize normally.
+
+Verified locally after installation: Contacts and Characters show complete
+titles; Settings keeps its complete title; Terminal centers changed from 56 to
+44 physical pixels; Blanket retains its centered title and compact controls.
+These are shared selectors, not application-name exceptions.
+
+See [the application audit](APPLICATION-AUDIT.md) for scope and remaining
+custom-toolkit/first-run limitations.

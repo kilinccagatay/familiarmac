@@ -23,7 +23,7 @@ if not module.exists():
     enabled=subprocess.run(['systemctl','--user','is-enabled','--quiet','appmenu-gtk-module.service']).returncode==0
     module.write_text(json.dumps({'enabled':enabled}))
 dest.mkdir(parents=True,exist_ok=True)
-for name in ('toolkit-integrations.py','app-integrations.py','firefox-global-menu.py','install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py'):
+for name in ('toolkit-integrations.py','app-integrations.py','firefox-global-menu.py','install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','application-shortcuts.py'):
     shutil.copy2(root/'scripts'/name,dest/name)
 appearance=dest/'appearance-config';appearance.mkdir(exist_ok=True)
 for name in ('traffic-lights.css','headerbar-spacing.css','context-menu-spacing.css','fixed-traffic-lights.css'):

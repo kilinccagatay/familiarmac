@@ -1,10 +1,13 @@
+import {gmenuShortcut} from './exportedShortcuts.js';
+import {ApplicationShortcuts} from './applicationShortcuts.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 // Read real GMenu trees and GAction state. No guessed labels or key presses.
 export class GtkMenuModel {
-    constructor(bus, menuPath, appPath, windowPath, changed) {
+    constructor(bus, menuPath, appPath, windowPath, changed, appId = '') {
         this._changed = changed;
+        this._shortcuts = new ApplicationShortcuts(appId, () => this._notify());
         this._signals = [];
         this._models = new Set();
         this._groups = {};
@@ -64,7 +67,7 @@ export class GtkMenuModel {
             let ornament = null;
             if (state && target) ornament = state.equal(target) ? 'dot' : null;
             else if (state?.get_type_string() === 'b') ornament = state.get_boolean() ? 'check' : null;
-            const shortcut = get('accel')?.deepUnpack() ?? get('x-gtk-accel')?.deepUnpack() ?? '';
+            const shortcut = gmenuShortcut(get) || this._shortcuts.lookup(full, target);
             items.push({label, shortcut, sensitive: Boolean(group?.has_action(name) && group.get_action_enabled(name)),
                 ornament, activate: () => {
                     if (group?.has_action(name) && group.get_action_enabled(name)) group.activate_action(name, target);
@@ -85,6 +88,7 @@ export class GtkMenuModel {
 
     destroy() {
         this._changed = null;
+        this._shortcuts.destroy();
         if (this._pending) GLib.source_remove(this._pending);
         this._pending = 0;
         for (const [object, id] of this._signals) object.disconnect(id);

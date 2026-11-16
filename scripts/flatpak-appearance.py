@@ -9,12 +9,14 @@ def merge_css(old, rules):
     old=re.sub(re.escape(BEGIN)+r'.*?'+re.escape(END)+r'\n?', '', old, flags=re.S)
     return old.rstrip()+'\n\n'+BEGIN+'\n'+rules+'\n'+END+'\n'
 
-def apply(home, apps, config):
+def apply(home, apps, config, include_native=False):
     state=home/'.local/state/familiarmac/flatpak-appearance';state.mkdir(parents=True,exist_ok=True)
     controls=(config/'fixed-traffic-lights.css').read_text()
-    for app in apps:
+    targets = [(app, home/'.var/app'/app/'config') for app in apps]
+    if include_native: targets.append(('_native', home/'.config'))
+    for app, config_home in targets:
         for version,extra in [('3.0','context-menu-spacing.css'),('4.0','headerbar-spacing.css')]:
-            target=home/'.var/app'/app/'config'/('gtk-'+version)/'gtk.css'
+            target=config_home/('gtk-'+version)/'gtk.css'
             target.parent.mkdir(parents=True,exist_ok=True)
             record=state/(app+'-gtk'+version+'.json')
             old=target.read_text() if target.exists() else ''

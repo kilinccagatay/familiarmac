@@ -254,10 +254,12 @@ const TopLevelMenuButton = GObject.registerClass(
         } else if (item.type === "section-header") {
           let headerItem = new PopupMenu.PopupMenuItem(item.label, { activate: false });
           headerItem.setSensitive(false);
+          headerItem.setOrnament(PopupMenu.Ornament.NONE);
           headerItem.label.add_style_class_name('popup-subtitle-menu-item');
           parentMenu.addMenuItem(headerItem);
         } else if (item.type === "submenu") {
           const subMenu = new PopupMenu.PopupSubMenuMenuItem(item.label);
+          subMenu.setOrnament(PopupMenu.Ornament.NONE);
           if (typeof item.onOpen === 'function') {
               const sid = subMenu.menu.connect('open-state-changed', (_menu, isOpen) => {
                   if (isOpen)
@@ -270,6 +272,7 @@ const TopLevelMenuButton = GObject.registerClass(
         } else if (item.type === "recent-submenu") {
           const recentMenuManager = this._menuManagerInstance?._recentMenuManager ?? null;
           const recentSubmenu = new RecentItemsSubmenu(item.label, parentMenu, recentMenuManager);
+          recentSubmenu.setOrnament(PopupMenu.Ornament.NONE);
           parentMenu.addMenuItem(recentSubmenu);
         } else {
           const menuItem = new PopupMenu.PopupMenuItem(item.label);

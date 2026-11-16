@@ -5,3 +5,10 @@ headerbar windowcontrols:not(.empty).end:dir(rtl) { margin-right: 4px; }
 headerbar windowcontrols:not(.empty).start:dir(rtl),
 headerbar windowcontrols:not(.empty).end:dir(ltr) { margin-left: 4px; }
 headerbar .title, headerbar .subtitle { padding-left: 2px; padding-right: 2px; }
+
+/* AdwHeaderBar and AdwWindowTitle can ellipsize down to a few characters. Reserve a
+ * readable title slot so split-view sidebars account for the extra two window
+ * controls. Font-relative sizing follows text scaling; custom toolbars and
+ * document/path labels outside the header title slot are untouched. */
+headerbar windowtitle,
+headerbar > windowhandle > box > widget > label.title { min-width: 8em; }

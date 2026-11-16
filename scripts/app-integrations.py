@@ -17,7 +17,7 @@ roots = {'native': [Path('/usr/share/applications'), Path('/usr/local/share/appl
 def fingerprint(entries):
     digest = hashlib.sha256(catalog.read_bytes())
     managed = {e['id'] + '.desktop' for e in entries}
-    for name in ('app-integrations.py', 'toolkit-integrations.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py'):
+    for name in ('app-integrations.py', 'toolkit-integrations.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','application-shortcuts.py'):
         digest.update((BASE/name).read_bytes())
     config = BASE/'appearance-config'
     if not config.exists(): config = BASE.parent/'config'

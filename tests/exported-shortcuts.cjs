@@ -1,0 +1,13 @@
+const fs = require('fs'), vm = require('vm'), assert = require('assert/strict');
+const c = {};
+vm.runInNewContext(fs.readFileSync('overrides/appmenu/exportedShortcuts.js','utf8').replace(/^export /gm,''),c);
+const attr = values => name => values[name] === undefined ? null : {deepUnpack:()=>values[name]};
+assert.equal(c.gmenuShortcut(attr({'accel':'<Control>o','x-gtk-accel':'<Control>s'})), '<Control>o');
+assert.equal(c.gmenuShortcut(attr({'accel':'','x-gtk-accel':'<Control>s'})), '<Control>s');
+assert.equal(c.gmenuShortcut(attr({})), '');
+const item = value => ({property_get_variant:()=>({deepUnpack:()=>value})});
+assert.deepEqual(c.dbusMenuShortcut(item([['Control','Shift','s']])), ['Control','Shift','s']);
+assert.deepEqual(c.dbusMenuShortcut(item([[], ['Alt','F4']])), ['Alt','F4']);
+assert.equal(c.dbusMenuShortcut(item('malformed')), '');
+assert.equal(c.dbusMenuShortcut(item([[42]])), '');
+console.log('Shared GMenu/D-BusMenu shortcut metadata: precedence, alternatives, missing and invalid exports PASS');

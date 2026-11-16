@@ -1,3 +1,4 @@
+import {dbusMenuShortcut} from './exportedShortcuts.js';
 import { GtkMenuModel } from './gtkMenuModel.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -665,7 +666,7 @@ export class RealMenuManager {
         if (kind === 'gtk-menu') {
             this._currentKey = `gmenu:${registration.busName}|${registration.objectPath}`;
             this._gtkMenu = new GtkMenuModel(registration.busName, registration.objectPath,
-                registration.appPath, registration.windowPath, () => this._emitChanged());
+                registration.appPath, registration.windowPath, () => this._emitChanged(), this._detectedApp?.get_id?.() ?? '');
             return;
         }
         if (kind === 'gtk-actions') {
@@ -810,11 +811,7 @@ export class RealMenuManager {
             label: label || _('Untitled'),
             sensitive: _isEnabled(item),
             ornament: _getOrnament(item),
-            shortcut: (() => {
-                const keys = item.property_get_variant('shortcut')?.deepUnpack()?.[0];
-                if (!Array.isArray(keys)) return '';
-                return keys;
-            })(),
+            shortcut: dbusMenuShortcut(item),
             activate: () => this._activateItem(item),
         };
     }
