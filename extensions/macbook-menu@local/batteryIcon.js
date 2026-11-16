@@ -43,9 +43,9 @@ export class BatteryIcon {
             cr.closePath();
         };
         const s = this.state;
-        const color = s.charging ? [0.35, 0.9, 0.48] : s.low ? [1, 0.3, 0.3] : [1, 1, 1];
+        const color = [1, 1, 1];
         rounded(1, 1, 32, 16, 4);
-        cr.setSourceRGBA(1, 1, 1, 0.4); cr.setLineWidth(1); cr.stroke();
+        cr.setSourceRGBA(1, 1, 1, 0.75); cr.setLineWidth(1); cr.stroke();
         if (s.charging) {
             cr.moveTo(37,3); cr.lineTo(33.5,9); cr.lineTo(35.5,9);
             cr.lineTo(34.5,15); cr.lineTo(38,8); cr.lineTo(36,8); cr.closePath();
@@ -61,9 +61,12 @@ export class BatteryIcon {
         const ext = cr.textExtents(s.text);
         const x = 17-(ext.width/2+ext.xBearing), y = 9-(ext.height/2+ext.yBearing);
         cr.moveTo(x,y); cr.setSourceRGB(1,1,1); cr.showText(s.text);
-        // Dark digits over the filled portion, white over the empty portion.
+        // Cut digits out of the filled portion: show the actual panel behind
+        // them, rather than painting a fixed black percentage/backing.
+        // Keep white digits on the empty portion for low-charge legibility.
         cr.save(); cr.rectangle(2,2,30*s.percent/100,14); cr.clip();
-        cr.moveTo(x,y); cr.setSourceRGB(0.12,0.15,0.17); cr.showText(s.text); cr.restore();
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.moveTo(x,y); cr.showText(s.text); cr.restore();
         cr.$dispose();
     }
     destroy() {

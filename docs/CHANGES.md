@@ -312,3 +312,7 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Unplaced application indicators default before system controls/date. Saved positions for temporarily absent apps are retained when another item is moved.
 - Old ephemeral bus-name entries are ignored; they cannot reliably identify the app in a new session. Users can reposition once to store the stable identity.
 - Regression tests cover changing bus names, distinct apps, late arrival and an explicit position. Installed code requires a fresh Shell session to avoid cached JS modules.
+
+- Panel battery artwork uses neutral white/gray with transparent percentage cutouts over the filled portion, instead of fixed black digits or an opaque dark backing. White digits remain over the empty portion for legibility. Charging/low state calculation is unchanged.
+- Visually compared the percentage-inside-battery reference: https://www.iclarified.com/images/tutorials/102441/484749/484749-640.png (article: https://www.iclarified.com/102441/how-to-show-battery-percentage-on-mac-video). This is a GNOME adaptation, not a pixel-identical claim.
+- JS drawing updates take effect in a fresh Shell session.
