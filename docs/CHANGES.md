@@ -260,3 +260,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Reuses the native UPower proxy and existing battery menu/hit target. Missing battery hides the target; native indicator restores on disable. No changes to date, Wi-Fi, sound or boot behavior.
 - Reference image and description: https://www.iclarified.com/102441/how-to-show-battery-percentage-on-mac-video (macOS 27); Apple battery behavior: https://support.apple.com/guide/mac-help/monitor-your-macs-battery-mchlp1115/mac . Original Cairo implementation, no copied raster artwork.
 - Suite and dedicated battery state tests passed. Real GJS/Cairo rendered full/half/low/charging previews; installed for next login, live panel validation pending.
+
+## 2026-11-16 — Withdraw early GRUB logo experiment
+
+- Hardware feedback: static logo appears late and boot transition corruption returned after the GRUB background/redraw experiment. Earlier static-logo entries are not a successful outcome.
+- Disable new installation of that experiment; preserve --restore so existing users can remove both the background override and redraw generator and regenerate GRUB.
+- Restore completed successfully on the target machine; background override, redraw generator and image removed. Subsequent visual boot validation required. Early Nouveau initramfs hook remains installed.
+- Current boot: Nouveau framebuffer ready at approximately 1.95 seconds after kernel start. These logs do not measure the preceding firmware/bootloader delay. No timing claims about the full power-button-to-logo interval.

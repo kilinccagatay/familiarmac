@@ -75,9 +75,11 @@ Reboot when convenient. If needed from recovery, remove `/etc/default/grub.d/98-
 
 The user rebooted after `install-early-kms.sh` and reported that both boot and logout corruption are resolved. Current kernel command line no longer contains `fbcon=nodefer`. The early Nouveau hook is the successful configuration on this machine; the earlier framebuffer experiment above was ineffective. This is user-observed hardware validation, not a guarantee for other Mac models.
 
-## Optional logo before Plymouth
+## Withdrawn experiment: logo before Plymouth
 
-`sudo bash scripts/install-early-logo.sh --install` adds a static, centred logo on black to GRUB's graphical background. It uses the repository's existing vector logo and does not add a delay or progress indicator. It retains the current video mode, timeout, kernel parameters and early Nouveau hook. A generated-config backup and transaction rollback protect installation; `sudo bash scripts/install-early-logo.sh --restore` removes the override and regenerates GRUB with the previous distribution theme.
+**Do not install this experiment.** On 2026-11-16 the user reported that the logo appeared late and display corruption returned after enabling the GRUB redraw. Installation is now disabled. Remove it with `sudo bash scripts/install-early-logo.sh --restore`; keep the successful early Nouveau hook. The historical description below is retained for diagnosis.
+
+The former `sudo bash scripts/install-early-logo.sh --install` command added a static, centred logo on black to GRUB's graphical background. It uses the repository's existing vector logo and does not add a delay or progress indicator. It retains the current video mode, timeout, kernel parameters and early Nouveau hook. A generated-config backup and transaction rollback protect installation; `sudo bash scripts/install-early-logo.sh --restore` removes the override and regenerates GRUB with the previous distribution theme.
 
 This can cover the GRUB portion of the black screen, not the firmware interval before GRUB executes. A seamless transition cannot be guaranteed until observed on hardware. The existing Plymouth logo/progress starts after the native driver is ready; no late-driver workaround is reintroduced.
 

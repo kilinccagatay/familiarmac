@@ -4,6 +4,10 @@ set -euo pipefail
 cd -- "$(dirname -- "$0")/.."
 mode=${1:---install}
 case "$mode" in --install|--restore) ;; *) echo 'Usage: install-early-logo.sh [--install|--restore]' >&2; exit 2;; esac
+if [[ "$mode" == --install ]]; then
+  echo 'Early GRUB logo installation disabled: hardware testing reproduced display corruption. Use --restore; retain early Nouveau KMS.' >&2
+  exit 1
+fi
 [[ $EUID == 0 ]] || { echo 'Administrative privileges required.' >&2; exit 1; }
 config=/etc/default/grub.d/97-familiarmac-early-logo.cfg
 image=/boot/grub/familiarmac-early-logo.png
