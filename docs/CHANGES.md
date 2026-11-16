@@ -381,3 +381,9 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Optional `sudo bash scripts/install-local-fonts.sh /path/to/fonts` imports locally supplied fonts and rebuilds GDM styling; `python3 scripts/apply-local-typography.py` applies UI settings with a saved settings backup (`--restore` reverses these settings). No Apple font binaries or automatic downloads are distributed by FamiliarMac. Obtain and use fonts under their applicable terms: https://developer.apple.com/fonts/ . The public installer remains usable with Inter.
 - Font source reference: `kilinccagatay/home-assistant-legacy-panels`, commit `ec63cb64401dc4d5e8b6266589d79d2cfe40438e`, `examples/panel-v2/tessera.css`. Its local SF Rounded weights are used only on this user's machine.
 - Boot/logout visual corruption remains unresolved: early Nouveau is still active, GRUB logo experiments remain removed, and the current mux snapshot has NVIDIA driving the internal display. The earlier Dock disposal fix does not establish a graphics fix. Old Plymouth traces predate the latest report; collect a new boot trace before selecting another workaround.
+
+## Smooth Focus indicator layout
+
+- Focus visibility changes animate allocated width and opacity over 180ms, moving adjacent panel items gradually. Initial login layout and disabled animations update immediately.
+- Rapid toggles cancel previous transitions; teardown cancels animations before destroying the button. No polling, global input layer or panel reordering is added.
+- Regression tests cover interrupted transitions, completed hiding and disabled animations. New Shell code loads at the next login.

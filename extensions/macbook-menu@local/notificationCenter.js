@@ -64,15 +64,39 @@ export class NotificationCenter {
         const position = Main.panel._rightBox.get_children().indexOf(this.date.container);
         Main.panel.addToStatusArea('familiarmac-focus', this.button, position, 'right');
         this.settingSignal = this.settings.connect('changed::show-banners', () => this.sync());
-        this.sync();
+        this.sync(false);
     }
-    sync() {
+    sync(animate = true) {
         const active = !this.settings.get_boolean('show-banners');
         this.toggle.setToggleState(active);
         // Like macOS's active Focus icon, it disappears after disabling Focus.
         // Control Center remains the entry point for turning it on again.
         if (!active) this.button.menu.close();
-        this.button.container.visible = active;
+        const actor = this.button.container;
+        const wasVisible = actor.visible;
+        const width = wasVisible ? actor.width : 0;
+        actor.remove_transition('width');
+        actor.remove_transition('opacity');
+        // Allocate intermediate widths so neighbours move with the icon.
+        // Never animate the initial session layout or keep a hidden input actor.
+        if (!animate || !St.Settings.get().enable_animations) {
+            actor.visible = active;
+            actor.width = -1;
+            actor.opacity = 255;
+            return;
+        }
+        if (!active && !wasVisible) return;
+        const naturalWidth = this.button.get_preferred_width(-1)[1];
+        actor.visible = true;
+        actor.width = width;
+        if (!wasVisible) actor.opacity = 0;
+        actor.ease({width: active ? naturalWidth : 0, opacity: active ? 255 : 0,
+            duration: 180, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
+                actor.visible = active;
+                actor.width = -1;
+                actor.opacity = 255;
+            }});
     }
     hide(actor) {
         if (!actor) return;
@@ -99,6 +123,8 @@ export class NotificationCenter {
         this.language?.destroy();
         if (this.settingSignal) this.settings.disconnect(this.settingSignal);
         this.settingSignal = 0;
+        this.button?.container.remove_transition('width');
+        this.button?.container.remove_transition('opacity');
         this.button?.destroy();
         this.button = null;
         for (const [actor, id] of this.signals.splice(0)) actor.disconnect(id);
