@@ -273,3 +273,8 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Added `scripts/install-lean-initramfs.sh` with install/check/restore and image backup/rollback.
 - On MacBookPro10,1 with only GT 650M NVIDIA hardware, omit modern GA102/TU102 GSP firmware from the initramfs; retain root firmware and the successful early Nouveau hook.
 - No extra logo stage, GRUB drawing or framebuffer mode changes. Physical boot timing remains to be verified.
+
+### Boot diagnosis follow-up
+
+- The reduced image did not resolve the reported late logo/pre-logo artifact.
+- Added optional reversible Plymouth boot tracing, without changing rendering or GPU settings, to diagnose the remaining transition.

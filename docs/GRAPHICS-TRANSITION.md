@@ -119,3 +119,28 @@ measured by this system's `systemd-analyze` output and is not fixed by this chan
 Source: [NVIDIA's GSP firmware documentation for Nouveau](https://github.com/NVIDIA/open-gpu-kernel-modules/blob/main/nouveau/extract-firmware-nouveau.txt)
 (Turing and later). Build behavior was checked against the installed
 `/usr/sbin/mkinitramfs` and `initramfs.conf(5)`.
+
+## Follow-up: brief pre-logo corruption persists
+
+After the smaller initramfs was installed, the user still observed a late logo
+and a very brief corrupted frame immediately before the first logo. The size
+reduction is verified; an improvement to the visible boot delay is **not**.
+Current boot: Nouveau framebuffer ready at 1.9595 seconds kernel time,
+kernel 2.641 seconds, userspace 16.477 seconds. No GRUB logo override remains.
+Do not describe early KMS as a complete fix based on the earlier observation.
+
+Enable temporary timestamped Plymouth diagnostics:
+
+```sh
+sudo bash scripts/install-boot-trace.sh --install
+# After one manual reboot:
+sudo less /var/log/plymouth-debug.log
+sudo bash scripts/install-boot-trace.sh --restore
+```
+
+This adds only `plymouth.debug` to the boot command line; no device timeout,
+splash delay, renderer, GPU selection or console mode override. Debug logging
+can affect timing, so remove it after collecting evidence. It cannot measure
+firmware time before Linux. Keep logs local: they can contain device details
+and boot messages. Compare renderer creation/activation and first splash
+against the kernel framebuffer timestamps before choosing another workaround.
