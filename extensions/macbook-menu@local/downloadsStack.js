@@ -48,7 +48,13 @@ export class DownloadsStack {
             const button=new St.Button({style_class:'app-well-app familiarmac-downloads-button',can_focus:true,track_hover:true,accessible_name:'Downloads'});
             const image=new St.Icon({icon_name:'folder-download',icon_size:icon.icon?.iconSize ?? 48});
             button.set_child(image);
-            const container=new St.Bin({child:button,style_class:'dash-item-container familiarmac-downloads-start'});
+            // A real separator actor survives dock theme borders and orientation classes.
+            const row=new St.BoxLayout();
+            row.add_child(new St.Widget({style_class:'familiarmac-dock-divider',
+                reactive:false, y_align:Clutter.ActorAlign.CENTER,
+                style:'width: 1px; height: 32px; margin: 0 8px; background-color: rgba(255,255,255,0.32);'}));
+            row.add_child(button);
+            const container=new St.Bin({child:row,style_class:'dash-item-container familiarmac-downloads-start'});
             const menu=new PopupMenu.PopupMenu(button,0.5,St.Side.BOTTOM);
             menu.actor.add_style_class_name('familiarmac-stack');Main.uiGroup.add_child(menu.actor);menu.actor.hide();
             const manager=new PopupMenu.PopupMenuManager(button);manager.addMenu(menu);

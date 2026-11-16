@@ -87,3 +87,7 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 - Do Not Disturb is functional and synchronized to GNOME notification banner settings.
 - Smaller session confirmation with question title and compact buttons. Native countdown presentation previously rounded to 10-second steps; now shows ceil(actual remaining seconds) every native timer tick. Timer deadline, cancel, inhibitors, PackageKit/update flow and restart actions are unchanged. No system restart was triggered for tests.
 - Native GNOME grid is retained: this does not yet reproduce Apple's grouped connectivity tile, media tile, or every macOS-specific submenu. Physical layout still needs post-login validation.
+
+### Visible dock separator and control-card geometry
+- Downloads now contains a dedicated noninteractive 1×32 logical-pixel divider actor before its button. It no longer depends on the dock's `.bottom` class or a theme-overridden container border. Divider is destroyed with the stack and does not add timers or input handlers.
+- Control Center card main/arrow halves now have complementary corners and matching enabled/disabled colors. Removed doubled padding and inherited fixed minimum widths; enlarged panel to 360 logical pixels for readable titles. Changes need the next login; physical appearance is not yet verified.
