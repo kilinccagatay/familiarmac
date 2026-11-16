@@ -37,3 +37,16 @@ watchdog();assert.equal(p.drag,null);assert.equal(p.dragWatch,0);
 p.event(ev(1,0));assert.equal(p.drag,null);
 p.event(ev(5,2));p.event(ev(2));assert.equal(p.drag,null);
 console.log('No input grab, lost release watchdog and normal release passed');
+// The right-aligned clock needs no mirrored notification spacer and must
+// retain date as the trailing item. Disabling restores the native structure.
+const pad={},indicator={},label={text:'',y_align:9,connect(){return 1},disconnect(){}};
+const clockChildren=[pad,label,indicator];
+const clockBox={get_children:()=>clockChildren.slice(),remove_child(a){clockChildren.splice(clockChildren.indexOf(a),1)},add_child(a){clockChildren.push(a)},set_child_at_index(a,i){clockChildren.splice(clockChildren.indexOf(a),1);clockChildren.splice(i,0,a)}};
+label.get_parent=()=>clockBox;
+ctx.Main.panel.statusArea.dateMenu={_indicator:indicator,_clockDisplay:label,_clock:{force_seconds:false,clock:'native'}};
+ctx.Gio={Settings:class{set_boolean(){}}};ctx.GLib={get_language_names_with_category:()=>['en'],DateTime:{new_now_local:()=>date}};
+ctx.Clutter.ActorAlign={CENTER:1};
+vm.runInNewContext('globalThis.PC=PanelClock',ctx);
+const pc=new ctx.PC();assert.deepEqual(clockChildren,[indicator,label]);assert.equal(label.y_align,1);
+pc.destroy();assert.deepEqual(clockChildren,[pad,label,indicator]);assert.equal(label.y_align,9);
+console.log('Clock spacer removal, leading notification icon and complete restoration PASS');

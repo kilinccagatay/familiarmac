@@ -197,3 +197,9 @@
 #panel .panel-button.clock-display .clock { padding: 0 6px !important; }
 #panel .panel-button.familiarmac-status { -natural-hpadding: 6px; -minimum-hpadding: 6px; }
 #panel .familiarmac-status .familiarmac-control-icon { margin-left: 0; padding: 2px; }
+
+/* Align the trailing date and notification glyph with other status items. */
+#panel .panel-button.clock-display .clock { font-size: 10pt; font-weight: normal; }
+#panel .panel-button.clock-display .fm-notification-indicator {
+  icon-size: 16px; padding: 0 2px; margin: 0; color: #ffffff; icon-shadow: none;
+}

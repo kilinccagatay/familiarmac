@@ -1,3 +1,4 @@
+import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -25,6 +26,16 @@ export class PanelClock {
         this.names = dateNameFormatters(GLib.get_language_names_with_category('LC_MESSAGES'));
         this.label = Main.panel.statusArea.dateMenu._clockDisplay;
         this.clock = Main.panel.statusArea.dateMenu._clock;
+        this.indicator = Main.panel.statusArea.dateMenu._indicator;
+        this.box = this.label.get_parent();
+        this.originalChildren = this.box.get_children();
+        // GNOME balances its centered clock with an invisible copy of the
+        // notification icon. A right-aligned clock needs no mirrored spacer.
+        this.spacer = this.originalChildren.find(a => a !== this.label && a !== this.indicator);
+        if (this.spacer) this.box.remove_child(this.spacer);
+        if (this.indicator) this.box.set_child_at_index(this.indicator, 0);
+        this.labelAlignment = this.label.y_align;
+        this.label.y_align = Clutter.ActorAlign.CENTER;
         // Keep seconds local to the panel: the global preference also controls
         // the lock-screen clock. Reuse the native ticker without another timer.
         new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_boolean('clock-show-seconds', false);
@@ -39,6 +50,9 @@ export class PanelClock {
     }
     destroy() {
         this.label.disconnect(this.signal);
+        this.label.y_align = this.labelAlignment;
+        if (this.spacer) this.box.add_child(this.spacer);
+        this.originalChildren.forEach((actor, index) => this.box.set_child_at_index(actor, index));
         this.clock.force_seconds = this.previousForceSeconds;
         this.label.text = this.clock.clock;
     }
