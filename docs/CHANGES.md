@@ -291,3 +291,8 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Battery Settings gets explicit button and label minimum heights and hover/focus text contrast to prevent a collapsed blank action row.
 - Unified sound, display and keyboard-brightness sliders within Control Center: darker empty track, light fill, outlined white handle, visible keyboard-focus border, 24px minimum height. Native value/drag handling and the empty-grid crash fix are unchanged.
 - Reference: [Apple's sound-menu screenshot](https://support.apple.com/de-de/105092) and [Control Center guidance](https://support.apple.com/guide/mac-help/quickly-change-settings-with-control-center-mchlc9d0e1f2/mac). These are visual adaptations to GNOME, not a claim of pixel-identical macOS rendering.
+
+### Blue slider fill preference
+
+- Following confirmation that the compact layout and Battery Settings label are fixed, changed the shared Control Center sound/display/keyboard slider fill to blue (`#0a84ff`) with the existing outlined white handle and gray empty track.
+- This is the requested visual preference, not a claim that every macOS version/panel uses a blue fill. Existing padding, input handling and crash fix are unchanged.

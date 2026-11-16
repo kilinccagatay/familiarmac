@@ -337,10 +337,10 @@
   min-height: 24px; color: #ffffff;
   -barlevel-height: 14px;
   -barlevel-background-color: #788995;
-  -barlevel-active-background-color: #f5f7f9;
+  -barlevel-active-background-color: #0a84ff;
   -barlevel-border-width: 1px;
   -barlevel-border-color: rgba(35,47,57,0.20);
-  -barlevel-active-border-color: rgba(35,47,57,0.20);
+  -barlevel-active-border-color: #0870db;
   -slider-handle-radius: 9px;
   -slider-handle-border-width: 1px;
   -slider-handle-border-color: #647580;
