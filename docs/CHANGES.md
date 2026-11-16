@@ -511,7 +511,7 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 
 - Make the inner Spotlight card participate in Clutter BinLayout expansion so its top alignment is honored. The 20% screen-height offset is no longer added to a vertically centered allocation; result growth preserves the top anchor.
 - Match result-card corners to the outer 24px radius and 8px inset (16px inner radius). Applies to calculator and all search results.
-- Layout setup, nested radii, calculator selection, outside-click dismissal and Super+Space toggle regression checks pass. Actual Shell placement requires verification after the updated module loads at the next login.
+- Layout setup, nested radii, calculator selection, outside-click dismissal and Super+Space toggle regression checks pass. Actual Shell placement was verified in the published desktop screenshots.
 
 ### Investigate idle Wayland session crash
 
@@ -531,3 +531,23 @@ Native keyboard-brightness detail menus use the same appearance palette, compact
 - Retain process start times across last-window removal to distinguish process exit from Shell window state and PID reuse. Coalesce repeated clicks, bound pending requests to 15 seconds, and remove timers/signals on disable. Never terminate a process or attempt to reverse its internal shutdown.
 - Regression tests cover immediate background activation, delayed exit, duplicate clicks, PID reuse, existing startup and cleanup. Live close-and-reopen behavior requires the updated extension in a new login.
 - User confirmed Spotlight opens and closes with Command+Space after the previous fix.
+
+### Native file drops onto Dock Trash
+
+A GTK3 Xwayland drop receiver accepts local `text/uri-list` file drags from file managers and other applications. It appears only during external file drags and follows the actual mapped Trash actor bounds every 100 ms while dragging; Dock growth and icon relocation do not use fixed coordinates. The desktop fallback remains unchanged. Files move through GIO Trash, never permanent deletion; completion sound runs only after all files succeed. The user confirmed file-manager drops and completion sound on GNOME 46. Requires GTK3/PyGObject and Xwayland.
+
+### Keyboard brightness detail
+
+Keyboard brightness now uses the same compact light/dark surface and blue slider with white handle as Sound. The native backlight slider (or discrete levels on supported hardware) is reused and restored when closed; hardware bindings are retained. The old nested Quick Settings submenu is not opened for this view. Automated lifecycle and detail-routing tests pass; the compact keyboard detail was also verified on the running desktop.
+
+### Explicit status-menu activation
+
+Right-panel status menus no longer switch on pointer hover or focus traversal. Clicking a different status button still uses GNOME's existing exclusive popup manager to close the previous menu and transfer the input grab. Outside-click dismissal and Escape remain native. Application-menu hover behavior is unchanged. Regression tests cover status/left-menu boundaries and conditional restoration on disable.
+
+Status-menu clicks now explicitly dispatch to the hit-tested live panel button before the old popup consumes the event. A single unmodified primary press or touch closes the old popup and activates the requested one; clicking its current source only closes it. Hover, off-panel input and Command-drag rearrangement are excluded. Coordinate bounds are read from the current actor on each press. Automated transfer tests pass; live verification is pending a new login.
+
+The MOVE-only cursor experiment was reverted after the user reported broken drops. Native Trash again accepts both COPY and MOVE negotiation, preserving compatibility with COPY-only sources; GIO still performs the actual trash operation and source-side deletion remains disabled. The final fix retains COPY/MOVE acceptance but explicitly responds MOVE to the bridge’s suggestion. The user confirmed the + badge is gone and both trashing and sound work.
+
+### Screenshot gallery update
+
+Added actual desktop captures of Spotlight application search, arithmetic results, the five-column Apps grid and dark Control Center. Both READMEs link to the bilingual gallery and show the calculator alongside the existing About illustration screenshot. No chat content appears in the new captures.

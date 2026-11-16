@@ -18,7 +18,9 @@ Actual screenshots from the MacBookPro10,1 running Zorin OS 18.1 and FamiliarMac
 
 ![FamiliarMac About page with MacBook illustration and native hardware information](docs/screenshots/about.png)
 
-[View the screenshot gallery](docs/SCREENSHOTS.md)
+![Spotlight calculator on the FamiliarMac desktop](docs/screenshots/spotlight-calculator.png)
+
+[View the screenshot gallery: About, Spotlight, applications and Control Center](docs/SCREENSHOTS.md)
 
 ## What it includes
 

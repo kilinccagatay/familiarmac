@@ -40,3 +40,5 @@ python3 tests/console-init.py
 python3 tests/desktop-extension.py
 
 python3 tests/video-firmware.py
+
+python3 tests/native-trash-target.py

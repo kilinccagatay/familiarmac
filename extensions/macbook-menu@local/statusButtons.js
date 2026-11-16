@@ -122,7 +122,8 @@ export class StatusButtons {
         const wireless = key === '_network' ? this.panel._network?._wirelessToggle : null;
         const customWifi = Boolean(wireless?.visible && this.owner.wifi);
         const customSound = key === '_volumeOutput' && Boolean(this.owner.sound?.native);
-        const selected = new Set(key === '_system' || customWifi || customSound ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
+        const customKeyboard = key === '_backlight' && Boolean(this.owner.keyboard?.native);
+        const selected = new Set(key === '_system' || customWifi || customSound || customKeyboard ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
         // GNOME 46 QuickSettingsLayout computes (rows.length - 1) * spacing.
         // Hiding every child produces a negative preferred height and a fatal
@@ -156,6 +157,7 @@ export class StatusButtons {
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
         menu.open();
+        if (customKeyboard) this.owner.keyboard.show();
         if (customSound) this.owner.sound.show();
         if (customWifi) this.owner.wifi.show();
         else if (wireless?.visible && wireless.menu) wireless.menu.open(BoxPointer.PopupAnimation.NONE);
@@ -165,6 +167,7 @@ export class StatusButtons {
     }
 
     restore() {
+        this.owner.keyboard?.hide();
         this.owner.sound?.hide();
         this.owner.wifi?.hide();
         for (const {item, signal, visible} of this.mask) {

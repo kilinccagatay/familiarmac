@@ -16,6 +16,8 @@ Zorin OS 18.1 ve FamiliarMac çalıştıran MacBookPro10,1 üzerinden alınan ge
 
 ![MacBook çizimi ve cihaz bilgileriyle FamiliarMac Hakkında sayfası](screenshots/about.png)
 
+![FamiliarMac Spotlight hesap makinesi](screenshots/spotlight-calculator.png)
+
 [Ekran görüntüsü galerisi](SCREENSHOTS.md)
 
 ## Mevcut destek

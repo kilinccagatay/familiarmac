@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 let pointer=[1,2],unexported=false,disconnected=0;
-const context={Clutter:{ModifierType:{BUTTON1_MASK:256}},Gio:{DBus:{session:{}},DBusExportedObject:{wrapJSObject:()=>({export(){},unexport(){unexported=true;}})}},global:{get_pointer:()=>pointer}};
+const context={NativeTrashTarget:class {destroy(){}},Clutter:{ModifierType:{BUTTON1_MASK:256}},Gio:{DBus:{session:{}},DBusExportedObject:{wrapJSObject:()=>({export(){},unexport(){unexported=true;}})}},global:{get_pointer:()=>pointer}};
 const code=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/trashDrop.js','utf8').replace(/^import .*;\n/gm,'').replace('export class','class');
 vm.runInNewContext(code+';globalThis.TrashDrop=TrashDrop;',context);
 const bridge=new context.TrashDrop();
@@ -12,6 +12,9 @@ pointer=[140,940];assert.equal(bridge.ConsumeDrop(),true); // Wayland: no Xdnd e
 pointer=[140,940,256];assert.equal(bridge.ConsumeDrop(),false);pointer=[140,940,0];
 trash.mapped=false;assert.equal(bridge.ConsumeDrop(),false);trash.mapped=true;
 pointer=[180,940];assert.equal(bridge.ConsumeDrop(),false); // outside exact icon bounds
+assert.deepEqual(Array.from(bridge.targetBounds()),[100,900,80,80]);
+trash.get_transformed_position=()=>[600,800];assert.deepEqual(Array.from(bridge.targetBounds()),[600,800,80,80]);
+trash.mapped=false;assert.equal(bridge.targetBounds(),null);trash.mapped=true;
 bridge.destroy();assert.equal(disconnected,1);assert.equal(unexported,true);assert.equal(dot.opacity,255);assert.equal(area.opacity,180);
 // Run the actual injected handler: cancellation must make no call; snapshot
 // excludes special icons, uses trash (never permanent delete), ignores errors.

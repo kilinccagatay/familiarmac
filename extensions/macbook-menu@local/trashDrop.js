@@ -1,3 +1,4 @@
+import {NativeTrashTarget} from './nativeTrashTarget.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 
@@ -7,6 +8,7 @@ import Gio from 'gi://Gio';
 export class TrashDrop {
     constructor() {
         this.icons = new Map();
+        this.native = new NativeTrashTarget(() => this.targetBounds());
         this.bus = Gio.DBusExportedObject.wrapJSObject(
             '<node><interface name="org.familiarmac.TrashDrop"><method name="ConsumeDrop"><arg type="b" direction="out"/></method></interface></node>', this);
         this.bus.export(Gio.DBus.session, '/org/familiarmac/TrashDrop');
@@ -21,6 +23,22 @@ export class TrashDrop {
         for (const actor of indicators) actor.opacity = 0;
         const signal = icon.connect('destroy', () => this.icons.delete(icon));
         this.icons.set(icon, {signal, opacity});
+    }
+    targetBounds() {
+        const [x, y] = global.get_pointer();
+        let nearest = null, distance = Infinity;
+        for (const icon of this.icons.keys()) {
+            if (!icon.mapped) continue;
+            const [left, top] = icon.get_transformed_position();
+            const [width, height] = icon.get_transformed_size();
+            if (![left, top, width, height].every(Number.isFinite) || width <= 0 || height <= 0) continue;
+            const d = Math.hypot(x - left - width / 2, y - top - height / 2);
+            if (d < distance) {
+                distance = d;
+                nearest = [Math.round(left), Math.round(top), Math.round(width), Math.round(height)];
+            }
+        }
+        return nearest;
     }
     ConsumeDrop() {
         const [x, y, modifiers] = global.get_pointer();
@@ -37,6 +55,7 @@ export class TrashDrop {
         return false;
     }
     destroy() {
+        this.native.destroy();
         this.bus.unexport();
         for (const [icon, {signal, opacity}] of this.icons) {
             icon.disconnect(signal);

@@ -235,6 +235,7 @@ for tray_schema in ('org.gnome.shell.extensions.zorin-appindicator', 'org.gnome.
         setting(tray_schema, 'icon-size', '20')
 
 # Install the separate Apple menu, including its own clean icon.
+write(Path.home()/'.local/share/familiarmac/trash-drop-target.py', (ROOT/'scripts/trash-drop-target.py').read_text())
 for f in (ROOT/'extensions/macbook-menu@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/macbook-menu@local'/f.name,f.read_text())
 s=setting('org.gnome.shell','enabled-extensions')

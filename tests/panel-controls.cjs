@@ -5,7 +5,7 @@ const root = __dirname + '/..';
 let source = fs.readFileSync(root+'/extensions/macbook-menu@local/controlCenter.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 const panelClasses=new Set(), menuClasses=new Set(); let added=0,destroyed=0;
 const panel={add_style_class_name:x=>panelClasses.add(x),remove_style_class_name:x=>panelClasses.delete(x),menu:{connect:()=>1,disconnect:()=>{},box:{add_style_class_name:x=>menuClasses.add(x),remove_style_class_name:x=>menuClasses.delete(x)}},_indicators:{add_child:()=>added++}};
-const ctx={SoundSurface:class{constructor(){this.actor={}}destroy(){}},WifiSurface:class{constructor(){this.actor={}}destroy(){}},BatterySurface:class{constructor(){this.actor={}}sync(){}destroy(){}},ControlSurface:class{constructor(){this.actor={}}syncMedia(){}destroy(){}},StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
+const ctx={KeyboardSurface:class{constructor(){this.actor={};this.native={}}destroy(){}},SoundSurface:class{constructor(){this.actor={}}destroy(){}},WifiSurface:class{constructor(){this.actor={}}destroy(){}},BatterySurface:class{constructor(){this.actor={}}sync(){}destroy(){}},ControlSurface:class{constructor(){this.actor={}}syncMedia(){}destroy(){}},StatusButtons:class{destroy(){}},Main:{panel:{statusArea:{quickSettings:panel}}},Gio:{File:{new_for_path:x=>x},FileIcon:class{}},St:{Icon:class{destroy(){destroyed++}}}};
 vm.runInNewContext(source+'\nglobalThis.C=ControlCenter;',ctx);
 const c=new ctx.C('/tmp');assert.equal(added,1);assert.equal(menuClasses.size,1);c.destroy();c.destroy();assert.equal(destroyed,1);assert.equal(menuClasses.size,0);assert.equal(panelClasses.size,0);
 ctx.Main.panel.statusArea.quickSettings=null;new ctx.C('/tmp').destroy();
@@ -28,6 +28,7 @@ ctx.QuickSettings={QuickToggle:class{constructor(){Object.assign(this,actor('foc
 const cc=new ctx.C('/tmp');cc.arrange();cc.arrange();assert.equal(children.filter(x=>x.name==='focus').length,1);
 assert.ok(children.indexOf(hardware._network.quickSettingsItems[0])<children.indexOf(hardware._brightness.quickSettingsItems[0]));
 assert.equal(children.at(-1),hardware._system.quickSettingsItems[0]);cc.focus.checked=true;cc.focus.click();assert.equal(banners,false);
+cc.detail='_backlight';cc.syncSurface();assert.equal(cc.keyboard.actor.visible,true);assert.equal(grid.visible,false);
 cc.destroy();assert.deepEqual(children,before);
 
 // Shared hardware popup must follow every individual button and restore its
@@ -50,3 +51,8 @@ for(const key of ['_network','_bluetooth','_volumeOutput','_system']){
  assert.equal(item.meta.column_span,1);assert.equal(detailMenu._arrowAlignment,0);
 }
 console.log('All hardware detail anchors, focus targets and grid spans restore correctly');
+
+let keyboardOpened=0;sm.owner.keyboard={native:{},show(){keyboardOpened++},hide(){}};
+sm.panel._backlight={quickSettingsItems:[item]};
+sm.open('_backlight',{add_style_pseudo_class(){},remove_style_pseudo_class(){}});
+assert.equal(keyboardOpened,1);assert.equal(sm.mask.length,0);assert.equal(item.meta.column_span,1);detailMenu.close();
