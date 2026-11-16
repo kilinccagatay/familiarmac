@@ -104,3 +104,6 @@ Separate right-click sections mirror the supplied reference: Sort by, Display as
 
 ### Localized panel date names
 - Removed fixed English weekday/month tables. GLib now supplies abbreviated names using the session's LC_TIME locale, matching system regional date settings. Order remains weekday, day number, abbreviated month, 24-hour time with seconds. No locale or timezone settings are changed.
+
+### Date names follow the interface language
+- Corrected the preceding locale change: weekday/month names now use GLib's LC_MESSAGES language preference list and cached Intl formatters, not LC_TIME/region. Fixed field order and 24-hour seconds remain unchanged. English UI with Turkish date-region settings produces `Mon 16 Nov 10:50:30`; Turkish UI produces `Pzt 16 Kas 10:50:30`. Tests cover both and the C-locale fallback.

@@ -2,12 +2,27 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-export function formatPanelDate(date) {
-    // GLib resolves abbreviated names through the session's LC_TIME locale.
-    return `${date.format('%a')} ${date.get_day_of_month()} ${date.format('%b')} ${date.format('%H:%M:%S')}`;
+export function dateNameFormatters(languages) {
+    for (const language of languages) {
+        const locale = /^(C|POSIX)(\.|$)/.test(language) ? 'en' : language.split(/[.@]/)[0].replace(/_/g, '-');
+        try {
+            if (!Intl.DateTimeFormat.supportedLocalesOf([locale]).length) continue;
+            return {
+                day: new Intl.DateTimeFormat(locale, {weekday: 'short', timeZone: 'UTC'}),
+                month: new Intl.DateTimeFormat(locale, {month: 'short', timeZone: 'UTC'}),
+            };
+        } catch (_) { /* Try the next UI language fallback. */ }
+    }
+    return dateNameFormatters(['en']);
+}
+export function formatPanelDate(date, names) {
+    // Names follow the message/UI language, never the regional LC_TIME setting.
+    const day = new Date(Date.UTC(date.get_year(), date.get_month() - 1, date.get_day_of_month()));
+    return `${names.day.format(day)} ${date.get_day_of_month()} ${names.month.format(day)} ${date.format('%H:%M:%S')}`;
 }
 export class PanelClock {
     constructor() {
+        this.names = dateNameFormatters(GLib.get_language_names_with_category('LC_MESSAGES'));
         this.label = Main.panel.statusArea.dateMenu._clockDisplay;
         this.clock = Main.panel.statusArea.dateMenu._clock;
         // Reuse GNOME's wall-clock tick and timezone updates, not another timer.
@@ -16,7 +31,7 @@ export class PanelClock {
         this.update();
     }
     update() {
-        const value = formatPanelDate(GLib.DateTime.new_now_local());
+        const value = formatPanelDate(GLib.DateTime.new_now_local(), this.names);
         if (this.label.text !== value) this.label.text = value;
     }
     destroy() {
