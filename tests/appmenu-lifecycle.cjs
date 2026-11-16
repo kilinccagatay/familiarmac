@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {execFileSync} = require('node:child_process');
 const archive = __dirname + '/../vendor/appmenu-5.7.1.tar.gz';
-let source = execFileSync('tar', ['-xOf', archive, './realMenuManager.js'], {encoding:'utf8'});
+let source = require('node:fs').readFileSync(__dirname + '/../overrides/appmenu/realMenuManager.js', 'utf8');
 source = source.replace(/^import .*;$/gm, '').replace('export class RealMenuManager', 'class RealMenuManager');
 source += '\nglobalThis.Manager = RealMenuManager;';
 const subscriptions = new Map(); let next = 0;

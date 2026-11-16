@@ -344,3 +344,10 @@ The user confirmed boot corruption persisted with `fbcon=nodefer` active; record
 - Firefox Flatpak native menus now get required libraries, the registrar permission, XWayland and a managed preference block. System-style titlebar replaces Firefox's own window-control layout. Original profile content and launcher/permission backups retained.
 - Verified actual Firefox File/Edit/View/History/Bookmarks/Tools/Help export in an isolated profile; user confirmed the result. Shared service also applies the existing native Brave adapter. Unsupported apps remain unchanged rather than receiving fake menus or indiscriminate flags.
 - Wired the integration installer into desktop setup and documented scope, updates and rollback in APP-INTEGRATIONS.md.
+
+## Toolkit-wide application integration
+
+- Add native GTK module installation, real GMenu/GAction reader and capability-based Qt Flatpak preparation.
+- Watch system/user app installations with input fingerprinting, no resident polling or repeated self-write loop.
+- Include fresh Firefox profile preparation, dependency preflight, shared installer and guarded rollback.
+- Verify a newly installed Mousepad export and existing VLC native menus; document unsupported custom UI honestly.

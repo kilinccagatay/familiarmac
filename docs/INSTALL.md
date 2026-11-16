@@ -19,7 +19,7 @@ Install Git from the distro if needed (`sudo apt install git`), clone this repos
 ./install.sh --full
 ```
 
-Full mode installs distro dependencies, builds pinned keyd, installs the hardware profile, WhiteSur theme/icons, boot resources, GDM styling/layout, user settings, Shell extensions and the rounding override. It preserves existing touchpad preferences unless explicitly requested. It does not repair Wi-Fi or install/patch applications automatically.
+Full mode installs distro dependencies, builds pinned keyd, installs the hardware profile, WhiteSur theme/icons, boot resources, GDM styling/layout, user settings, Shell extensions and the rounding override. It preserves existing touchpad preferences unless explicitly requested. It does not repair Wi-Fi or install applications automatically. It does configure supported installed applications through the shared menu adapters and watches later application installations; see [application integration](APP-INTEGRATIONS.md).
 
 System dependencies come from your configured distro repositories: build-essential, Python GI, nodejs, gjs, Dbusmenu GI, GLib tools, sassc, XML tools, gnome-screenshot, xclip, desktop-file-utils and unzip. Initial network access is needed. All upstream theme/extension source archives used by the installer are included and checksummed.
 

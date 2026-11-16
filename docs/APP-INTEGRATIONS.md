@@ -8,8 +8,8 @@ Also included in the desktop installer. Dependencies are in bootstrap.sh.
 The registry config/app-integrations.json selects explicit adapters. A user
 systemd path unit watches native and Flatpak application export directories;
 login also refreshes installed integrations. No polling or resident Python.
-Our own launcher output directory is deliberately not watched, avoiding loops.
-Unknown applications are left untouched. Native menu exporters are consumed by
+System and user launcher directories are watched. A fingerprint excludes generated launchers and skips unchanged inputs, preventing self-triggered write loops.
+Toolkit capabilities are detected in addition to the explicit registry. Unknown/custom UI applications are left untouched. Native menu exporters are consumed by
 the existing registrar automatically; unsupported applications need a tested
 adapter or upstream menu-export support. This is not universal menu emulation.
 
@@ -20,8 +20,7 @@ adapter or upstream menu-export support. This is not universal menu emulation.
   to com.canonical.AppMenu.Registrar, and use X11/XWayland for this GNOME menu
   bridge. browser.tabs.inTitlebar=0 selects the system-style titlebar. Profile
   user.js gets a marked block; other preferences remain. The launcher refreshes
-  profiles and libraries on each launch. New profiles receive settings on the
-  next launch after they are listed in profiles.ini.
+  profiles and libraries on each launch. An empty first installation gets an initial profile before first launch. Additional profiles receive settings on the next launch after they are listed in profiles.ini.
 - Native Brave: preserve the existing X11 native-menu launcher adapter.
 
 Installation/update events reapply these supported profiles. Vendor files and
@@ -57,3 +56,40 @@ Sources:
 - https://bugzilla.mozilla.org/show_bug.cgi?id=1419151
 - https://github.com/mozilla-firefox/firefox/blob/main/widget/gtk/NativeMenuGtk.cpp
 - https://github.com/mozilla-firefox/firefox/blob/main/widget/gtk/DBusMenu.cpp
+
+
+## Shared toolkit support and limits
+
+- Native GTK2/3: distro appmenu modules plus GNOME XSettings; the module is loaded on new processes. Existing processes are not killed. The session service preserves existing GTK modules.
+- GTK GMenu: Shell reads the focused window's exported menu and action paths. Labels, sections, targets, toggle state and disabled actions come from the app. Dynamic updates are coalesced; no menu polling. Signal subscriptions are disconnected on focus/backend changes. A compatibility copy of the same top-level menu is suppressed.
+- Qt Flatpaks: detect KDE runtime or bundled Qt Widgets/XCB support. Per-app overrides grant only the menu registrar D-Bus name and select X11/XWayland. Original overrides are backed up. Presence of Qt libraries is not proof an application actually exposes a menubar (Qt Quick and custom UI may not).
+- Shared window decorations apply to server-decorated windows. Firefox's adapter requests those decorations explicitly. Arbitrary custom CSD, GTK4/Adwaita, Electron, Java and sandboxed GTK apps cannot all be restyled or made to export menus by one setting. Unsupported apps keep their own controls; no fake success claim or universal binary patch.
+
+The local inventory is `~/.local/state/familiarmac/toolkits/applications.json`.
+It distinguishes prepared toolkit access from a verified exported menu. On this machine the scan found 97 visible launchers: 36 Flatpaks (10 Qt candidates, Firefox, 25 without a verified adapter), and 61 other desktop launchers. These are detection counts, not 97 verified menus.
+
+New-install verification: Mousepad was installed from the distro after the watcher was running. Its desktop-file event automatically ran preparation (inventory 96 → 97); no Mousepad-specific adapter was added. The new GMenu reader read File/Edit/Search/View/Document/Help and their actual actions from the running app. A session restart is required to load that new Shell module. VLC's live D-Bus menu exported Media/Playback/Audio/Video/Subtitle/Tools/View/Help, and the user confirmed it appeared in the panel.
+
+`tests/gtk-menu-model.js` exports a real GMenu/GAction fixture on an isolated session bus, verifies target-bearing actions, disabled-state updates, deduplication, stable subscriptions and cleanup. No user applications are altered by this test.
+
+### Fresh systems and recovery
+
+The supported complete desktop baseline remains Zorin 18.x / GNOME 46 Wayland. A new install on that baseline runs bootstrap (including GTK menu modules), installs the Shell GMenu reader, configures current apps and enables future-install watchers. Other Linux desktop/Shell versions require a tested port; this is not a claim of distribution-independent compatibility.
+
+To rerun detection deliberately:
+
+    python3 ~/.local/lib/familiarmac/app-integrations.py --force
+
+To restore shared toolkit/Firefox integration and stop watchers:
+
+    python3 scripts/install-app-integrations.py --restore
+
+The public restore.sh also invokes that path. Toolkit overrides are restored only if their current content still matches the managed version. Backups are kept. Distro packages and personal Firefox profiles are not deleted. Brave launcher restore remains its separate reverse-layered step.
+
+Additional sources (runtime dependencies are distro-provided, not copied into this repository):
+- https://docs.gtk.org/gio/class.DBusMenuModel.html
+- https://docs.gtk.org/gio/class.DBusActionGroup.html
+- https://gitlab.com/vala-panel-project/vala-panel-appmenu
+- https://docs.flatpak.org/en/latest/sandbox-permissions.html
+
+The overridden realMenuManager.js derives from the pinned AppMenu source in vendor/appmenu-5.7.1.tar.gz; its upstream license/source attribution in THIRD_PARTY.md continues to apply.

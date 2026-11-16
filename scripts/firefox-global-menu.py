@@ -16,7 +16,13 @@ def refresh():
         src=Path('/usr/lib')/subprocess.check_output(['gcc','-dumpmachine'],text=True).strip()/name
         dst=lib/name
         if not dst.exists() or dst.read_bytes()!=src.read_bytes(): shutil.copy2(src,dst)
-    for parent in (base/'mozilla/firefox', HOME/'.var/app'/APP/'.mozilla/firefox'):
+    # Seed only a genuinely empty first installation, never replace an existing profile.
+    parents = (base/'mozilla/firefox', HOME/'.var/app'/APP/'.mozilla/firefox')
+    if not any((p/'profiles.ini').exists() or (p.exists() and any(p.iterdir())) for p in parents):
+        parent = parents[0]
+        (parent/'familiarmac.default').mkdir(parents=True, exist_ok=True)
+        (parent/'profiles.ini').write_text('[General]\nStartWithLastProfile=1\nVersion=2\n\n[Profile0]\nName=default\nIsRelative=1\nPath=familiarmac.default\nDefault=1\n')
+    for parent in parents:
         ini=parent/'profiles.ini'
         if not ini.exists(): continue
         cfg=configparser.ConfigParser();cfg.read(ini)
@@ -31,7 +37,8 @@ def refresh():
             state.mkdir(parents=True,exist_ok=True)
             backup=state/(p.name+'.user.js.before')
             if not backup.exists(): backup.write_text(old)
-            dest.write_text(clean.rstrip()+'\n'+marker+'\nuser_pref("widget.gtk.global-menu.enabled", true);\nuser_pref("browser.tabs.inTitlebar", 0);\n'+end+'\n')
+            text=clean.rstrip()+'\n'+marker+'\nuser_pref("widget.gtk.global-menu.enabled", true);\nuser_pref("browser.tabs.inTitlebar", 0);\n'+end+'\n'
+            if text != old: dest.write_text(text)
 if '--restore' in sys.argv:
     pairs=[(HOME/'.local/share/flatpak/overrides'/APP,'override'),(HOME/'.local/share/applications'/(APP+'.desktop'),'desktop')]
     for dest,name in pairs:
@@ -50,7 +57,7 @@ if '--restore' in sys.argv:
     sys.exit()
 if '--refresh' in sys.argv:
     refresh();sys.exit()
-if subprocess.run(['flatpak','info',APP],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode:
+if not shutil.which('flatpak') or subprocess.run(['flatpak','info',APP],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode:
     print('Firefox Flatpak not installed; no changes.');sys.exit()
 state.mkdir(parents=True,exist_ok=True)
 refresh()

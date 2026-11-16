@@ -22,6 +22,8 @@ if not version.startswith('GNOME Shell 46.'):errors.append('Supported Shell: GNO
 if os.environ.get('XDG_SESSION_TYPE')!='wayland':errors.append('Supported session: Wayland')
 if args.require=='full' and model!='MacBookPro10,1':errors.append('Full hardware profile only supports MacBookPro10,1')
 if args.require=='desktop':
+    if not list(Path('/usr/lib').glob('*/gtk-3.0/modules/libappmenu-gtk-module.so')):
+        errors.append('Missing GTK menu module: sudo bash scripts/bootstrap.sh')
     if missing:errors.append('Install missing dependencies: sudo bash scripts/bootstrap.sh')
     if not Path('/usr/share/themes/MacBook-WhiteSur-Dark').is_dir():errors.append('Desktop-only needs WhiteSur installed by a previous full install; see docs/INSTALL.md')
 for e in errors:print('CHECK:',e)

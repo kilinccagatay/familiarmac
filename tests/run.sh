@@ -26,3 +26,6 @@ git diff --check
 python3 tests/brightness.py
 
 python3 tests/lean-initramfs.py
+
+GIO_USE_VFS=local dbus-run-session -- gjs -m tests/gtk-menu-model.js
+python3 tests/app-integrations.py
