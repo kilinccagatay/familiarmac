@@ -40,7 +40,12 @@ def bounds(pix):
     if not points:return None
     return min(x for x,y in points),min(y for x,y in points),max(x for x,y in points)+1,max(y for x,y in points)+1
 for desktop in Gio.Settings.new('org.gnome.shell').get_strv('favorite-apps'):
-    app=Gio.DesktopAppInfo.new(desktop)
+    # Fresh installations may retain favorite IDs for optional/uninstalled apps.
+    # PyGObject raises TypeError for a missing DesktopAppInfo instead of None.
+    try:
+        app=Gio.DesktopAppInfo.new(desktop)
+    except TypeError:
+        continue
     if not app or not isinstance(app.get_icon(),Gio.ThemedIcon):continue
     name=app.get_icon().get_names()[0]
     if '/' in name:continue

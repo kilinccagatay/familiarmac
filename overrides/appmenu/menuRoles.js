@@ -38,3 +38,10 @@ export function isApplicationWindowType(type) {
     // Meta.WindowType NORMAL, DIALOG, MODAL_DIALOG, UTILITY; never desktop/dock.
     return [0, 3, 4, 7].includes(type);
 }
+
+// Preserve non-menu actors (including hidden Activities) in their exact slots.
+export function orderedMenuActors(children, menus) {
+    const present = menus.filter(actor => children.includes(actor));
+    let index = 0;
+    return children.map(actor => present.includes(actor) ? present[index++] : actor);
+}

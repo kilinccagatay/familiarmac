@@ -28,6 +28,7 @@ python3 tests/native-electron-menus.py
 python3 tests/responsive-scrolling.py
 python3 tests/wsf-installer.py
 python3 tests/installer-plan.py
+python3 tests/desktop-layout.py
 git diff --check
 
 python3 tests/brightness.py

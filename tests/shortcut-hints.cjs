@@ -8,4 +8,7 @@ assert.equal(c.shortcutHint('Ctrl+H','firefox.desktop'),'⌃H');
 assert.equal(c.itemShortcut({label:'Settings'}),'');
 assert.equal(c.itemShortcut({shortcut:'Ctrl+Y',action:'redo'}),'⌘Y');
 assert.equal(c.itemShortcut({action:'redo'}),'');
+assert.equal(c.shortcutHint('<Control>n','editor.desktop',false),'⌃N');
+assert.equal(c.shortcutHint('<Control><Shift>c','org.gnome.Terminal.desktop',false),'⌃⇧C');
+assert.equal(c.itemShortcut({shortcut:'Ctrl+Y'},'editor.desktop',false),'⌃Y');
 console.log('Application shortcut hints: native precedence, Terminal exceptions, no label guesses PASS');

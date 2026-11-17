@@ -1,6 +1,6 @@
 // Display actual exported accelerators in Apple notation. Account for FamiliarMac's
 // keyd translations; never assign a shortcut merely by matching a translated label.
-export function shortcutHint(shortcut, appId = '') {
+export function shortcutHint(shortcut, appId = '', mappedKeyboard = true) {
     if (!shortcut) return '';
     if (/[⌘⌥⇧⌃]/.test(shortcut)) return shortcut;
     const parts = Array.isArray(shortcut) ? shortcut : shortcut.replace(/<([^>]+)>/g, '$1+').split('+');
@@ -15,9 +15,9 @@ export function shortcutHint(shortcut, appId = '') {
     if (!key) return '';
     const terminal = /terminal|console|kitty/i.test(appId);
     const terminalKeys = /kitty/i.test(appId) ? /^[cvt]$/ : /console/i.test(appId) ? /^[cvtnw]$/ : /^[cvtnwf]$/;
-    if (terminal && mods.has('ctrl') && mods.has('shift') && terminalKeys.test(key)) {
+    if (mappedKeyboard && terminal && mods.has('ctrl') && mods.has('shift') && terminalKeys.test(key)) {
         mods.delete('ctrl'); mods.delete('shift'); mods.add('cmd');
-    } else if (mods.has('ctrl') && !terminal && !['h','m','left','right','up','down','backspace'].includes(key)) {
+    } else if (mappedKeyboard && mods.has('ctrl') && !terminal && !['h','m','left','right','up','down','backspace'].includes(key)) {
         mods.delete('ctrl'); mods.add('cmd');
     }
     const keys = {escape:'⎋',esc:'⎋',return:'↩',enter:'↩',backspace:'⌫',delete:'⌦',space:'Space',tab:'⇥',left:'←',right:'→',up:'↑',down:'↓',comma:',',period:'.',plus:'+',minus:'-'};
@@ -25,10 +25,10 @@ export function shortcutHint(shortcut, appId = '') {
         (mods.has('cmd')||mods.has('super')?'⌘':'')+(keys[key] ?? key.toUpperCase());
 }
 
-export function itemShortcut(item, appId = '') {
-    if (item.shortcut) return shortcutHint(item.shortcut, appId);
+export function itemShortcut(item, appId = '', mappedKeyboard = true) {
+    if (item.shortcut) return shortcutHint(item.shortcut, appId, mappedKeyboard);
     if (item.action?.startsWith('custom-shortcut:'))
-        return shortcutHint(item.action.slice('custom-shortcut:'.length), appId);
+        return shortcutHint(item.action.slice('custom-shortcut:'.length), appId, mappedKeyboard);
     // Only existing dispatcher/keyd pairs with matching behavior.
     const common = {copy:'⌘C',paste:'⌘V',cut:'⌘X',undo:'⌘Z','select-all':'⌘A',
         'new-tab':'⌘T',print:'⌘P',find:'⌘F',minimize:'⌘M','hide-app':'⌘H',

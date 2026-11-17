@@ -13,6 +13,7 @@ import subprocess
 import gi
 gi.require_version('Gio', '2.0')
 from gi.repository import Gio, GLib
+from desktop_layout import select_extensions
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get('XDG_STATE_HOME', Path.home()/'.local/state'))/'macbook-zorin'
@@ -224,6 +225,12 @@ for key, value in {
     'show-workspace-indicator': 'false', 'search-shortcut': "['<Super>space']",
     'use-real-menus': 'true', 'prefer-macos-style': 'false',
 }.items(): setting('org.gnome.shell.extensions.appmenu', key, value)
+# The upstream preset treats Nautilus as the desktop. Our exported menu reader
+# handles its real windows; retain an explicitly customized user blacklist.
+menu_settings = setting('org.gnome.shell.extensions.appmenu', 'app-blacklist')
+if menu_settings.get_user_value('app-blacklist') is None:
+    menu_settings.set_strv('app-blacklist', [x for x in menu_settings.get_strv('app-blacklist')
+                                           if x.lower() != 'org.gnome.nautilus'])
 registrar = Path.home()/'.local/bin/macbook-appmenu-registrar.py'
 write(registrar, (ROOT/'scripts/appmenu-registrar.py').read_text())
 write(Path.home()/'.config/autostart/macbook-appmenu-registrar.desktop',
@@ -243,11 +250,11 @@ for f in (ROOT/'extensions/familiarmac-panel-layout@local').iterdir():
 for f in (ROOT/'extensions/familiarmac-lock@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/familiarmac-lock@local'/f.name,f.read_text())
 s=setting('org.gnome.shell','enabled-extensions')
-extensions=s.get_strv('enabled-extensions')
-extensions=[x for x in extensions if x not in ('zorin-menu@zorinos.com', 'x11gestures@joseexposito.github.io')]
-for required in ['appmenu@ChathurangaBW.github.io','compiz-alike-magic-lamp-effect@hermes83.github.com','touchpad-gesture-customization@coooolapps.com','macbook-menu@local','familiarmac-panel-layout@local','familiarmac-lock@local','keyd@keyd.rvaiya.github.com','user-theme@gnome-shell-extensions.gcampax.github.com']:
-    if required not in extensions: extensions.append(required)
+disabled=setting('org.gnome.shell','disabled-extensions')
+extensions, blocked = select_extensions(s.get_strv('enabled-extensions'),
+    disabled.get_strv('disabled-extensions'), bool(shutil.which('keyd-application-mapper')))
+disabled.set_strv('disabled-extensions', blocked)
 s.set_strv('enabled-extensions',extensions)
 subprocess.run(['/usr/bin/python3', str(ROOT/'scripts/install-app-integrations.py')], check=True)
 Gio.Settings.sync()
-print(f'Masaüstü uygulandı. Yedek: {SAVE}. keyd entegrasyonu için oturumu yeniden açın.')
+print(f'Masaüstü uygulandı. Yedek: {SAVE}. Yeni eklentiler için oturumu yeniden açın.')

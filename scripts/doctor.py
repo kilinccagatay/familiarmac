@@ -24,6 +24,8 @@ if not version.startswith('GNOME Shell 46.'):errors.append('Supported Shell: GNO
 if os.environ.get('XDG_SESSION_TYPE')!='wayland':errors.append('Supported session: Wayland')
 if args.require=='full' and model!='MacBookPro10,1':errors.append('Full hardware profile only supports MacBookPro10,1')
 if args.require=='desktop':
+    if not Path('/usr/share/gnome-shell/extensions/zorin-dash@zorinos.com/metadata.json').is_file():
+        errors.append('Zorin Dock missing: run ./install.sh --prepare-desktop first')
     if not list(Path('/usr/lib').glob('*/gtk-3.0/modules/libappmenu-gtk-module.so')):
         errors.append('Missing GTK menu module: sudo bash scripts/bootstrap.sh')
     if missing:errors.append('Install missing dependencies: sudo bash scripts/bootstrap.sh')

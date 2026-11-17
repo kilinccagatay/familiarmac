@@ -8,6 +8,13 @@ assert(!has([{label:'Window Layout'}]));
 assert(!has([{label:'File'},{}]));
 assert(!has([]));
 console.log('Shared native Window/Windows detection, mnemonics and translated labels PASS');
+const order = new Function(source+';return orderedMenuActors;')();
+const apple={}, hidden={}, appActor={}, file={}, edit={}, help={};
+const wanted=[appActor,file,edit,help];
+assert.deepEqual(order([apple,appActor,edit,hidden,help,file],wanted),[apple,appActor,file,hidden,edit,help]);
+assert.deepEqual(order([apple,appActor,hidden,file],wanted),[apple,appActor,hidden,file]);
+assert.deepEqual(order([apple,appActor,file,hidden,edit,help],wanted),[apple,appActor,file,hidden,edit,help]);
+console.log('Menu growth/reordering retains unrelated and hidden panel actor slots PASS');
 
 const display = new Function(source+';return panelAppName;')();
 assert.equal(display('GNU Image Manipulation Program','gimp.desktop'), 'GIMP');

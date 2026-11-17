@@ -1,5 +1,5 @@
 import {PortalOwners} from './portalOwners.js';
-import {hasWindowMenu, panelAppName, menuWindowIdentity, isApplicationWindowType} from './menuRoles.js';
+import {hasWindowMenu, panelAppName, menuWindowIdentity, isApplicationWindowType, orderedMenuActors} from './menuRoles.js';
 import {itemShortcut} from './shortcutHints.js';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
@@ -300,7 +300,8 @@ const TopLevelMenuButton = GObject.registerClass(
           parentMenu.addMenuItem(recentSubmenu);
         } else {
           const menuItem = new PopupMenu.PopupMenuItem(item.label);
-          const hint = itemShortcut(item, this._appInstance?.get_id?.() ?? "");
+          const hint = itemShortcut(item, this._appInstance?.get_id?.() ?? "",
+              Boolean(GLib.find_program_in_path('keyd-application-mapper')));
           if (hint) {
             menuItem.label.x_expand = true;
             menuItem.add_child(new St.Label({text: hint,
@@ -772,6 +773,17 @@ export class MenuManager {
             const extra = this._buttons.pop();
             try { extra.destroy(); } catch (_e) {}
         }
+
+        // addToStatusArea's insertion offsets include hidden/non-menu actors.
+        // Growing a previously short menu can otherwise leave File after Help.
+        // Reconcile only our occupied slots, preserving every unrelated actor.
+        const box = Main.panel._leftBox;
+        const actors = this._buttons.map(button => button.container)
+            .filter(actor => actor.get_parent() === box);
+        orderedMenuActors(box.get_children(), actors).forEach((actor, index) => {
+            if (box.get_child_at_index(index) !== actor)
+                box.set_child_at_index(actor, index);
+        });
 
         // Update OS icon visibility
         if (this._buttons.length > 0 && !this._buttons[0]._destroyed) {
