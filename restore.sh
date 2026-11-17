@@ -3,6 +3,14 @@
 set -euo pipefail
 cd -- "$(dirname -- "$0")"
 [[ $EUID != 0 ]] || { echo 'Run as your desktop user, without sudo.'; exit 1; }
+case ${1:-} in
+  ''|--all|--system-appearance|--system) ;;
+  *) echo 'Usage: ./restore.sh [--all | --system-appearance | --system]' >&2; exit 2;;
+esac
+if [[ ${1:-} == --system-appearance || ${1:-} == --all ]]; then
+  sudo bash scripts/install-system-appearance.sh --restore
+  if [[ ${1:-} != --all ]]; then exit 0; fi
+fi
 state="${XDG_STATE_HOME:-$HOME/.local/state}/macbook-zorin"
 if [[ -f "$HOME/.config/systemd/user/familiarmac-app-integrations.service" ]]; then python3 scripts/install-app-integrations.py --restore; fi
 if [[ -f "$state/trash-drop.json" ]]; then python3 scripts/install-trash-drop.py --restore; fi

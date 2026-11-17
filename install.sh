@@ -5,10 +5,12 @@ cd -- "$(dirname -- "$0")"
 mode=check; dry=0; input=0; scroll=0; smooth=0; brave=0; chatgpt=0; wifi=0; brightness=0
 usage() {
   cat <<'EOF'
-Usage: ./install.sh [--check | --prepare-desktop | --desktop | --full] [options]
+Usage: ./install.sh [--all | --check | --prepare-desktop | --desktop | --system-appearance | --full] [options]
+  --all            Complete portable setup: dependencies, desktop, apps, boot/login
   --check          Read-only compatibility and dependency report (default)
   --prepare-desktop Install dependencies and shared themes only; no hardware profile
   --desktop        GNOME user profile + extensions + window rounding
+  --system-appearance Opt-in boot splash and GDM only; no hardware settings
   --full           Above + WhiteSur, keyd, boot, GDM (MacBookPro10,1 only)
   --input-preset   Opt into initial reference touchpad/gesture preferences
   --scroll         Pinned WSF 25% touchpad scaling + responsive app scrolling
@@ -22,27 +24,45 @@ Usage: ./install.sh [--check | --prepare-desktop | --desktop | --full] [options]
 See docs/INSTALL.md before using --full. No automatic logout/reboot.
 EOF
 }
+selected_mode=
+select_mode() {
+  [[ -z $selected_mode || $selected_mode == "$1" ]] || { echo 'Choose only one installation mode.' >&2; exit 2; }
+  selected_mode=$1; mode=$1
+}
 for arg in "$@"; do
   case "$arg" in
-    --check) mode=check;; --prepare-desktop) mode=prepare;; --desktop) mode=desktop;; --full) mode=full;;
+    --all) select_mode all;; --check) select_mode check;; --prepare-desktop) select_mode prepare;; --desktop) select_mode desktop;; --full) select_mode full;; --system-appearance) select_mode appearance;;
     --dry-run) dry=1;; --input-preset) input=1;; --scroll) scroll=1;;
     --brightness) brightness=1;; --smooth) smooth=1;; --brave) brave=1;; --chatgpt) chatgpt=1;; --wifi) wifi=1;;
     --help|-h) usage; exit;; *) echo "Unknown option: $arg" >&2; usage; exit 2;;
   esac
 done
+if [[ $mode == all && $input$scroll$brightness$chatgpt$wifi != 00000 ]]; then
+  echo '--all excludes reference input/scaling, gmux, binary patches and Wi-Fi repairs; use the separately documented options deliberately.' >&2
+  exit 2
+fi
 if [[ $mode == check ]]; then python3 scripts/doctor.py; exit; fi
 [[ $EUID != 0 ]] || { echo 'Run as your desktop user, without sudo.' >&2; exit 1; }
 [[ $mode == full || $chatgpt$wifi == 00 ]] || { echo '--chatgpt/--wifi require --full.' >&2; exit 2; }
 run() { printf ' +'; printf ' %q' "$@"; printf '\n'; if [[ $dry == 0 ]]; then "$@"; fi; }
+if [[ $mode == appearance ]]; then
+  run sudo bash scripts/install-system-appearance.sh
+  exit 0
+fi
 if [[ $dry == 0 ]]; then
-  python3 scripts/doctor.py --require "$mode"
+  preflight=$mode
+  [[ $mode != all ]] || preflight=prepare
+  python3 scripts/doctor.py --require "$preflight"
   sha256sum --check vendor/SHA256SUMS
 fi
-if [[ $mode == prepare ]]; then
+if [[ $mode == prepare || $mode == all ]]; then
   run sudo bash scripts/bootstrap.sh
   run sudo bash scripts/install-desktop-themes.sh
-  echo 'Preparation complete. Next: ./install.sh --desktop'
-  exit 0
+  if [[ $mode == prepare ]]; then
+    echo 'Preparation complete. Next: ./install.sh --desktop'
+    exit 0
+  fi
+  run python3 scripts/doctor.py --require desktop
 fi
 if [[ $mode == full ]]; then
   run sudo bash scripts/bootstrap.sh
@@ -64,4 +84,9 @@ if [[ $chatgpt == 1 ]]; then
   run sudo bash scripts/chatgpt-global-menu.sh
 fi
 if [[ $wifi == 1 ]]; then run sudo bash scripts/wifi.sh; fi
+if [[ $mode == all ]]; then
+  run sudo bash scripts/install-system-appearance.sh
+  echo 'Complete portable setup installed. Save work and reboot manually to load desktop and login visuals.'
+  exit 0
+fi
 echo 'Done. New Shell code/scroll library loads on next login; app patches on next app launch.'
