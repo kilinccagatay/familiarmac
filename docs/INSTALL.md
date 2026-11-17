@@ -42,7 +42,7 @@ Do not disable an existing third-party keyd setup to bypass the installer guard.
 Examples:
 
 ```bash
-./install.sh --full --scroll --smooth --brave --brightness
+./install.sh --full --brave --brightness
 ./install.sh --desktop --dry-run
 ```
 
@@ -127,3 +127,7 @@ installation-event detection for the current user. Use the
 to review installed apps one at a time after installation. The default command
 only lists applications; `--run` explicitly starts an interactive visual review.
 No applications are launched automatically by `install.sh`.
+
+### Responsive touchpad experiment
+
+The `--scroll` and `--smooth` switches above are legacy options, not the newer WSF experiment. Do not layer both preload libraries or re-enable smoothing over the tested responsive setup. See [TOUCHPAD.md](TOUCHPAD.md) for the exact validation status and manual configuration.

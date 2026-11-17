@@ -74,10 +74,10 @@ cd familiarmac
 `--full`: tema, klavye eşleme, boot/login ve masaüstü katmanını kurar. Mevcut touchpad tercihlerini korur. Kaydırma azaltma, Brave menü entegrasyonu, ChatGPT yamaları ve Wi-Fi onarımı ayrı seçeneklerdir. `--check` hiçbir ayarı değiştirmez; `--dry-run` çalıştırılacak komutları gösterir. Kurulum oturumu kapatmaz veya bilgisayarı yeniden başlatmaz.
 
 ```bash
-./install.sh --full --scroll --smooth --brave --brightness
+./install.sh --full --brave --brightness
 ```
 
-Bu komut tam profille birlikte parmak kaydırma mesafesini %50'ye ayarlar, kurulu Chromium uygulamalarına smooth-scroll bayrağı ekler ve Brave'i global menü için X11 üzerinden başlatır. Bu seçenek macOS'un momentum eğrisinin aynısını sağlamaz. Klavye ve pencere davranışlarının kapsamı [değişiklik listesinde](CHANGES.md) açıklanmıştır.
+Bu komut isteğe bağlı uygulama entegrasyonlarını ekler. Güncel touchpad denemesinde WSF 1.0.4 ve Touchpad Speed Control 5 ile iki eksende 0.25 katsayısı kullanılıyor. Finder parmak durunca duruyor; ayrı Firefox testinde yumuşatmayı kapatmak gecikmeyi giderdi. Normal Firefox ayarı sonraki açılış için kaydedildi; ChatGPT değişikliği henüz fiziksel olarak doğrulanmadı. `--scroll` hâlâ eski %50 ölçekleyiciyi, `--smooth` eski animasyon seçeneğini kurar; bunlar yeni WSF denemesiyle birlikte kullanılmamalı. WSF kurulumu henüz otomatik kurucuya taşınmadı. [Ayarlar, doğrulama ve geri alma](TOUCHPAD.md). Wi-Fi, açılış ve GPU ayarları değişmedi.
 
 Ayrıntılı [kurulum/geri alma rehberi](INSTALL.md), [bilinen eksikler](../STATUS.md) ve [kaynak-lisans listesi](../THIRD_PARTY.md) yayımlanmıştır. Yeni kurulum akışı henüz boş bir işletim sisteminde uçtan uca doğrulanmadı; testlerin geçmesi bu doğrulamanın yerine geçmez.
 

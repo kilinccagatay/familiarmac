@@ -65,7 +65,7 @@ The menu bar follows the active application. Firefox and Files (shown as Finder)
 - Left-side window controls, rounded outer corners, compact menus and optional minimize animation.
 - Command-key shortcuts and screenshot shortcuts that also work over supported Shell menus/dialogs.
 - A vector-derived boot logo with a progress indicator; a separate, version-guarded login layout.
-- Optional finger-scroll distance scaling and Chromium smooth-scroll launch flags.
+- Optional touchpad scroll scaling; see the [tested responsive-scrolling setup](docs/TOUCHPAD.md) for WSF, Firefox and application-specific validation.
 - Pinned upstream source archives, local backups, rollback commands, checksums and tests.
 
 See [the complete change inventory](docs/CHANGES.md) for scope and file locations. Some features remain experimental; [STATUS.md](STATUS.md) distinguishes tested code from visually verified behavior.
@@ -147,13 +147,19 @@ Read the [installation guide](docs/INSTALL.md), then on the supported machine:
 
 No automatic logout or reboot. Full installation changes keyboard mapping, system themes, boot and login presentation and requires `sudo`. Touchpad preferences, Wi-Fi repair, scroll scaling and application patches are **opt-in**.
 
-To add our current scroll/menu options on a supported fresh install:
+To add optional application integrations on a supported fresh install:
 
 ```bash
-./install.sh --full --scroll --smooth --brave --brightness
+./install.sh --full --brave --brightness
 ```
 
 Do not run a downloaded script through `curl | sudo bash`. Clone, inspect the plan, keep your backups and use the supported baseline. This installation path has preflight/unit/integration tests; a clean-OS end-to-end install has **not yet been independently verified**.
+
+## Touchpad scrolling
+
+On the reference MacBook, Wayland Scroll Factor **1.0.4** with Touchpad Speed Control **5** is active at **0.25** on both scroll axes; pinch factors remain **1.0**. Finder stops when the fingers stop. In an isolated Firefox test, disabling smooth scrolling removed the trailing movement while fingers remained on the touchpad. That preference is saved for the normal Firefox profile’s next launch. ChatGPT’s smooth-scrolling disable flag is staged for its next launch and **not yet physically verified**. This is not a claim of identical macOS momentum.
+
+The WSF setup is currently a manually validated experiment, **not installed by `--scroll`**. That switch still selects the older fixed 50% scaler; `--smooth` enables the older animation flag and should not be combined with the responsive-scrolling experiment. See [configuration, verification and rollback](docs/TOUCHPAD.md). Wi-Fi, boot and GPU settings were not changed for these tests.
 
 ## Reinstall and undo
 
