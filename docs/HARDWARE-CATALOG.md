@@ -1,8 +1,8 @@
 # Hardware category illustrations
 
-![All fourteen categories](screenshots/hardware-categories.png)
+![All sixteen categories](screenshots/hardware-categories.png)
 
-Fourteen original SVG illustrations share the existing A1398 drawing’s palette, metallic gradients, geometric mountain wallpaper and transparent background. No generated raster or product photos are installed. The MacBook Pro illustration is the exact original `macbook-pro-a1398.svg` shown in the repository About screenshot.
+Sixteen original SVG illustrations share the existing A1398 drawing’s palette, metallic gradients, geometric mountain wallpaper and transparent background. No generated raster or product photos are installed. The MacBook Pro illustration is the exact original `macbook-pro-a1398.svg` shown in the repository About screenshot.
 
 | Category | Artwork |
 |---|---|
@@ -11,6 +11,8 @@ Fourteen original SVG illustrations share the existing A1398 drawing’s palette
 | 2016–2020 Intel MacBook Pro | ![2016–2020 Intel MacBook Pro](../assets/hardware/categories/pro-2016.svg) |
 | 2019 Mac Pro tower | ![2019 Mac Pro tower](../assets/hardware/categories/tower-2019.svg) |
 | Generic rack | ![Generic rack](../assets/hardware/categories/rack.svg) |
+| Unibody MacBook Pro 13-inch | ![13-inch Unibody](../assets/hardware/categories/macbook-pro-unibody-13.svg) |
+| Unibody MacBook Pro 15-inch / larger-family fallback | ![15-inch Unibody](../assets/hardware/categories/macbook-pro-unibody.svg) |
 | Laptop | ![Laptop](../assets/hardware/macbook-pro-a1398.svg) |
 | All-in-one desktop | ![All-in-one desktop](../assets/hardware/categories/all-in-one.svg) |
 | Desktop computer | ![Desktop computer](../assets/hardware/categories/tower.svg) |
@@ -98,3 +100,20 @@ About metadata when opened.
 Selection is recalculated during installation from the target computer’s model,
 vendor and chassis type. It does not carry over the author’s computer identity
 or enable any GPU, Wi-Fi or boot configuration.
+
+## Pre-Retina Unibody MacBook Pro
+
+Both original front-view SVGs retain the A1398 palette and landscape but use a
+thicker aluminium base and the front-right infrared receiver. The existing
+2013 A1398 asset is byte-for-byte unchanged; the laptop menu symbol is retained.
+
+| Identifiers | Selected illustration |
+| --- | --- |
+| MacBookPro5,5 / 7,1 / 8,1 / 9,2 | 13-inch Unibody (2009–2012) |
+| MacBookPro5,1 / 5,3 / 5,4 / 6,2 / 8,2 / 9,1 | 15-inch Unibody (2008–2012) |
+| MacBookPro5,2 / 6,1 / 8,3 | Larger Unibody family fallback for 17-inch; no exact-size claim |
+| MacBookPro10,1 and other earlier Retina Pro models | Existing A1398 illustration |
+
+The match is an explicit model allowlist, so 2012 Retina models are not captured
+by the non-Retina family merely because they share a release year.
+Reference: [Apple's 2010 13-inch user guide, page 20](https://www.gainsaver.com/content/manuals/MacBook_Pro_13inch_Mid2010.pdf#page=20).

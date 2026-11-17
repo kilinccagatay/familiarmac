@@ -68,5 +68,15 @@
     "label": "Generic rack computer",
     "asset": "categories/rack.svg",
     "sha256": "2e0c179920851967173a66edaa8791420efec90830bce04f07515c15a86c62c1"
+  },
+  "pro-unibody": {
+    "label": "MacBook Pro Unibody 15-inch",
+    "asset": "categories/macbook-pro-unibody.svg",
+    "sha256": "2883f717a8fe5bfe302e950f71ee949f9c1859295dae8a7dfdc38bb528982e59"
+  },
+  "pro-unibody-13": {
+    "label": "MacBook Pro Unibody 13-inch",
+    "asset": "categories/macbook-pro-unibody-13.svg",
+    "sha256": "da430fb4bf6c0c2eff2495587c791bcf1a8411d074bbf4ec65a63a26f21b5c2e"
   }
 }

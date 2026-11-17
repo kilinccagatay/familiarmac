@@ -31,6 +31,12 @@ def select_device(identity, catalog=None):
         name=model.removeprefix('Apple ')
         if chassis=='23' or name.startswith('Xserve'):
             category='rack'
+        elif name in ('MacBookPro5,5','MacBookPro7,1','MacBookPro8,1','MacBookPro9,2'):
+            category='pro-unibody-13'
+        elif name in ('MacBookPro5,1','MacBookPro5,2','MacBookPro5,3','MacBookPro5,4',
+                      'MacBookPro6,1','MacBookPro6,2',
+                      'MacBookPro8,2','MacBookPro8,3','MacBookPro9,1'):
+            category='pro-unibody'
         elif name == 'MacPro7,1':category='tower-2019'
         elif name in ('MacBook8,1','MacBook9,1','MacBook10,1'):category='macbook-retina'
         elif name in ('MacBookAir8,1','MacBookAir8,2','MacBookAir9,1'):category='air-retina'
@@ -53,7 +59,7 @@ def select_device(identity, catalog=None):
 
 def menu_icon_path(selection):
     category=selection['category']
-    if category in ('laptop','macbook-air','white-macbook','macbook-retina','air-retina','pro-2016'):
+    if category in ('laptop','macbook-air','white-macbook','macbook-retina','air-retina','pro-2016','pro-unibody','pro-unibody-13'):
         kind='laptop'
     elif category in ('all-in-one','white-imac'):kind='desktop'
     elif category in ('mini','white-top-mini'):kind='mini'

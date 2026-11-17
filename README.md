@@ -211,8 +211,8 @@ Use the supported **Zorin 18.x / GNOME 46 / x86_64 Wayland** baseline:
 
 Preparation installs dependencies and shared WhiteSur assets. Desktop mode applies the user theme, menus and application integration. Neither step installs our NVIDIA/Nouveau repairs, changes GRUB/kernel/initramfs, repairs Wi-Fi, or replaces GDM. `--full` remains a separate, explicit **MacBookPro10,1-only** boot/login/keyboard profile; GPU repairs are not included even there.
 
-About selects one of fourteen original transparent SVG category illustrations: MacBook Pro/laptop, MacBook Air, white MacBook, all-in-one, tower, cylindrical Mac Pro, white iMac, white-top Mac mini, mini computer, 12-inch Retina MacBook, Retina Air, 2016–2020 Intel MacBook Pro, 2019 Mac Pro tower and generic rack. Model family and chassis type select the image; it is not an exact-model photograph or a compatibility claim. See [portability and boundaries](docs/PORTABILITY.md) and the [category gallery](docs/HARDWARE-CATALOG.md).
+About selects one of sixteen original transparent SVG category illustrations: MacBook Pro/laptop, MacBook Air, white MacBook, all-in-one, tower, cylindrical Mac Pro, white iMac, white-top Mac mini, mini computer, 12-inch Retina MacBook, Retina Air, 2016–2020 Intel MacBook Pro, 2019 Mac Pro tower, generic rack, and 13/15-inch Unibody MacBook Pro. Model family and chassis type select the image; it is not an exact-model photograph or a compatibility claim. See [portability and boundaries](docs/PORTABILITY.md) and the [category gallery](docs/HARDWARE-CATALOG.md).
 
-![Fourteen hardware illustration categories](docs/screenshots/hardware-categories.png)
+![Sixteen hardware illustration categories](docs/screenshots/hardware-categories.png)
 
-The original A1398 MacBook Pro artwork is preserved. Rack selection uses chassis information; artwork selection does not enable hardware-specific repairs.
+The original A1398 MacBook Pro artwork is preserved. Pre-Retina Unibody MacBook Pro models now select separate 13-inch and 15-inch front-view illustrations with the front-right IR receiver. The 17-inch models share the representative larger Unibody drawing; they are not claimed as an exact-size match. Rack selection uses chassis information; artwork selection does not enable hardware-specific repairs.

@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('hardware_identity',ROOT/'scripts/hardware_identity.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 c=json.loads((ROOT/'assets/hardware/categories.json').read_text())
-assert set(c)=={'laptop','macbook-air','all-in-one','tower','mini','white-macbook','cylinder','white-imac','white-top-mini','macbook-retina','air-retina','pro-2016','tower-2019','rack'}
+assert set(c)=={'laptop','macbook-air','all-in-one','tower','mini','white-macbook','cylinder','white-imac','white-top-mini','macbook-retina','air-retina','pro-2016','tower-2019','rack','pro-unibody','pro-unibody-13'}
 for model,kind in [('MacBook1,1','white-macbook'),('MacBook7,1','white-macbook'),('MacBook8,1','macbook-retina'),('MacBook5,1','laptop'),('MacPro6,1','cylinder'),('MacBookPro10,1','laptop'),('MacBookAir5,2','macbook-air'),('MacBookAir7,2','macbook-air'),('MacBook Air','macbook-air'),('iBook','laptop'),('PowerBook5,1','laptop'),('iMac12,1','all-in-one'),('Macmini3,1','white-top-mini'),('MacPro5,1','tower'),('PowerMac7,2','tower')]:
     result=m.select_device({'model':model,'vendor':'Apple Inc.'},c)
     assert result['category']==kind
@@ -23,6 +23,8 @@ for kind, models in {
         assert m.select_device({'model': 'Apple '+model}, c)['category'] == kind
         assert m.select_device({'model': model, 'vendor': 'Other'}, c)['category'] == 'tower'
 for kind, models in {
+    'pro-unibody-13': ['MacBookPro5,5','MacBookPro7,1','MacBookPro8,1','MacBookPro9,2'],
+    'pro-unibody': ['MacBookPro5,1','MacBookPro5,2','MacBookPro5,3','MacBookPro5,4','MacBookPro6,1','MacBookPro6,2','MacBookPro8,2','MacBookPro8,3','MacBookPro9,1'],
     'macbook-retina': ['MacBook8,1','MacBook9,1','MacBook10,1'],
     'air-retina': ['MacBookAir8,1','MacBookAir8,2','MacBookAir9,1'],
     'pro-2016': ['MacBookPro13,1','MacBookPro13,2','MacBookPro13,3','MacBookPro14,1','MacBookPro14,2','MacBookPro14,3','MacBookPro15,1','MacBookPro15,2','MacBookPro15,3','MacBookPro15,4','MacBookPro16,1','MacBookPro16,2','MacBookPro16,3','MacBookPro16,4'],
@@ -40,6 +42,8 @@ for identity in [
 ]:
     assert m.select_device(identity,c)['category']=='rack'
 assert m.select_device({'model':'MacPro7,1','vendor':'Apple Inc.','chassis':'7'},c)['category']=='tower-2019'
+assert m.select_device({'model':'MacBookPro10,1','vendor':'Apple Inc.'},c)['category']=='laptop'
+assert m.menu_icon_path({'category':'pro-unibody'}).name=='laptop-symbolic.svg'
 # Apple Silicon is not classified as the newly added Intel generations.
 assert m.select_device({'model':'MacBookPro17,1','vendor':'Apple Inc.'},c)['category']!='pro-2016'
 assert m.select_device({'model':'MacBookAir10,1','vendor':'Apple Inc.'},c)['category']!='air-retina'

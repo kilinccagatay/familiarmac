@@ -142,11 +142,15 @@ Her iki kurulum adımı önce `--dry-run` ile incelenebilir. Bu yol NVIDIA/Nouve
 Wi-Fi, GRUB, kernel, initramfs ve GDM ayarlarını değiştirmez. `--full` ayrı ve
 yalnızca MacBookPro10,1 için açıkça seçilen bir profildir.
 
-Hakkında ekranında 14 özgün çizimden biri hedef bilgisayarın model ailesi ve kasa
+Hakkında ekranında 16 özgün çizimden biri hedef bilgisayarın model ailesi ve kasa
 türüne göre otomatik seçilir. A1398 çizimi aynen korunur. Rack kasa bilgisi yoksa
 MacPro7,1 için kule kullanılır; model kimliği tek başına rack ayrımı yapamaz.
 
-![14 cihaz çizimi](screenshots/hardware-categories.png)
+DVD sürücülü Unibody MacBook Pro ailesi için 13 ve 15 inç çizimler
+model kimliğine göre seçilir; ön sağ IR alıcısı da gösterilir. 17 inç
+Unibody modelleri aynı kalın kasa ailesinin temsili çizimini kullanır.
+
+![16 cihaz çizimi](screenshots/hardware-categories.png)
 
 [Çizim galerisi ve model eşlemeleri](HARDWARE-CATALOG.md) · [Kurulum sınırları](PORTABILITY.md)
 

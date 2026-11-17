@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="550" height="330" viewBox="0 0 550 330">
+<title>MacBook Pro Unibody 15-inch, front view</title>
+<desc>Original front-facing illustration derived from our A1398 artwork, with a deeper rounded aluminium base for the pre-Retina Unibody family.</desc>
+<defs>
+ <linearGradient id="rim" x2="0" y2="1"><stop stop-color="#b7b9bb"/><stop offset=".18" stop-color="#777a7c"/><stop offset="1" stop-color="#414345"/></linearGradient>
+ <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#151719"/><stop offset=".55" stop-color="#070809"/><stop offset="1" stop-color="#1d1e20"/></linearGradient>
+ <linearGradient id="deck"><stop stop-color="#6c6e70"/><stop offset=".025" stop-color="#e8e9e9"/><stop offset=".12" stop-color="#b6b9bc"/><stop offset=".5" stop-color="#f3f4f4"/><stop offset=".87" stop-color="#b4b7ba"/><stop offset=".975" stop-color="#edeef0"/><stop offset="1" stop-color="#606365"/></linearGradient>
+ <linearGradient id="lip" x2="0" y2="1"><stop stop-color="#d7d9da"/><stop offset=".55" stop-color="#979b9e"/><stop offset="1" stop-color="#4b4f52"/></linearGradient>
+ <linearGradient id="display" x2="0" y2="1"><stop stop-color="#568aa0"/><stop offset=".55" stop-color="#324f68"/><stop offset="1" stop-color="#172b3b"/></linearGradient>
+ <linearGradient id="recess" x2="0" y2="1"><stop stop-color="#5c6063"/><stop offset="1" stop-color="#c4c7c9"/></linearGradient>
+ <clipPath id="screen"><path d="M69 22H481V280H69Z"/></clipPath>
+</defs>
+<g transform="translate(0 0) scale(1)"><!-- Thin polished aluminium edge around the black glass lid. -->
+<rect x="55" y="5" width="440" height="295" rx="15" fill="url(#rim)"/>
+<rect x="57" y="7" width="436" height="291" rx="13" fill="url(#glass)" stroke="#27292a"/>
+<!-- Native Retina display aspect ratio is 16:10; no notch or lower wordmark. -->
+<path d="M69 22H481V280H69Z" fill="url(#display)"/>
+<g clip-path="url(#screen)">
+ <path d="M60 270L166 151L218 198L320 75L392 184L449 131L495 211V290H60Z" fill="#84969f"/>
+ <path d="M166 151L181 204L218 198L259 171L320 75L304 172L350 155L392 184L365 237L449 131L429 234L495 211V290H60Z" fill="#334a5c"/>
+ <path d="M280 125L320 75L343 118L324 111L312 136L304 126L284 149Z" fill="#d2dce0"/>
+ <path d="M60 280L183 231L235 251L351 205L412 247L495 222V290H60Z" fill="#182f40"/>
+</g>
+<circle cx="275" cy="14" r="2" fill="#06090a" stroke="#303b3e" stroke-width=".7"/>
+<circle cx="275.4" cy="13.7" r=".7" fill="#254b59"/>
+<!-- Subtle reflection across the glass, not a heavy silver display frame. -->
+<path d="M323 8H480Q492 8 492 20V281Z" fill="#fff" opacity=".035"/>
+<path d="M59 296H491" stroke="#080909" stroke-width="3"/>
+</g>
+<path d="M4 300H546V308H4Z" fill="url(#deck)"/>
+<path d="M4 308H546V314Q546 329 526 329H24Q4 329 4 314Z" fill="url(#lip)"/>
+<path d="M239 300H311V304Q309 310 303 310H247Q241 310 239 304Z" fill="url(#recess)"/>
+<path d="M5 300H545" stroke="#f2f3f4" stroke-width="1"/>
+<path d="M26 328H524" stroke="#33373a" stroke-opacity=".4" stroke-width=".7"/>
+<!-- Front-right IR receiver window; adjacent sleep indicator is unlit. -->
+<rect x="502" y="313" width="15" height="4.5" rx="1.7" fill="#292c2e" stroke="#767b7e" stroke-width=".5"/>
+<path d="M504 314H515" stroke="#50575b" stroke-width=".55"/>
+<rect x="492" y="314.3" width="5" height="1.7" rx=".85" fill="#989fa3"/>
+
+</svg>
