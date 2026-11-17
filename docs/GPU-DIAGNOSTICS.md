@@ -165,3 +165,51 @@ Do not interpret this mitigation as confirmation that the session crash is fixed
 was observed during this audit. This is additional evidence of an unresolved
 GStreamer/Nouveau path, not proof that the menu extension caused the GPU fault.
 No driver, kernel, Wi-Fi, initramfs or boot settings were changed.
+
+## Repeat failure after login (17 November, 17:23:24 CET)
+
+Kernel 6.17.0-20 and the same host Mesa build (build ID
+`198701d4b61dc1afd1949464114e27c1e90498a2`) were still active.
+Nouveau reported `SCHED_ERROR 0a [CTXSW_TIMEOUT]` at 17:23:24.379,
+disabled Shell PID 1954's channel 6, and Shell segfaulted at 17:23:24.399
+in libgallium at offset `0xb2b187`. This again matches `pushbuf_dump`:
+the final crash is downstream of failed GPU submission. The old ~/core
+belongs to Xwayland, not this incident. No matching Shell core was available.
+
+The session did not receive a logout command from the investigation. At the
+failure the investigation was reading files. The new dialog-focus extension
+had loaded earlier at login, so its involvement as a trigger cannot be ruled
+out solely from that fact. However, the same final crash occurred before that
+feature existed and during a separate FFmpeg decode test. The user cannot
+recall whether a dialog was open. No reliable trigger has been established.
+A zero-size Cogl viewport warning occurred at 17:21:08, over two minutes
+before the crash; this warning alone does not establish causality.
+
+The dialog policy's deferred idle callback has separately been replaced with
+synchronous initial-focus resolution to remove its visible Cancel-to-confirm
+flash. This is a UI correction, **not a GPU crash fix**. No Wi-Fi, GRUB,
+initramfs, kernel, driver, renderer, or firmware settings were changed.
+Do not close this stability issue based on successful dialog unit tests.
+Further causal testing requires controlled effect isolation or a matching
+GPU fault trace; an arbitrary driver patch or suppressing the final dump is
+not a verified repair.
+
+### Magic Lamp geometry audit and controlled isolation
+
+A CPU-only execution of the pinned Magic Lamp v25 deformation method reproduces
+non-finite vertex coordinates for zero-sized windows and windows aligned outside
+the bottom/right monitor edges. At full deformation `fullHeight`/`fullWidth` can
+be zero, feeding division by zero into Cogl vertex coordinates. This is a
+confirmed geometry defect, **not evidence that those inputs occurred during the
+17:23 GPU timeout**.
+
+A local guard was tested against these cases, but that experimental patch is
+not shipped: the user subsequently requested replacing Magic Lamp altogether.
+FamiliarMac Genie is independently implemented, and the old extension is now
+disabled by the installer. Its archive is no longer bundled. This replacement
+must not be described as a verified repair of the underlying Nouveau failure.
+
+During the initial effect-off trial the user minimized/restored ChatGPT several
+ times. Shell PID remained 12723 and no new Nouveau or Shell errors were logged.
+This is a short negative control only. The patched-effect comparison remains
+pending a normal login; do not claim the original GPU crash is resolved.
