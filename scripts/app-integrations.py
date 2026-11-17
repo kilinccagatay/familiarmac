@@ -18,7 +18,8 @@ roots = {'snap': [Path('/var/lib/snapd/desktop/applications')], 'native': [Path(
 def fingerprint(entries):
     digest = hashlib.sha256(catalog.read_bytes())
     managed = {e['id'] + '.desktop' for e in entries}
-    managed.update(p.name[:-5] for p in (HOME/'.local/state/familiarmac/native-qt').glob('*.json'))
+    for adapter in ('native-qt', 'native-electron'):
+        managed.update(p.name[:-5] for p in (HOME/'.local/state/familiarmac'/adapter).glob('*.json'))
     managed.update(p.stem.removeprefix('electron-launcher-')+'.desktop'
                    for p in (HOME/'.local/state/familiarmac/toolkits').glob('electron-launcher-*.json'))
     # Runtime/library upgrades may leave every .desktop file untouched.
@@ -27,7 +28,7 @@ def fingerprint(entries):
         if marker.exists():
             digest.update(str(marker).encode())
             digest.update(str(marker.stat().st_mtime_ns).encode())
-    for name in ('app-integrations.py', 'toolkit-integrations.py','native-qt-decorations.py','editor-decorations.py','snap-appearance.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py','native-menu-integrations.py','seahorse-layout.py'):
+    for name in ('app-integrations.py', 'toolkit-integrations.py','native-qt-decorations.py','native-electron-menus.py','editor-decorations.py','snap-appearance.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py','native-menu-integrations.py','seahorse-layout.py'):
         digest.update((BASE/name).read_bytes())
     config = BASE/'appearance-config'
     if not config.exists(): config = BASE.parent/'config'

@@ -7,7 +7,10 @@ import re
 import sys
 HOME=Path.home()
 STATE=HOME/'.local/state/familiarmac/editor-decorations'
-PROFILES=[('code.desktop',None,'Code'),('code-insiders.desktop',None,'Code - Insiders'),('com.visualstudio.code.desktop','com.visualstudio.code','Code')]
+PROFILES=[('code.desktop',None,'Code'),('code-insiders.desktop',None,'Code - Insiders'),
+          ('com.microsoft.VSCode.desktop',None,'Code'),
+          ('com.microsoft.VSCodeInsiders.desktop',None,'Code - Insiders'),
+          ('com.visualstudio.code.desktop','com.visualstudio.code','Code')]
 KEY='window.titleBarStyle'
 
 def tokens(text):
@@ -54,7 +57,7 @@ def installed(desktop, flatpak):
 
 def running(profile, flatpak, desktop):
     if os.path.lexists(profile/'SingletonLock'): return True
-    names = ('code-insiders',) if 'insiders' in desktop else ('code', 'code-oss')
+    names = ('code-insiders',) if 'insiders' in desktop.lower() else ('code', 'code-oss')
     for proc in Path('/proc').glob('[0-9]*'):
         try:
             if proc.stat().st_uid != os.getuid(): continue

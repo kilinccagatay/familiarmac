@@ -23,6 +23,8 @@ spec = importlib.util.spec_from_file_location('flatpak_gtk3_menu', Path(__file__
 gtk_menu = importlib.util.module_from_spec(spec); spec.loader.exec_module(gtk_menu)
 spec = importlib.util.spec_from_file_location('native_qt', Path(__file__).with_name('native-qt-decorations.py'))
 native_qt = importlib.util.module_from_spec(spec); spec.loader.exec_module(native_qt)
+spec = importlib.util.spec_from_file_location('native_electron', Path(__file__).with_name('native-electron-menus.py'))
+native_electron = importlib.util.module_from_spec(spec); spec.loader.exec_module(native_electron)
 spec = importlib.util.spec_from_file_location('editor_frames', Path(__file__).with_name('editor-decorations.py'))
 editor_frames = importlib.util.module_from_spec(spec); spec.loader.exec_module(editor_frames)
 
@@ -165,6 +167,7 @@ def restore():
         record.unlink()
     snap_frames.restore()
     native_qt.restore()
+    native_electron.restore()
     editor_frames.restore()
     appearance.restore(HOME)
     record = STATE / 'gtk.json'
@@ -218,7 +221,7 @@ def apply():
     config = Path(__file__).with_name('appearance-config')
     if not config.exists(): config = Path(__file__).resolve().parents[1]/'config'
     appearance.apply(HOME, [], config, include_native=True)
-    report = native_qt.apply() + editor_frames.apply() + snap_frames.apply()
+    report = native_qt.apply() + native_electron.apply() + editor_frames.apply() + snap_frames.apply()
     if shutil.which('flatpak'):
         target = HOME / '.local/share/flatpak/overrides/global'
         record = STATE / 'global-flatpak.json'

@@ -26,7 +26,7 @@ if not module.exists():
     enabled=subprocess.run(['systemctl','--user','is-enabled','--quiet','appmenu-gtk-module.service']).returncode==0
     module.write_text(json.dumps({'enabled':enabled}))
 dest.mkdir(parents=True,exist_ok=True)
-for name in ('app-lifecycle.py','toolkit-integrations.py','native-qt-decorations.py','editor-decorations.py','snap-appearance.py','app-integrations.py','firefox-global-menu.py','install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py','native-menu-integrations.py','seahorse-layout.py','portal-owners.py'):
+for name in ('app-lifecycle.py','toolkit-integrations.py','native-qt-decorations.py','native-electron-menus.py','editor-decorations.py','snap-appearance.py','app-integrations.py','firefox-global-menu.py','install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py','native-menu-integrations.py','seahorse-layout.py','portal-owners.py'):
     shutil.copy2(root/'scripts'/name,dest/name)
 appearance=dest/'appearance-config';appearance.mkdir(exist_ok=True)
 for name in ('traffic-lights.css','headerbar-spacing.css','context-menu-spacing.css','fixed-traffic-lights.css'):

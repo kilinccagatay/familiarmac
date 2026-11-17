@@ -24,6 +24,7 @@ done
 bash scripts/test.sh
 python3 tests/editor-decorations.py
 python3 tests/native-qt-decorations.py
+python3 tests/native-electron-menus.py
 python3 tests/responsive-scrolling.py
 python3 tests/wsf-installer.py
 python3 tests/installer-plan.py
