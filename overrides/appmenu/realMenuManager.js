@@ -1,3 +1,4 @@
+import {findGtkApplication, hasGtkAppMenu} from './gtkApplicationOwner.js';
 import {ApplicationShortcuts} from './applicationShortcuts.js';
 import {dbusMenuShortcut} from './exportedShortcuts.js';
 import { GtkMenuModel } from './gtkMenuModel.js';
@@ -464,7 +465,7 @@ export class RealMenuManager {
         this._setBackend(null, null);
 
         if (typeof window.connect === 'function') {
-            for (const name of ['gtk-menubar-object-path', 'gtk-unique-bus-name', 'gtk-application-object-path', 'gtk-window-object-path'])
+            for (const name of ['gtk-app-menu-object-path', 'gtk-menubar-object-path', 'gtk-unique-bus-name', 'gtk-application-object-path', 'gtk-window-object-path'])
                 this._gtkWindowSignals.push([window, window.connect(`notify::${name}`,
                     () => this._startLookup(window, detectedApp, wmClass))]);
         }
@@ -474,10 +475,13 @@ export class RealMenuManager {
 
         if (!this._registrarFailed)
             this._requestRegistration(window, generation, cancellable);
-        const menuPath = window.get_gtk_menubar_object_path?.();
+        const barPath = window.get_gtk_menubar_object_path?.();
+        const appMenuPath = window.get_gtk_app_menu_object_path?.();
+        const menuPath = barPath || appMenuPath;
         const bus = window.get_gtk_unique_bus_name?.();
         if (menuPath && bus) {
             this._setBackend('gtk-menu', {busName: bus, objectPath: menuPath,
+                appMenuOnly: !barPath,
                 appPath: window.get_gtk_application_object_path?.(),
                 windowPath: window.get_gtk_window_object_path?.()});
             this._emitChanged();
@@ -520,10 +524,22 @@ export class RealMenuManager {
         const probe = this._actionProbeGeneration = (this._actionProbeGeneration ?? 0) + 1;
         const appId = detectedApp?.get_id?.() ?? wmClass;
         // Prefer Mutter's actual address: desktop IDs need not equal D-Bus names.
-        const busName = window?.get_gtk_unique_bus_name?.() || _desktopIdToBusName(appId);
-        const objectPath = window?.get_gtk_application_object_path?.() || _busNameToObjectPath(_desktopIdToBusName(appId));
+        let busName = window?.get_gtk_unique_bus_name?.();
+        let objectPath = window?.get_gtk_application_object_path?.();
+        if (!busName || !objectPath) {
+            const owner = await findGtkApplication(window?.get_pid?.(), cancellable);
+            if (!this._isCurrentRequest(generation, window)) return;
+            busName = owner?.busName || busName || _desktopIdToBusName(appId);
+            objectPath = owner?.appPath || objectPath || _busNameToObjectPath(_desktopIdToBusName(appId));
+        }
         const windowPath = window?.get_gtk_window_object_path?.();
         if (!busName || (!objectPath && !windowPath)) return;
+        if (objectPath && this._backendType !== 'dbusmenu' && this._backendType !== 'gtk-menu') {
+            const path = window?.get_gtk_app_menu_object_path?.() || `${objectPath}/menus/appmenu`;
+            if (await hasGtkAppMenu(busName, path, cancellable) && this._isCurrentRequest(generation, window) && this._backendType !== 'dbusmenu' && this._backendType !== 'gtk-menu')
+                this._setBackend('gtk-menu', {busName, objectPath:path, appPath:objectPath, windowPath, appMenuOnly:true});
+        }
+
         const [actions, winActions] = await Promise.all([
             objectPath ? _probeGtkActions(busName, objectPath, cancellable) : null,
             windowPath ? _probeGtkActions(busName, windowPath, cancellable) : null,
@@ -724,7 +740,7 @@ export class RealMenuManager {
         if (kind === 'gtk-menu') {
             this._currentKey = `gmenu:${registration.busName}|${registration.objectPath}`;
             this._gtkMenu = new GtkMenuModel(registration.busName, registration.objectPath,
-                registration.appPath, registration.windowPath, () => this._emitChanged(), this._detectedApp?.get_id?.() ?? '');
+                registration.appPath, registration.windowPath, () => this._emitChanged(), this._detectedApp?.get_id?.() ?? '', registration.appMenuOnly ?? false);
             return;
         }
         if (kind === 'gtk-actions') {

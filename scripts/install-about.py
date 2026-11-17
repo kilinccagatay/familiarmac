@@ -42,10 +42,13 @@ picture=ET.SubElement(ET.SubElement(box,'child'),'object',{'class':'GtkPicture'}
 for name,value in [('file',device.as_uri()),('alternative-text',selection['label']),('can-shrink','True'),('content-fit','contain'),('hexpand','True')]:
  ET.SubElement(picture,'property',name=name).text=value
 ET.ElementTree(tree).write(base/'cc-about-page.ui',encoding='utf-8',xml_declaration=True)
+from settings_panel import prepare
+sidebar_setup=prepare(ROOT,base,home,binary)
 sha=hashlib.sha256(binary.read_bytes()).hexdigest()
 wrapper=home/'.local/bin/familiarmac-settings'
 wrapper.parent.mkdir(parents=True,exist_ok=True)
-wrapper.write_text('#!/bin/sh\n'+f'if [ "$(sha256sum /usr/bin/gnome-control-center | cut -d " " -f1)" = {shlex.quote(sha)} ]; then\n'+f' export G_RESOURCE_OVERLAYS="/org/gnome/control-center/system/about={base}${{G_RESOURCE_OVERLAYS:+:$G_RESOURCE_OVERLAYS}}"\nfi\nexec /usr/bin/gnome-control-center "$@"\n')
+dock_request=(f'if [ \"$1\" = --dock-window ]; then\n if /usr/bin/python3 {shlex.quote(str(base/"settings-applications.py"))} --activate-panel; then exit 0; fi\n export FAMILIARMAC_OPEN_DOCK=1\n shift\nfi\n' if sidebar_setup else 'if [ \"$1\" = --dock-window ]; then exec gnome-extensions prefs familiarmac-genie@local; fi\n')
+wrapper.write_text('#!/bin/sh\n'+dock_request+f'if [ "$(sha256sum /usr/bin/gnome-control-center | cut -d " " -f1)" = {shlex.quote(sha)} ]; then\n'+f' export G_RESOURCE_OVERLAYS="/org/gnome/control-center/system/about={base}${{G_RESOURCE_OVERLAYS:+:$G_RESOURCE_OVERLAYS}}"\n'+sidebar_setup+'fi\nexec /usr/bin/gnome-control-center "$@"\n')
 wrapper.chmod(0o755)
 desktop=home/'.local/share/applications/org.gnome.Settings.desktop'
 desktop.parent.mkdir(parents=True,exist_ok=True)

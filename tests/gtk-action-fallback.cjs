@@ -8,7 +8,7 @@ const session={signal_subscribe(...args){subs.set(++id,args);return id;},signal_
 const Gio={_promisify(){},DBusConnection:{prototype:{}},DBus:{session},DBusSignalFlags:{NONE:0},DBusCallFlags:{NO_AUTO_START:1,NONE:0},dbus_is_name:()=>true};
 const GLib={getenv:()=>'',Variant:class{constructor(...args){this.args=args;}static is_object_path(){return true;}},source_remove(){}};
 class ApplicationShortcuts{lookup(){return '';}destroy(){}}
-const ctx={Gio,GLib,ApplicationShortcuts,Logger:{debug(){},error(){}},_:x=>x,imports:{gi:{versions:{},Dbusmenu:{}}}};
+const ctx={findGtkApplication:async()=>null,hasGtkAppMenu:async()=>false,Gio,GLib,ApplicationShortcuts,Logger:{debug(){},error(){}},_:x=>x,imports:{gi:{versions:{},Dbusmenu:{}}}};
 vm.runInNewContext(source,ctx);
 (async()=>{
  const m=new ctx.Manager(null,()=>{});

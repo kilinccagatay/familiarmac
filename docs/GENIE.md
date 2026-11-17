@@ -17,8 +17,11 @@ are left intact but disabled, preserving rollback and user-owned files.
   checked every frame as the Dock moves. Restore follows the reverse path.
 - Closing uses a separate 110 ms fade and creates no preview. Whether closing
   the last window quits an app remains the application's decision.
-- **Settings’ Dock context menu → Dock & Window Effects…** or the application
-  search entry **Dock & Window Effects** opens the animation switch.
+- **Settings → Dock & Window** opens the animation switch and application menu checks.
+  The Dock context-menu entry and application search entry open this same page.
+  System motion is displayed as status, not a second switch. If system animations
+  are off, Genie shows off; enabling it asks permission to enable system animations.
+  Cancel preserves both settings.
 - System reduced motion (`org.gnome.desktop.interface enable-animations=false`)
   always takes priority. Preview items remain usable without animation.
   The installer preserves that system preference and the user's Genie switch.

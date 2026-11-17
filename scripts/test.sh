@@ -5,6 +5,7 @@ repo=$PWD
 temp=$(mktemp -d)
 trap 'rm -rf "$temp"' EXIT
 tar -xzf vendor/keyd-2.6.0.tar.gz -C "$temp"
+patch -d "$temp" -p1 < "$repo/patches/keyd-ipc-read.patch"
 make -C "$temp" test-io
 "$temp/bin/test-io" "$repo/config/apple.conf" "$repo"/tests/*.t
 cc -DDATA_DIR='""' -iquote "$temp/src" -o "$temp/device-match" tests/device-match.c \

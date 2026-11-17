@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface>
+ <object class="AdwNavigationPage" id="dock_page">
+  <property name="title">Dock &amp; Window</property>
+  <property name="child"><object class="AdwToolbarView">
+   <child type="top"><object class="AdwHeaderBar" /></child>
+   <property name="content"><object class="AdwPreferencesPage">
+    <child><object class="AdwPreferencesGroup">
+     <property name="title">Window motion</property>
+     <property name="description">Minimized windows appear as previews in the Dock.</property>
+     <child><object class="AdwSwitchRow" id="genie_switch"><property name="title">Genie animation</property><property name="subtitle">Animate windows when minimizing and restoring.</property></object></child>
+     <child><object class="AdwActionRow" id="reduce_motion"><property name="title">System motion preference</property><property name="subtitle">Uses the existing system animation preference.</property></object></child>
+    </object></child>
+    <child><object class="AdwPreferencesGroup" id="applications">
+     <property name="title">Application menus</property>
+     <property name="description">Configure an application’s menus and shortcut hints in a separate guided check.</property>
+    <child><object class="AdwActionRow"><property name="title">Configure Applications</property><property name="subtitle">Choose an app, open it, then check its menus.</property><child type="suffix"><object class="GtkButton"><property name="name">fm-configure-apps</property><property name="label">Configure…</property><property name="valign">center</property></object></child></object></child></object></child>
+    <child><object class="AdwPreferencesGroup">
+     <property name="title">FamiliarMac</property>
+     <property name="description">Desktop updates. Device-specific drivers and repairs are managed separately.</property>
+     <child><object class="AdwActionRow" id="release_status"><property name="title">Version</property><property name="subtitle">Checking for updates…</property><child type="suffix"><object class="GtkButton"><property name="name">fm-check-updates</property><property name="label">Check for Updates…</property><property name="valign">center</property></object></child></object></child>
+    </object></child>
+   </object></property>
+  </object></property>
+ </object>
+ <object class="AdwMessageDialog" id="motion_confirmation">
+  <property name="heading">Enable system animations?</property>
+  <property name="body">Genie needs system animations. Continuing will also enable animations elsewhere in the desktop.</property>
+  <property name="modal">True</property>
+  <property name="hide-on-close">True</property>
+  <property name="default-response">enable</property>
+  <property name="close-response">cancel</property>
+  <responses><response id="cancel">Cancel</response><response id="enable" appearance="suggested">Enable</response></responses>
+ </object>
+</interface>

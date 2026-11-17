@@ -105,6 +105,11 @@ if identity not in state['settings']:
 for schema, keys in values.items():
     for key, value in keys.items(): setting(schema,key,value)
 
+# Use the desktop extension's native column placement, preserving saved positions.
+desktop_schema = 'org.gnome.shell.extensions.zorin-desktop-icons'
+if Gio.SettingsSchemaSource.get_default().lookup(desktop_schema, True):
+    setting(desktop_schema, 'start-corner', "'top-right'")
+
 # GNOME Screenshot supports direct area selection and clipboard-only capture.
 capture=Path.home()/'.local/bin/macbook-screenshot-clipboard'
 write(capture,(ROOT/'scripts/screenshot-clipboard.sh').read_text())
@@ -201,8 +206,10 @@ for source in genie_source.rglob('*'):
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(['glib-compile-schemas', '--strict', '--targetdir='+tmp, str(genie_dir/'schemas')], check=True)
     write(genie_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
+write(Path.home()/'.local/share/icons/hicolor/scalable/actions/familiarmac-dock-window-symbolic.svg',
+      (ROOT/'assets/icons/familiarmac-dock-window-symbolic.svg').read_bytes())
 write(Path.home()/'.local/share/applications/familiarmac-genie-preferences.desktop',
-      (ROOT/'config/familiarmac-genie-preferences.desktop').read_text())
+      (ROOT/'config/familiarmac-genie-preferences.desktop').read_text().replace('Exec=familiarmac-settings ', 'Exec='+str(Path.home()/'.local/bin/familiarmac-settings')+' '))
 
 # Real exported app menus; generic File/Edit fallback is intentionally disabled.
 appmenu_dir = Path.home()/'.local/share/gnome-shell/extensions/appmenu@ChathurangaBW.github.io'
@@ -218,7 +225,7 @@ write(appmenu_dir/'searchDialog.js', (ROOT/'overrides/appmenu/searchDialog.js').
 write(appmenu_dir/'settingsCommand.js', (ROOT/'extensions/macbook-menu@local/settingsCommand.js').read_text())
 write(appmenu_dir/'launcherDrag.js', (ROOT/'extensions/macbook-menu@local/launcherDrag.js').read_text())
 write(appmenu_dir/'menuManager.js', (ROOT/'overrides/appmenu/menuManager.js').read_text())
-for name in ('realMenuManager.js', 'gtkMenuModel.js', 'applicationShortcuts.js', 'exportedShortcuts.js', 'calculator.js', 'shortcutHints.js', 'menuRoles.js', 'portalOwners.js'):
+for name in ('gtkApplicationOwner.js','menuInspection.js', 'realMenuManager.js', 'gtkMenuModel.js', 'applicationShortcuts.js', 'exportedShortcuts.js', 'calculator.js', 'shortcutHints.js', 'menuRoles.js', 'portalOwners.js'):
     write(appmenu_dir/name, (ROOT/'overrides/appmenu'/name).read_text())
 write(appmenu_dir/'stylesheet.css', (appmenu_dir/'stylesheet.css').read_text() + '\n' + (ROOT/'overrides/appmenu/search.css').read_text())
 for key, value in {

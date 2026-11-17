@@ -1,3 +1,4 @@
+import {MenuInspection} from './menuInspection.js';
 import {PortalOwners} from './portalOwners.js';
 import {hasWindowMenu, panelAppName, menuWindowIdentity, isApplicationWindowType, orderedMenuActors} from './menuRoles.js';
 import {itemShortcut} from './shortcutHints.js';
@@ -71,6 +72,23 @@ const TopLevelMenuButton = GObject.registerClass(
       super._init(0.0, label);
       this.add_style_class_name('appmenu-panel-button');
       this.menu.actor.add_style_class_name('macbook-app-popup');
+      // Arrowless menu-bar popups begin at their title, not its midpoint.
+      // Keep BoxPointer's vertical placement and monitor/work-area handling.
+      this.menu.setSourceAlignment(0);
+      const pointer = this.menu._boxPointer;
+      const reposition = pointer._reposition.bind(pointer);
+      pointer._reposition = allocation => {
+          reposition(allocation);
+          const source = pointer._sourceActor;
+          const area = pointer._workArea;
+          if (!source || !area) return;
+          const [sourceX] = source.get_transformed_position();
+          const [, , width] = pointer.get_preferred_size();
+          const edge = area.x + Math.max(0, area.width - width);
+          const targetX = Math.max(area.x, Math.min(sourceX, edge));
+          const [ok, x] = pointer.get_parent().transform_stage_point(targetX, area.y);
+          if (ok) allocation.set_origin(Math.floor(x), allocation.y1);
+      };
       this._appInstance = appInstance;
       this._menuManagerInstance = menuManagerInstance;
       this._isIcon = false;
@@ -403,6 +421,12 @@ export class MenuManager {
         // Cached singletons (avoid repeated get_default() calls)
         this._windowTracker = Shell.WindowTracker.get_default();
         this._appSystem = Shell.AppSystem.get_default();
+        try { this._inspection = new MenuInspection(this._settings, app => {
+            if (this._realMenuManager._detectedApp?.get_id() === app.get_id()) {
+                this._realMenuManager.invalidate();
+                this.updateMenuForWindow(global.display.get_focus_window(), true);
+            }
+        }); } catch (error) { console.warn(`FamiliarMac menu inspection unavailable: ${error}`); }
 
             this._lastDiagnostics = null;
 
@@ -821,6 +845,7 @@ export class MenuManager {
         this.clear();
         this._virtualDevice?.run_dispose();
         this._virtualDevice = null;
+        this._inspection?.destroy();
         this._portalOwners?.destroy();
         this._realMenuManager?.destroy();
         this._realMenuManager = null;

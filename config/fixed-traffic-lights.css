@@ -36,3 +36,10 @@ headerbar button { min-height: 24px; padding-top: 0; padding-bottom: 0; margin-t
 headerbar entry, headerbar searchentry { min-height: 24px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
 /* Linked grids used as a header title keep a gutter around their shorter row. */
 headerbar grid.linked { margin-top: 4px; margin-bottom: 4px; }
+
+/* System-decorated windows (Mutter X11 frames, including Electron) use
+ * WhiteSur's compact default-decoration header. Match ordinary GTK4 headers'
+ * 8px horizontal gutter instead of its special 3px inset. */
+headerbar.default-decoration > windowhandle > box {
+  padding-left: 8px; padding-right: 8px;
+}

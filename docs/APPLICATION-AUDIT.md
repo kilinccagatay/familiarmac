@@ -46,7 +46,7 @@ Remaining distinct issues: LibreCAD uses its own Qt Wayland decoration; Logseq u
 | `libreoffice-startcenter.desktop` | Main title fits; normal close. |
 | `libreoffice-writer.desktop` | Title fits; shared controls visible; blank document closed without edits. |
 | `net.scribus.Scribus.desktop` | Blank document checked; exported File rows align and actual shortcut hints are muted gray. Native Windows plus synthetic Window duplicate found (same as OpenToonz); shared singular/plural detection fixed, pending next shell load. Normal quit. |
-| `nm-connection-editor.desktop` | Title fits; inspected connection list only; settings unchanged. |
+| `nm-connection-editor.desktop` | App-only GTK menu (New Connection / Quit) verified from the live D-Bus model with native Ctrl+N / Ctrl+Q accelerators. Generic PID-owned fallback handles missing window metadata. Panel visual verification after a new session remains pending; network settings unchanged. |
 | `org.ardour.Ardour.desktop` | Main editor verified with user. EXCEPTION: bundled YTK (libytk/libytkmm), real menus remain inside the app. Preserve the adjacent I/O, DSP, sample-rate and recording-time indicators; do not hide the whole row. Deferred by user; no menu adapter applied. |
 | `org.audacityteam.Audacity.desktop` | Shared GTK3 Flatpak module verified after normal launch: real menus move to the panel, local menu bar disappears, File submenu rows and actual muted shortcut hints visible. Initial plugin scanner VST child crash was separate; no claim that audio/plugin functionality has been tested. |
 | `org.blender.Blender.desktop` | Own drawn chrome, corrupted glyphs on first-run UI; Mesa Ivy Bridge Vulkan warning. Closed with Ctrl+Q; no GPU changes. |

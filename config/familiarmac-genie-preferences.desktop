@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Dock & Window Effects
-Name[tr]=Dock ve Pencere Efektleri
+Name=Dock & Window
+Name[tr]=Dock & Window
 Comment=Control FamiliarMac Genie animation and view the system motion preference
-Exec=gnome-extensions prefs familiarmac-genie@local
-Icon=preferences-desktop-display
+Exec=familiarmac-settings --dock-window
+Icon=familiarmac-dock-window-symbolic
 Categories=Settings;DesktopSettings;
 Keywords=Dock;Genie;Animation;Motion;FamiliarMac;
 StartupNotify=false

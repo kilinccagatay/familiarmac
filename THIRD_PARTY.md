@@ -4,7 +4,7 @@ FamiliarMac-authored integration code is GPL-3.0-or-later. Third-party files rem
 
 | Source | Pinned version / revision | License / location | Use and local changes |
 |---|---|---|---|
-| [keyd](https://github.com/rvaiya/keyd) | 2.6.0, `7c0aecb8bfd34dc8642bf4eefd2e59c89e61cec3` | MIT/X, archive `LICENSE` | Source unchanged; Apple device profile, app-specific mappings and GNOME integration installation |
+| [keyd](https://github.com/rvaiya/keyd) | 2.6.0, `7c0aecb8bfd34dc8642bf4eefd2e59c89e61cec3` | MIT/X, archive `LICENSE` | Pinned archive unchanged; `patches/keyd-ipc-read.patch` bounds incomplete IPC reads and handles disconnected clients; Apple device profile, app-specific mappings and GNOME integration installation |
 | [WhiteSur GTK](https://github.com/vinceliuice/WhiteSur-gtk-theme) | `d5782652d412137e26fb8ff55b55a5572e4c6995` | MIT, archive `COPYING` | Source unchanged; local Shell/GDM/headerbar CSS layered over generated theme; bundled upstream background used |
 | [WhiteSur icons](https://github.com/vinceliuice/WhiteSur-icon-theme) | `73d8040da51a9ed74e47c7366e7e9ff437601a5c` | GPL-3.0, archive `COPYING` | Source unchanged, installed as a separately named theme |
 | [AppMenu](https://github.com/ChathurangaBW/AppMenu) | 5.7.1, upstream `edd9373261995f64d5f7e82a0c3eb74a63768a18` | GPL-3.0, archive `LICENSE` | Modified source archive: real menu registration, fallback handling, desktop actions, app actions, focus debounce, shortcut dispatch, lifecycle and compact menu CSS |

@@ -60,8 +60,14 @@ with tempfile.TemporaryDirectory(prefix='fm-clean-install-') as td:
     run(['gsettings','set','org.gnome.shell','favorite-apps',"['org.familiarmac.Missing.desktop']"])
     run(['gsettings','set','org.gnome.desktop.interface','enable-animations','false'])
     run(['bash','install.sh','--desktop'])
+    assert "'top-right'" in run(['gsettings','get','org.gnome.shell.extensions.zorin-desktop-icons','start-corner']).stdout
     h=t/'home'
-    expected=['.local/share/gnome-shell/extensions/familiarmac-genie@local/extension.js',
+    expected=['.local/share/familiarmac/about/menu_setup.py',
+              '.local/share/familiarmac/about/settings-panel.so',
+              '.local/share/familiarmac/about/cc-window.ui',
+              '.local/share/familiarmac/about/dock-page.ui',
+              '.local/share/gnome-shell/extensions/appmenu@ChathurangaBW.github.io/menuInspection.js',
+              '.local/share/gnome-shell/extensions/familiarmac-genie@local/extension.js',
               '.local/share/gnome-shell/extensions/familiarmac-genie@local/schemas/gschemas.compiled',
               '.local/share/applications/familiarmac-genie-preferences.desktop',
               '.local/share/gnome-shell/extensions/macbook-menu@local/extension.js',
@@ -69,6 +75,7 @@ with tempfile.TemporaryDirectory(prefix='fm-clean-install-') as td:
               '.local/share/familiarmac/about/device.svg','.config/gtk-4.0/gtk.css',
               '.local/share/gnome-shell/extensions/familiarmac-desktop-icons@local/metadata.json']
     for f in expected:assert (h/f).is_file(),f
+    run(['node','--experimental-vm-modules','scripts/check-appmenu-modules.cjs','/home/test/.local/share/gnome-shell/extensions/appmenu@ChathurangaBW.github.io'])
     assert json.loads((h/'.local/share/familiarmac/about/device.json').read_text())['model']=='PortableTestPC'
     # Full profile must reject a foreign model before reaching sudo.
     r=run(['bash','install.sh','--full'],check=False)

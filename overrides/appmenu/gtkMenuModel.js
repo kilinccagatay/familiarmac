@@ -5,7 +5,8 @@ import GLib from 'gi://GLib';
 
 // Read real GMenu trees and GAction state. No guessed labels or key presses.
 export class GtkMenuModel {
-    constructor(bus, menuPath, appPath, windowPath, changed, appId = '') {
+    constructor(bus, menuPath, appPath, windowPath, changed, appId = '', appMenuOnly = false) {
+        this._appMenuOnly = appMenuOnly;
         this._changed = changed;
         this._shortcuts = new ApplicationShortcuts(appId, () => this._notify());
         this._signals = [];
@@ -77,6 +78,10 @@ export class GtkMenuModel {
     }
 
     build(key) {
+        if (this._appMenuOnly) {
+            const items = this._items(this._root);
+            return items.length ? {registrationKey:key, appMenuChildren:items, topLevelMenus:[]} : null;
+        }
         const seen = new Set();
         const menus = this._items(this._root).filter(item => {
             // GTK module may append a compatibility copy of an existing native menu.

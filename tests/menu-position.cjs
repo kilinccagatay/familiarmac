@@ -16,3 +16,18 @@ assert.equal(calls, 1); assert.equal(allocation.x1, 1444); assert.equal(allocati
 monitor = null; pointer._reposition(allocation); assert.equal(calls, 2);
 pointer._sourceActor = null; pointer._reposition(allocation); assert.equal(calls, 3);
 console.log('GNOME 46 single-argument allocation and multi-monitor alignment: PASS');
+
+// Application menu titles use their leading edge regardless of title length.
+const appSource = fs.readFileSync(__dirname + '/../overrides/appmenu/menuManager.js', 'utf8');
+const appCode = appSource.match(/pointer\._reposition = allocation => \{[\s\S]*?\n      \};/)[0];
+let titleX = 77;
+const appPointer = {_sourceActor: {get_transformed_position: () => [titleX, 0]},
+ _workArea: {x:0,y:28,width:1440,height:900}, get_preferred_size:()=>[0,0,585,350],
+ get_parent:()=>({transform_stage_point:x=>[true,x,0]})};
+vm.runInNewContext(appCode,{pointer:appPointer,reposition:()=>{},Math});
+appPointer._reposition(allocation);assert.equal(allocation.x1,77);
+titleX=1200;appPointer._reposition(allocation);assert.equal(allocation.x1,855);
+appPointer._workArea={x:1440,y:28,width:1440,height:900};titleX=1517;
+appPointer._reposition(allocation);assert.equal(allocation.x1,1517);
+assert.equal(allocation.y1,28);
+console.log('App menu leading-edge alignment, screen bounds and second monitor PASS');
