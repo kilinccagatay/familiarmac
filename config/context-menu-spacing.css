@@ -3,3 +3,10 @@
 menu { padding: 4px; }
 menu > menuitem { padding: 3px 4px; }
 menu > menuitem arrow { min-width: 12px; min-height: 12px; }
+
+/* FamiliarMac shared accent: native and sandboxed GTK applications. */
+@define-color accent_bg_color #0a84ff;
+@define-color accent_fg_color #ffffff;
+@define-color accent_color #0a84ff;
+@define-color theme_selected_bg_color #0a84ff;
+@define-color theme_selected_fg_color #ffffff;

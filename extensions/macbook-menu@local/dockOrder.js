@@ -8,6 +8,24 @@ import * as Dash from 'resource:///org/gnome/shell/ui/dash.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 
+// Shared pointer bubble for Dock names and removal feedback.
+export function dockBubble(text) {
+    const bubble = new St.BoxLayout({vertical:true, reactive:false});
+    const label = new St.Label({text, style_class:'fm-dock-remove-label', reactive:false});
+            bubble.add_child(label);
+            const tip = new St.DrawingArea({style_class:'fm-dock-remove-tip',
+                x_align:Clutter.ActorAlign.CENTER, reactive:false});
+            tip.connect('repaint', area => {
+                const [width,height] = area.get_surface_size();
+                const cr = area.get_context();
+                cr.setSourceRGBA(30/255,30/255,32/255,0.94);
+                cr.moveTo(0,0); cr.lineTo(width,0); cr.lineTo(width/2,height);
+                cr.closePath(); cr.fill(); cr.$dispose();
+            });
+            bubble.add_child(tip);
+    return {bubble, label};
+}
+
 export const FINDER = 'org.gnome.Nautilus.desktop';
 export const APPS = 'org.familiarmac.Apps.desktop';
 export function isFixedApp(id) { return id === FINDER || id === APPS; }
@@ -29,7 +47,11 @@ export class DockGapMotion {
     watch(children) {
         for (const actor of children) {
             const content = actor.child;
-            if (!content?._delegate?.app || this.items.has(actor)) continue;
+            const app = content?._delegate?.app;
+            const info = app?.appInfo ?? app?.get_app_info?.();
+            const isTrash = ['trash://','trash:///'].includes(info?.location?.get_uri?.());
+            if (!app || isTrash || actor.has_style_class_name?.('familiarmac-trash-end')
+                || this.items.has(actor)) continue;
             const entry = {content, x:actor.x, base:content.translation_x, allocation:0, destroy:0};
             entry.allocation = actor.connect('notify::allocation', () => {
                 const delta = entry.x - actor.x;
@@ -72,35 +94,54 @@ export class DockOrder {
         this.delegate = Object.create(previous ?? null);
         this.delegate.handleDragOver = (...args) => {
             if (!this.canUnpin(args[0])) return previous?.handleDragOver?.(...args) ?? DND.DragMotionResult.CONTINUE;
-            this.showRemoveLabel();
+            this.showRemoveLabel(args[0]);
             return DND.DragMotionResult.MOVE_DROP;
         };
         this.delegate.acceptDrop = (...args) => {
             if (!this.canUnpin(args[0])) return previous?.acceptDrop?.(...args) ?? false;
             const id = args[0].app.get_id();
             global.compositor.get_laters().add(Meta.LaterType.BEFORE_REDRAW, () => {
-                if (!this.stopped) AppFavorites.getAppFavorites().removeFavorite(id);
+                if (!this.stopped) this.removeFavoriteWithSound(id);
                 return false;
             });
             return true;
         };
         Main.uiGroup._delegate = this.delegate;
     }
-    showRemoveLabel() {
+    removeFavoriteWithSound(id) {
+        if (!this.settings.get_strv('favorite-apps').includes(id)) return;
+        AppFavorites.getAppFavorites().removeFavorite(id);
+        if (this.settings.get_strv('favorite-apps').includes(id)) return;
+        try {
+            Gio.Subprocess.new(['canberra-gtk-play', '--id=trash-empty',
+                '--description=Remove from Dock'], Gio.SubprocessFlags.NONE);
+        } catch (_) { /* Missing audio support must not prevent unpinning. */ }
+    }
+    showRemoveLabel(source, text = 'Remove') {
         if (!this.removeLabel) {
-            this.removeLabel = new St.Label({text:'Remove from Dock', style_class:'fm-dock-remove-label', reactive:false});
+            const parts = dockBubble(text);
+            this.removeLabel = parts.bubble;
+            this.removeText = parts.label;
             Main.uiGroup.add_child(this.removeLabel);
             Shell.util_set_hidden_from_pick(this.removeLabel, true);
         }
+        this.removeText.text = text;
         const [x,y] = global.get_pointer();
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        this.removeLabel.set_position(x + 16 * scale,y + 20 * scale);
+        const dragActor = this.icons.get(source)?.draggable?._dragActor;
+        const [left,top] = dragActor?.get_transformed_position?.() ?? [x,y];
+        const [iconWidth] = dragActor?.get_transformed_size?.() ?? [0];
+        const [,width] = this.removeLabel.get_preferred_width(-1);
+        const [,height] = this.removeLabel.get_preferred_height(width);
+        this.removeLabel.set_position(Math.round(left + iconWidth/2 - width/2),
+            Math.round(top - height - 6*scale));
         this.removeLabel.show();
     }
-    canUnpin(source) {
+    canUnpin(source, requireDistance = true) {
         if (this.stopped || !global.settings.is_writable('favorite-apps') || Main.overview.visible || !this.icons.has(source) || this.icons.get(source).trash) return false;
         const id = source.app?.get_id();
         if (!id || isFixedApp(id) || !this.settings.get_strv('favorite-apps').includes(id)) return false;
+        if (!requireDistance) return true;
         const [,pointerY] = global.get_pointer();
         const iconY = this.icons.get(source).dragSize?.y ?? source.get_transformed_position()[1];
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
@@ -121,6 +162,19 @@ export class DockOrder {
         motion.watch(actor.get_children());
         const owner = this;
         const originalDrop = dash.acceptDrop;
+        const originalClear = dash._clearDragPlaceholder;
+        const clear = function (...args) {
+            if (!this._dragPlaceholder?._fmDockGap)
+                return originalClear?.apply(this, args);
+            // Native animated removal leaves a shrinking layout actor behind.
+            // Rapid exits/reentries can accumulate several gaps and push the
+            // fixed right section beyond the Dock's clipping rectangle.
+            const gap = this._dragPlaceholder;
+            this._dragPlaceholder = null;
+            this._dragPlaceholderPos = -1;
+            this._fmDrop = null;
+            gap.destroy();
+        };
         const wrapped = function (source, dragActor, x, y, time) {
             const app = Dash.Dash.getAppFromSource(source);
             if (!app || !this._isHorizontal) return original.call(this, source, dragActor, x, y, time);
@@ -128,10 +182,20 @@ export class DockOrder {
                 return DND.DragMotionResult.NO_DROP;
             const children = this._box.get_children();
             motion.watch(children);
-            const icons = children.filter(child => child.visible && child.child?._delegate?.app && child.child._delegate.app !== app);
+            const boundary = children.find(child => child.has_style_class_name?.('familiarmac-downloads-start')
+                || child.has_style_class_name?.('familiarmac-trash-end'));
+            const appChildren = boundary ? children.slice(0, children.indexOf(boundary)) : children;
+            const icons = appChildren.filter(child => child.visible && child.child?._delegate?.app && child.child._delegate.app !== app);
             const [boxX] = this._box.get_transformed_position();
             const [boxWidth] = this._box.get_transformed_size();
             const ratio = this._box.width ? boxWidth / this._box.width : 1;
+            if (boundary && boxX + x * ratio >= boundary.get_transformed_position()[0]) {
+                this._fmDrop = null;
+                this._fmRejectedDrop = true;
+                this._clearDragPlaceholder?.();
+                return DND.DragMotionResult.NO_DROP;
+            }
+            this._fmRejectedDrop = false;
             const centers = icons.map(child => {
                 const [left] = child.get_transformed_position();
                 const [width] = child.get_transformed_size();
@@ -148,6 +212,7 @@ export class DockOrder {
             }
             if (!placeholder) {
                 this._dragPlaceholder = new Dash.DashItemContainer();
+                this._dragPlaceholder._fmDockGap = true;
                 this._dragPlaceholder.setChild(new St.Bin({style_class:'fm-dock-drop-slot'}));
                 this._box.add_child(this._dragPlaceholder);
             }
@@ -157,7 +222,7 @@ export class DockOrder {
                 sourceSize?.height || this.iconSize);
             // Keep the hidden original actor alive for GNOME's drag lifetime;
             // calculate the real child index separately from the favorite index.
-            const anchor = icons[pos];
+            const anchor = icons[pos] ?? boundary;
             const siblings = this._box.get_children().filter(child => child !== gap);
             const index = anchor ? siblings.indexOf(anchor) : siblings.length;
             if (this._fmDrop?.pos !== pos || this._fmDrop?.id !== app.get_id() || !placeholder)
@@ -169,10 +234,44 @@ export class DockOrder {
                 ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
         };
         const drop = function (source, ...args) {
+            const savedSource = owner.icons.get(source);
+            const boundary = this._box.get_children().find(child =>
+                child.has_style_class_name?.('familiarmac-downloads-start')
+                || child.has_style_class_name?.('familiarmac-trash-end'));
+            const [boxX] = this._box.get_transformed_position();
+            const [boxWidth] = this._box.get_transformed_size();
+            const ratio = this._box.width ? boxWidth / this._box.width : 1;
+            if (this._fmRejectedDrop || (boundary && Number.isFinite(args[1])
+                && boxX + args[1] * ratio >= boundary.get_transformed_position()[0])) {
+                savedSource?.restore?.();
+                return false;
+            }
             const target = this._fmDrop;
-            if (!this._dragPlaceholder || target?.id !== source.app?.get_id())
+            if (!this._dragPlaceholder || target?.id !== source.app?.get_id()) {
+                savedSource?.restore?.();
                 return originalDrop.call(this, source, ...args);
-            if (isFixedApp(target.id) || !global.settings.is_writable('favorite-apps')) return false;
+            }
+            if (isFixedApp(target.id) || !global.settings.is_writable('favorite-apps')) {
+                savedSource?.restore?.();
+                return false;
+            }
+            // Replace the destination gap with the same source actor before
+            // restoring visibility. Showing it at its old index first makes
+            // neighbors jump back, then Dash removes/recreates it on redisplay.
+            const gap = this._dragPlaceholder;
+            const children = this._box.get_children();
+            const container = savedSource?.container;
+            if (container && children.includes(container)) {
+                let index = children.indexOf(gap);
+                if (children.indexOf(container) < index) index--;
+                this._dragPlaceholder = null;
+                this._dragPlaceholderPos = -1;
+                gap.destroy();
+                this._box.set_child_at_index(container, index);
+                savedSource.restore();
+            } else {
+                savedSource?.restore?.();
+            }
             this._fmDrop = null;
             global.compositor.get_laters().add(Meta.LaterType.BEFORE_REDRAW, () => {
                 if (owner.stopped) return false;
@@ -186,9 +285,10 @@ export class DockOrder {
             return true;
         };
         const signal = actor.connect('destroy', () => { motion.destroy(); this.dashes.delete(dash); });
-        this.dashes.set(dash, {actor, original, wrapped, originalDrop, drop, signal, motion});
+        this.dashes.set(dash, {actor, original, wrapped, originalDrop, drop, originalClear, clear, signal, motion});
         dash.handleDragOver = wrapped;
         dash.acceptDrop = drop;
+        dash._clearDragPlaceholder = clear;
     }
     trackSeparator(actor) {
         this.trackDash(actor);
@@ -229,20 +329,61 @@ export class DockOrder {
             if (!saved.dragSize) return;
             const {visible} = saved.dragSize;
             saved.dragSize = null;
-            if (visible) container.show();
+            // DashItemContainer overrides show() to animate scale/opacity only;
+            // it does not undo Clutter.Actor.hide(). Restore the property itself.
+            if (visible) container.visible = true;
         };
         if (!fixed && draggable) {
+            const owner = this;
             saved.start = function (...args) {
                 original.apply(this, args);
                 // startDrag creates the floating actor and records its source
                 // geometry first. Only then remove the original from layout.
                 if (this._dragActor && !saved.dragSize) {
-                    saved.dragSize = {width:container.width,height:container.height,visible:container.visible,y:container.get_transformed_position()[1]};
+                    const [left,top] = container.get_transformed_position();
+                    const [width] = container.get_transformed_size?.() ?? [container.width];
+                    saved.dragSize = {width:container.width,height:container.height,visible:container.visible,y:top};
                     container.hide();
+                    // Replace the source slot in this same event, before layout
+                    // can shrink/recenter the Dock. Waiting for dragMotion lets
+                    // it shrink once and expand again under a nearly still pointer.
+                    for (const [dash] of owner.dashes) {
+                        if (!dash._isHorizontal || !dash._box.get_children().includes(container)) continue;
+                        const [boxX] = dash._box.get_transformed_position();
+                        const [boxWidth] = dash._box.get_transformed_size();
+                        const ratio = dash._box.width ? boxWidth / dash._box.width : 1;
+                        dash.handleDragOver(icon, this._dragActor,
+                            (left + width/2 - boxX)/ratio, 0, 0);
+                        break;
+                    }
                 }
             };
             draggable.startDrag = saved.start;
             saved.dragSignals = ['drag-end', 'drag-cancelled'].map(name => draggable.connect(name, saved.restore));
+        }
+        if (trash) {
+            saved.dragOver = icon.handleDragOver;
+            saved.acceptDrop = icon.acceptDrop;
+            saved.trashOver = (source, ...args) => {
+                if (!this.icons.has(source)) return saved.dragOver?.call(icon, source, ...args)
+                    ?? DND.DragMotionResult.CONTINUE;
+                if (!this.canUnpin(source, false)) return DND.DragMotionResult.NO_DROP;
+                this.showRemoveLabel(source, 'Remove from Dock');
+                return DND.DragMotionResult.MOVE_DROP;
+            };
+            saved.trashDrop = (source, ...args) => {
+                if (!this.icons.has(source)) return saved.acceptDrop?.call(icon, source, ...args) ?? false;
+                if (!this.canUnpin(source, false)) return false;
+                const id = source.app.get_id();
+                this.icons.get(source).restore();
+                global.compositor.get_laters().add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    if (!this.stopped) this.removeFavoriteWithSound(id);
+                    return false;
+                });
+                return true;
+            };
+            icon.handleDragOver = saved.trashOver;
+            icon.acceptDrop = saved.trashDrop;
         }
         saved.signal=icon.connect('destroy',()=>this.icons.delete(icon));
         this.icons.set(icon,saved);
@@ -255,6 +396,10 @@ export class DockOrder {
             saved.actor.disconnect(saved.signal);
             if (dash.handleDragOver === saved.wrapped) dash.handleDragOver = saved.original;
             if (dash.acceptDrop === saved.drop) dash.acceptDrop = saved.originalDrop;
+            if (dash._clearDragPlaceholder === saved.clear) {
+                saved.clear.call(dash);
+                dash._clearDragPlaceholder = saved.originalClear;
+            }
             dash._fmDrop = null;
         }
         this.dashes.clear();
@@ -272,10 +417,14 @@ export class DockOrder {
             icon.disconnect(saved.signal);
             for (const id of saved.dragSignals) saved.draggable.disconnect(id);
             saved.restore();
-            if (saved.draggable?.startDrag === saved.start) saved.draggable.startDrag = saved.original;
+            if (saved.draggable && saved.draggable.startDrag === saved.start) saved.draggable.startDrag = saved.original;
             if (saved.draggable?.startDrag===saved.blocked) saved.draggable.startDrag=saved.original;
             if (saved.draggable?._maybeStartDrag===saved.blocked) saved.draggable._maybeStartDrag=saved.originalMaybe;
-            if (saved.trash) saved.container.remove_style_class_name('familiarmac-trash-end');
+            if (saved.trash) {
+                if (icon.handleDragOver === saved.trashOver) icon.handleDragOver = saved.dragOver;
+                if (icon.acceptDrop === saved.trashDrop) icon.acceptDrop = saved.acceptDrop;
+                saved.container.remove_style_class_name('familiarmac-trash-end');
+            }
         }
         this.icons.clear();
     }

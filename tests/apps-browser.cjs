@@ -93,6 +93,7 @@ let favs=['finder','apps','a','b'].map(appFor),committed=null;
 order.AppFavorites.getAppFavorites=()=>({getFavorites:()=>favs,isFavorite:id=>favs.some(a=>a.get_id()===id),moveFavoriteToPos:(id,pos)=>committed=[id,pos]});
 order.Dash={Dash:{getAppFromSource:s=>s.app},DashItemContainer:class {
  constructor(){this.visible=true;}
+ destroy(){children.splice(children.indexOf(this),1);}
  setChild(child){this.child=child;}
  show(){}
  get_transformed_position(){return [240,0];}
@@ -107,26 +108,107 @@ const native=()=>{throw Error('native index calculation must not include hidden 
 const nativeDrop=()=>false;
 const dash={_box:box,_isHorizontal:true,iconSize:40,handleDragOver:native,acceptDrop:nativeDrop};box._delegate=dash;
 const tracker=new order.DockOrder();tracker.trackDash(box);
-const source={app:favs[2]};tracker.icons.set(source,{dragSize:{width:60,height:50}});
+const source={app:favs[2]}, sourceContainer=children[2];let restoredBeforeDrop=false;
+tracker.icons.set(source,{container:sourceContainer,dragSize:{width:60,height:50},restore(){
+ restoredBeforeDrop=true;sourceContainer.visible=true;
+}});
 dash.handleDragOver(source,null,400,0,0);
 assert.equal(dash._dragPlaceholder.child.width,60);assert.equal(dash._dragPlaceholder.child.height,50);
 assert.equal(dash._fmDrop.pos,3);assert.equal(committed,null);
-assert(dash.acceptDrop(source));assert.equal(committed,null);later();assert.deepEqual(committed,['a',3]);
+assert(dash.acceptDrop(source));assert(restoredBeforeDrop);
+assert.equal(dash._dragPlaceholder,null);
+assert.equal(children.indexOf(sourceContainer),3,'source occupies the gap before favorites change');
+assert.deepEqual(children.map(c=>c.child._delegate.app.get_id()),['finder','apps','b','a']);assert.equal(committed,null);later();assert.deepEqual(committed,['a',3]);
+// Moving back left also replaces the gap without returning to the old slot.
+sourceContainer.visible=false;
+dash.handleDragOver(source,null,0,0,0);
+assert.equal(dash._fmDrop.pos,2);
+assert(dash.acceptDrop(source));
+assert.equal(dash._dragPlaceholder,null);
+assert.equal(sourceContainer.visible,true);
+assert.deepEqual(children.map(c=>c.child._delegate.app.get_id()),['finder','apps','a','b']);
+later();assert.deepEqual(committed,['a',2]);
+const boundary={visible:true,has_style_class_name:n=>n==='familiarmac-downloads-start',get_transformed_position:()=>[340,0]};
+children.push(boundary);
+
+assert.equal(dash.handleDragOver(source,null,250,0,0),0);
+assert.equal(dash._fmDrop,null);assert.equal(dash.acceptDrop(source),false);
+dash.handleDragOver(source,null,230,0,0);
+assert(children.indexOf(dash._dragPlaceholder)<children.indexOf(boundary));
+// Leaving and reentering repeatedly must never accumulate fading gap actors.
+for(let i=0;i<10;i++) {
+ dash._clearDragPlaceholder();
+ assert.equal(children.filter(c=>c._fmDockGap).length,0);
+ dash.handleDragOver(source,null,230,0,0);
+ assert.equal(children.filter(c=>c._fmDockGap).length,1);
+}
 tracker.icons.delete(source);tracker.destroy();assert.equal(dash.handleDragOver,native);assert.equal(dash.acceptDrop,nativeDrop);
 // A real draggable completes actor construction before collapsing its source.
-const life=new order.DockOrder();let endHandlers={},sourceHidden=false;
-const container={width:60,height:50,visible:true,get_transformed_position:()=>[100,500],hide(){sourceHidden=true;this.visible=false;},show(){sourceHidden=false;this.visible=true;}};
-const d={startDrag(){assert(!sourceHidden);this._dragActor={};},connect(n,f){endHandlers[n]=f;return n;},disconnect(n){delete endHandlers[n];}};
+const life=new order.DockOrder();let endHandlers={};
+const container={width:60,height:50,visible:true,get_transformed_position:()=>[100,500],hide(){this.visible=false;},
+// Match GNOME DashItemContainer: show animates but does NOT set visible.
+show(){this.scale_x=1;this.opacity=255;}};
+const d={startDrag(){assert(container.visible);this._dragActor={};},connect(n,f){endHandlers[n]=f;return n;},disconnect(n){delete endHandlers[n];}};
 const sourceIcon={app:appFor('brave.desktop'),_draggable:d,get_parent:()=>container,connect:()=>1,disconnect(){}};
-life.track(sourceIcon);d.startDrag();assert(sourceHidden);assert.equal(life.icons.get(sourceIcon).dragSize.width,60);
+container.hide();container.show();assert.equal(container.visible,false);
+container.visible=true;
+let initialGap=0;
+const startupDash={_isHorizontal:true,_box:{width:300,get_children:()=>[container],
+ get_transformed_position:()=>[40,500],get_transformed_size:()=>[300,50]},
+ handleDragOver(icon,actor,x){assert.equal(icon,sourceIcon);assert.equal(container.visible,false);assert.equal(x,90);initialGap++;}};
+life.dashes.set(startupDash,{});
+life.track(sourceIcon);d.startDrag();assert.equal(initialGap,1);
+life.dashes.delete(startupDash);assert(!container.visible);assert.equal(life.icons.get(sourceIcon).dragSize.width,60);
 order.St.Label=class {set_position(){} show(){this.visible=true;}hide(){this.visible=false;}destroy(){}};
+order.Clutter.ActorAlign={CENTER:1};
+order.St.BoxLayout=class extends order.St.Label {
+ constructor(){super();this.children=[];}
+ add_child(child){this.children.push(child);}
+ get_preferred_width(){return [60,60];}
+ get_preferred_height(){return [30,30];}
+ set_position(x,y){this.x=x;this.y=y;}
+};
+order.St.DrawingArea=class {connect(){}};
 order.Shell={util_set_hidden_from_pick(){}};ui.add_child=()=>{};pointerY=200;
-assert.equal(life.delegate.handleDragOver(sourceIcon),2);assert.equal(life.removeLabel.visible,true);
+assert.equal(life.delegate.handleDragOver(sourceIcon),2);assert.equal(life.removeLabel.visible,true);assert.equal(life.removeLabel.children.length,2);assert.equal(life.removeLabel.x,-20);assert.equal(life.removeLabel.y,158);
 life.removeMonitor.dragMotion();assert.equal(life.removeLabel.visible,false);
 assert.equal(life.canUnpin({...sourceIcon,app:appFor('org.familiarmac.Apps.desktop')}),false);
 
-endHandlers['drag-cancelled']();assert(!sourceHidden);d.startDrag();endHandlers['drag-end']();assert(!sourceHidden);
+endHandlers['drag-cancelled']();assert(container.visible);d.startDrag();endHandlers['drag-end']();assert(container.visible);
+const trashContainer={add_style_class_name(){},remove_style_class_name(){}};
+let fileHover=0,fileDrop=0;
+const trashIcon={app:{get_id:()=> 'trash',get_app_info:()=>({location:{get_uri:()=> 'trash:///'}})},
+ get_parent:()=>trashContainer,connect:()=>1,disconnect(){},
+ handleDragOver(){fileHover++;return 77;},acceptDrop(){fileDrop++;return true;}};
+const nativeTrashOver=trashIcon.handleDragOver,nativeTrashDrop=trashIcon.acceptDrop;
+life.track(trashIcon);
+sourceIcon.get_transformed_position=()=>[100,500];
+pointerY=500; // Same height as Dock: distance-based removal is not required.
+assert.equal(life.canUnpin(sourceIcon),false);
+assert.equal(trashIcon.handleDragOver(sourceIcon),2);
+assert.equal(life.removeText.text,'Remove from Dock');
+life.showRemoveLabel(sourceIcon);assert.equal(life.removeText.text,'Remove');
+const savedFavoritesGetter=order.AppFavorites.getAppFavorites;
+let soundCount=0;
+order.Gio.SubprocessFlags={NONE:0};order.Gio.Subprocess={new(argv){assert.equal(argv[1],'--id=trash-empty');soundCount++;}};
+const beforeUnpin=[...favorites];
+let unpinned=null;order.AppFavorites.getAppFavorites=()=>({removeFavorite(id){unpinned=id;favorites=favorites.filter(x=>x!==id);}});
+assert.equal(trashIcon.acceptDrop(sourceIcon),true);assert.equal(unpinned,null);
+later();assert.equal(unpinned,'brave.desktop');assert.equal(soundCount,1);
+life.removeFavoriteWithSound('brave.desktop');assert.equal(soundCount,1);
+favorites=[...beforeUnpin];pointerY=200;
+assert.equal(life.delegate.acceptDrop(sourceIcon),true);assert.equal(soundCount,1);
+later();assert.equal(soundCount,2);
+favorites=[...beforeUnpin];
+order.AppFavorites.getAppFavorites=savedFavoritesGetter;
+const fixedSource={app:appFor('org.familiarmac.Apps.desktop')};life.icons.set(fixedSource,{trash:false});
+assert.equal(trashIcon.handleDragOver(fixedSource),0);assert.equal(trashIcon.acceptDrop(fixedSource),false);
+life.icons.delete(fixedSource);
+assert.equal(trashIcon.handleDragOver({uris:['file:///test']}),77);
+assert.equal(trashIcon.acceptDrop({uris:['file:///test']}),true);
+assert.equal(fileHover,1);assert.equal(fileDrop,1);
 life.destroy();assert.equal(Object.keys(endHandlers).length,0);
+assert.equal(trashIcon.handleDragOver,nativeTrashOver);assert.equal(trashIcon.acceptDrop,nativeTrashDrop);
 
 // Real layout moves immediately; only the visual child eases from old to new.
 let active=true,animations=true,animation=null,signalId=0;
@@ -143,3 +225,9 @@ animations=false;moving.x=160;allocated();assert.equal(content.translation_x,0);
 active=false;moving.x=200;allocated();assert.equal(content.translation_x,0);
 motion.destroy();assert.equal(handlers.size,0);assert.equal(content.translation_x,0);
 console.log('Dock gap motion: neighbors slide, reversal continuous, reduced motion and teardown PASS');
+
+const fixedMotion=new order.DockGapMotion(()=>true,()=>true);
+let trashWatched=false;
+fixedMotion.watch([{child:{_delegate:{app:{get_app_info:()=>({location:{get_uri:()=> 'trash:///'}})}}},connect(){trashWatched=true;}}]);
+assert.equal(trashWatched,false,'trash must not slide beyond the Dock clip on drag exit');
+fixedMotion.destroy();

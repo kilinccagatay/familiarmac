@@ -4,7 +4,8 @@ import {readProcessIdentity} from './processTracker.js';
 
 // Preserve normal dock behavior. Only handle a click with no surviving windows.
 export class DockLaunch {
-    constructor(readProcess = readProcessIdentity) {
+    constructor(readProcess = readProcessIdentity, showApps = null) {
+        this.showApps = showApps;
         this.readProcess = readProcess;
         this.closing = new WeakSet();
         this.icons = new Map();
@@ -71,6 +72,12 @@ export class DockLaunch {
     }
     request(app) {
         const id = app.get_id();
+        // Apps is a Shell dialog, not a window-producing process. Each click
+        // must reach its toggle instead of waiting for a nonexistent window.
+        if (id === 'org.familiarmac.Apps.desktop' && this.showApps) {
+            this.showApps();
+            return;
+        }
         if (this.pending.has(id)) return;
         const record = this._remember(app);
         this._capture(record);

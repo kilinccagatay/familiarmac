@@ -1,5 +1,7 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.familiarmac-genie" path="/org/gnome/shell/extensions/familiarmac-genie/">
     <key name="animate" type="b"><default>true</default><summary>Animate minimizing and restoring windows</summary></key>
+    <key name="dock-magnification" type="b"><default>false</default><summary>Magnify Dock icons under the pointer</summary></key>
+    <key name="dock-magnification-scale" type="d"><range min="1.1" max="2.0"/><default>1.5</default><summary>Maximum Dock magnification</summary></key>
   </schema>
 </schemalist>

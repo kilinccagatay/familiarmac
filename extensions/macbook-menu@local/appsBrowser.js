@@ -130,7 +130,11 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
             button.connect('key-focus-in',()=>{this._index=this._buttons.indexOf(button);});
         }
     }
-    open() {super.open(global.get_current_time());this._entry.grab_key_focus();}
+    open() {
+        if (!super.open(global.get_current_time())) return false;
+        this._entry.grab_key_focus();
+        return true;
+    }
 });
 
 export class AppsBrowser {
@@ -146,8 +150,12 @@ export class AppsBrowser {
     }
     Show() {
         if (this.dialog) {this.dialog.close();return;}
-        this.dialog=new AppsDialog(this._added);
-        this.dialog.connect('destroy',()=>{this.dialog=null;});this.dialog.open();
+        const dialog = new AppsDialog(this._added);
+        this.dialog = dialog;
+        dialog.connect('destroy', () => { if (this.dialog === dialog) this.dialog = null; });
+        // A failed modal grab must not leave an invisible dialog swallowing
+        // all subsequent Show calls through the close/toggle path.
+        if (!dialog.open()) dialog.destroy();
     }
     _updateInstalled() {
         const apps = installedApps(this._system);

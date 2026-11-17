@@ -25,6 +25,13 @@ let record=controller.icons.get(icon);assert.equal(record.flyout.items[0].label,
 icon._menu.items[1].action();assert.equal(opened,1);
 const options=icon._menu.items[0];
 options.activate();assert(options.classes.has('fm-submenu-open'));
+assert(!options.classes.has('fm-submenu-child-active'),'open alone stays blue');
+const child=record.flyout.items[0];child.active=true;
+record.flyout.signals['active-changed'](record.flyout,child);
+assert(options.classes.has('fm-submenu-child-active'),'selected child makes ancestor gray');
+child.active=false;record.flyout.signals['active-changed'](record.flyout,null);
+assert(!options.classes.has('fm-submenu-child-active'),'no child selection restores blue');
+
 record.flyout.close();assert(!options.classes.has('fm-submenu-open'));
 icon._menu.items[0].activate();assert.equal(record.flyout.isOpen,true);icon._menu.close();assert.equal(record.flyout.isOpen,false);
 // One outside click, touch or Escape closes both levels, preserving inside clicks.
@@ -93,6 +100,10 @@ const parent=rect(100,50,200,600), row=rect(100,500,200,30), fly=rect(294,495,18
 assert.equal(context.returns(parent,row,fly,150,470),true);
 assert.equal(context.returns(parent,row,fly,150,550),true);
 assert.equal(context.returns(parent,row,fly,150,515),false);
+for(const y of [498,499,500,529,530,531,533])
+ assert.equal(context.returns(parent,row,fly,150,y),false,'source edge keeps flyout open');
+assert.equal(context.returns(parent,row,fly,150,535),true,'moving to next row still releases grab');
+
 assert.equal(context.returns(parent,row,fly,297,505),false); // overlapping flyout wins
 assert.equal(context.returns(parent,row,fly,350,550),false);
 assert.equal(context.returns(parent,row,fly,50,470),false);
@@ -137,7 +148,7 @@ assert(!hr.menu.signals['captured-event']);
 console.log('Dock Options: hover re-entry, stationary-pointer scroll, idle cleanup PASS');
 // Hover/focus is not an independent blue highlight; native .selected owns it.
 assert.match(css,/\.fm-dock-menu \.popup-menu-item:active \{ background-color: transparent;/);
-assert.match(css,/\.fm-system-light \.fm-dock-menu \.popup-menu-item\.selected:focus \{ background-color: #0868e9;/);
+assert.match(css,/\.fm-system-light \.fm-dock-menu \.popup-menu-item\.selected:focus \{ background-color: #0a84ff;/);
 assert.match(css,/\.fm-system-dark \.fm-dock-menu \.popup-menu-item\.fm-submenu-open\.selected:hover/);
 
 // Returning from the gray ancestor must select the newly pointed parent row,

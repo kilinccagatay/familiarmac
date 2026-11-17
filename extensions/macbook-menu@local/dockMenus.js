@@ -22,16 +22,20 @@ export function flyoutPosition(parent, rowY, size, work, scale = 1) {
 
 // Hit-test transformed coordinates: a nested modal grab can route the event to
 // the flyout even when the pointer is physically over a different parent row.
-export function pointerInside(actor, x, y) {
+export function pointerInside(actor, x, y, padding = 0) {
     const [ax, ay] = actor.get_transformed_position();
     const [width, height] = actor.get_transformed_size();
-    return x >= ax && x < ax + width && y >= ay && y < ay + height;
+    return x >= ax - padding && x < ax + width + padding &&
+        y >= ay - padding && y < ay + height + padding;
 }
 
 export function pointerReturnsToParent(parent, source, flyout, x, y) {
     const inside = actor => pointerInside(actor, x, y);
     // The flyout has visual priority in the intentional overlap region.
-    return inside(parent) && !inside(source) && !inside(flyout);
+    // A small closing dead band keeps subpixel boundary movements and grab
+    // enter/leave events from repeatedly closing/reopening the same flyout.
+    // It applies only to closing; other parent rows remain reachable.
+    return inside(parent) && !pointerInside(source, x, y, 4) && !inside(flyout);
 }
 
 // Modal release may not emit a new enter/hover notification for the parent.
@@ -207,10 +211,16 @@ export class DockMenus {
         menu.addMenuItem(options);
         const flyout = new PopupMenu.PopupMenu(options, 0, St.Side.LEFT);
         record.flyout = flyout;
-        flyout.connect('open-state-changed', (_flyout, open) => {
+        const syncOptionsHighlight = () => {
+            const open = flyout.isOpen;
+            const childActive = open && flyout._getMenuItems().some(item => item.active);
             if (open) options.add_style_class_name('fm-submenu-open');
             else options.remove_style_class_name('fm-submenu-open');
-        });
+            if (childActive) options.add_style_class_name('fm-submenu-child-active');
+            else options.remove_style_class_name('fm-submenu-child-active');
+        };
+        flyout.connect('open-state-changed', syncOptionsHighlight);
+        flyout.connect('active-changed', syncOptionsHighlight);
         flyout.actor.add_style_class_name('fm-dock-menu');
         flyout.actor.add_style_class_name('fm-dock-flyout');
         const pointer = flyout._boxPointer;
@@ -261,7 +271,7 @@ export class DockMenus {
             if (flyout.isOpen) return;
             selectParentPointerRow(menu, x, y);
             if (pointerInside(menu.actor, x, y) && pointerInside(options, x, y))
-                flyout.open();
+                flyout.open(BoxPointer.PopupAnimation.NONE);
         };
         const queuePointerCheck = () => {
             if (record.hoverCheck) return;

@@ -12,6 +12,8 @@ import {ControlCenter} from './controlCenter.js';
 import {DownloadsStack} from './downloadsStack.js';
 import {AppsBrowser} from './appsBrowser.js';
 import {DockOrder} from './dockOrder.js';
+import {DockTooltips} from './dockTooltips.js';
+import {DockMagnification} from './dockMagnification.js';
 import {TrashDrop} from './trashDrop.js';
 import {DockMenus} from './dockMenus.js';
 import {DockLaunch} from './dockLaunch.js';
@@ -54,10 +56,12 @@ export default class MacBookMenu extends Extension {
         this._trashDrop = new TrashDrop();
         this._appsBrowser = new AppsBrowser();
         this._dockOrder = new DockOrder();
+        this._dockTooltips = new DockTooltips();
+        this._dockMagnification = new DockMagnification();
         this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
-        this._dockLaunch = new DockLaunch();
+        this._dockLaunch = new DockLaunch(undefined, () => this._appsBrowser.Show());
         this._dockMenus = new DockMenus();
         this._finderIndicators = new Map();
         this._processTracker = new ProcessTracker();
@@ -73,12 +77,15 @@ export default class MacBookMenu extends Extension {
             const seen = new Set();
             const visit = actor => {
                 this._dockOrder.trackSeparator(actor);
+                if (actor.has_style_class_name?.('familiarmac-downloads-button')) this._dockMagnification.track(actor);
                 if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
                     this._trashDrop.track(actor);
                     this._dockLaunch.track(actor);
                     this._dockMenus.track(actor);
                     this._dockOrder.track(actor);
+                    this._dockTooltips.track(actor);
+                    this._dockMagnification.track(actor);
                     const previousRunning = actor._macbookBackgroundRunning;
                     actor._macbookBackgroundRunning = actor.app.get_id() === 'org.gnome.Nautilus.desktop'
                         || this._processTracker.isRunning(actor.app);
@@ -270,6 +277,10 @@ export default class MacBookMenu extends Extension {
         this._downloadsStack = null;
         this._appsBrowser?.destroy();
         this._appsBrowser = null;
+        this._dockMagnification?.destroy();
+        this._dockMagnification = null;
+        this._dockTooltips?.destroy();
+        this._dockTooltips = null;
         this._dockOrder?.destroy();
         this._dockOrder = null;
         this._trashDrop?.destroy();

@@ -12,3 +12,10 @@ headerbar .title, headerbar .subtitle { padding-left: 2px; padding-right: 2px; }
  * document/path labels outside the header title slot are untouched. */
 headerbar windowtitle,
 headerbar > windowhandle > box > widget > label.title { min-width: 8em; }
+
+/* FamiliarMac shared accent: native and sandboxed GTK applications. */
+@define-color accent_bg_color #0a84ff;
+@define-color accent_fg_color #ffffff;
+@define-color accent_color #0a84ff;
+@define-color theme_selected_bg_color #0a84ff;
+@define-color theme_selected_fg_color #ffffff;

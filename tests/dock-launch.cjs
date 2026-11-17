@@ -23,3 +23,12 @@ const s=app('starting.desktop',400);s.state=2;d.request(s);assert.equal(s.count,
 now=18000000;tick();assert.equal(d.pending.size,0);
 const pending=app('pending.desktop',500);d.request(pending);d.destroy();assert.equal(timers.size,0);assert.equal(pending.callbacks.size,0);
 console.log('Dock launch: immediate request, actual-exit retry, coalescing, PID reuse, startup focus, bounded cleanup PASS');
+
+let toggles=0;
+const internal=new context.DockLaunch(()=>null,()=>toggles++);
+const apps=app('org.familiarmac.Apps.desktop',999);apps.state=2;
+for(let i=0;i<8;i++)internal.request(apps);
+assert.equal(toggles,8);assert.equal(internal.pending.size,0);
+assert.equal(apps.count,0);assert.equal(timers.size,0);
+internal.destroy();
+console.log('Apps launcher: every click reaches Shell toggle, no window wait or process launch PASS');
