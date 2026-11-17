@@ -62,6 +62,7 @@ fi
 build=$(mktemp -d)
 trap 'rm -rf "$build"' EXIT
 tar -xzf vendor/keyd-2.6.0.tar.gz -C "$build"
+patch -d "$build" -p1 < "$repo/patches/keyd-ipc-read.patch"
 make -C "$build" COMMIT=7c0aecb
 "$build/bin/keyd" check "$repo/config/apple.conf"
 make -C "$build" COMMIT=7c0aecb install

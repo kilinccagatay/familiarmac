@@ -1,0 +1,43 @@
+--- a/src/daemon.c
++++ b/src/daemon.c
+@@ -397,11 +397,39 @@
+ 	return 0;
+ }
+ 
++/* A disconnected IPC client must never monopolize the keyboard event loop.
++ * Bound the whole request (not each fragment) and treat EOF as failure. */
++static int read_request(int fd, void *buffer, size_t size)
++{
++    struct timespec start, now;
++    size_t done = 0;
++    clock_gettime(CLOCK_MONOTONIC, &start);
++    while (done < size) {
++        clock_gettime(CLOCK_MONOTONIC, &now);
++        long elapsed = (now.tv_sec - start.tv_sec) * 1000 +
++                       (now.tv_nsec - start.tv_nsec) / 1000000;
++        if (elapsed >= 100) return -1;
++        struct pollfd pfd = {fd, POLLIN, 0};
++        int ready = poll(&pfd, 1, 100 - elapsed);
++        if (ready < 0 && errno == EINTR) continue;
++        if (ready <= 0) return -1;
++        ssize_t n = recv(fd, (char *)buffer + done, size - done, MSG_DONTWAIT);
++        if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
++        if (n <= 0) return -1;
++        done += n;
++    }
++    return 0;
++}
++
+ static void handle_client(int con)
+ {
+ 	struct ipc_message msg;
+ 
+-	xread(con, &msg, sizeof msg);
++	if (read_request(con, &msg, sizeof msg)) {
++		keyd_log("IPC: incomplete request dropped; keyboard retained\n");
++		close(con);
++		return;
++	}
+ 
+ 	if (msg.sz >= sizeof(msg.data)) {
+ 		send_fail(con, "maximum message size exceeded");
