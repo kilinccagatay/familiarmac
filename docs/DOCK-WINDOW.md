@@ -83,3 +83,9 @@ Dragging a favorite more than 64 logical pixels above its original dock position
 Wi-Fi rows show a circular signal badge: blue for the active network and neutral for others, without a checkmark. The connected state remains in the accessible label. The primary connected Ethernet indicator uses an original bracket-and-three-dots symbolic SVG; native disconnected/acquiring/error icons remain unchanged. Both color schemes are supported.
 
 The Wi-Fi heading is a non-interactive row. Only the switch is clickable/focusable and changes radio state; the heading/row has no selected or hover background. Keyboard activation remains available on the switch, and the hardware radio block is respected.
+
+## Size, magnification and auto-hide (1.0.1)
+
+Size uses Small–Large endpoints; the 50% stop restores the original 48-pixel icon setting. Magnification uses Off–Small–Large with a stop at Small. Hover expands neighboring icons and the background; the divider follows the section boundary and labels stay above the icons. Auto-hide uses edge entry without pressure, zero additional show delay, a 280 ms transition and 150 ms hide delay. Magnification participates in reveal but cannot activate for a hidden Dock. A monitor-anchored vertical hover lane includes the space above and below icons.
+
+Shell JavaScript changes require a new login. Open GTK applications may need restarting to pick up shared theme changes. User-specific NVIDIA, firmware, Wi-Fi and boot repairs are not part of these desktop controls.

@@ -165,6 +165,10 @@ güncellenir; pencereye özel canlı menü önbelleği yeni pencere geçişlerin
 
 ## Sürümler ve güncellemeler
 
-[GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases) üzerinden taşınabilir paketi ve `SHA256SUMS` dosyasını indirin. Sağlamasını doğrulayıp arşivi açtıktan sonra normal kullanıcınızla `./install.sh --all` çalıştırın. **Ayarlar → Dock & Window → FamiliarMac** kurulu sürümü gösterir; **Check for Updates…** yeni sürümü kontrol eder. Kurulum onay ister, masaüstü tercihlerini korur ve tamamlanınca isteğe bağlı oturum kapatma sunar.
+[GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases) üzerinden taşınabilir paketi ve `SHA256SUMS` dosyasını indirin. Sağlamasını doğrulayıp arşivi açtıktan sonra normal kullanıcınızla `./install.sh --all` çalıştırın. **Ayarlar → Dock & Window → FamiliarMac** kurulu sürümü gösterir; **Check for Updates** yeni sürümü kontrol eder. Yeni sürüm için onay ister; aynı bölümde indirme çubuğu gösterir ve ardından otomatik kurar, masaüstü tercihlerini korur ve tamamlanınca isteğe bağlı oturum kapatma sunar.
 
 NVIDIA/Nouveau firmware, Broadcom, kernel/GRUB ve referans bilgisayara özel onarımlar otomatik kurulmaz; yalnızca ayrı ve manuel donanım işlemleridir. [Ayrıntılar](RELEASES.md).
+
+### Dock kontrolleri (1.0.1)
+
+Dock & Window bölümünden boyut, otomatik gizleme ve üzerine gelince büyütme ayarlanır. Varsayılan boyuta dönmek için kaydırıcıda durak bulunur. Simge taşırken komşular yer açar; yukarıya veya Çöp Kutusu üzerine bırakmak uygulamayı silmeden sabitlemesini kaldırır. Açılışta kenar basıncı gerekmez; isim balonları ve ayırıcı büyütme hareketini takip eder. Ayrıntılar: [Dock & Window](DOCK-WINDOW.md).

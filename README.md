@@ -236,10 +236,12 @@ The same Settings page lists installed applications. **Check menus** re-runs liv
 menu/shortcut discovery for one running app, without closing it or changing its
 preferences. **Configured** describes configuration evidence; **Adapted** records
 a successful menu discovery with its timestamp, not a guarantee of every command.
+Dock & Window also provides size, auto-hide and hover magnification controls. The Dock includes animated reorder gaps, pointed labels, moving section dividers and drag-to-unpin feedback.
+
 See [Dock & Window settings](docs/DOCK-WINDOW.md).
 
 ## Releases and desktop updates
 
-Install the tested portable bundle from [GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases). Verify `SHA256SUMS`, extract the archive and run `./install.sh --all` as your desktop user. **Settings → Dock & Window → FamiliarMac** shows the installed version and offers **Check for Updates…**. Updates require confirmation, preserve desktop preferences and offer logout afterward without forcing it.
+Install the tested portable bundle from [GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases). Verify `SHA256SUMS`, extract the archive and run `./install.sh --all` as your desktop user. **Settings → Dock & Window → FamiliarMac** shows the installed version and offers **Check for Updates**. An inline progress bar tracks the confirmed download, followed automatically by installation. Updates preserve desktop preferences and offer logout afterward without forcing it.
 
 NVIDIA/Nouveau firmware, Broadcom repairs and reference-machine kernel/GRUB fixes are **manual only** and excluded from release installation/update paths. [Release/update guide](docs/RELEASES.md).

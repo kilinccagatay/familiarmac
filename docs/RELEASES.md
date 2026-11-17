@@ -1,6 +1,6 @@
 # Releases and updates
 
-FamiliarMac distributes a portable `tar.gz` bundle with `VERSION`, `RELEASE.json` and a separate `SHA256SUMS` asset. GitHub Actions tests each `vX.Y.Z` tag before publishing the bundle. Only a published stable release with both assets is offered by the updater; branch commits and prereleases are never installed automatically.
+FamiliarMac distributes a portable `tar.gz` bundle with `VERSION`, `RELEASE.json` and a separate `SHA256SUMS` asset. GitHub Actions tests each version change/tag before publishing the bundle. Only a published stable release with both assets is offered by the updater; branch commits and prereleases are never installed automatically.
 
 ## Install
 
@@ -8,7 +8,7 @@ Download the bundle and checksum from [Releases](https://github.com/kilinccagata
 
 ## Dock & Window
 
-The FamiliarMac section displays the installed version. Opening Settings checks for stable updates in the background, with a six-hour cache. **Check for Updates…** opens a window and forces a fresh check. It reports current, update available, offline/error, and installation states. Installation is explicit; system dependencies/themes request administrator authentication. Following success, a **Later / Log Out…** dialog is offered. Log Out opens GNOME's own confirmation and does not force-close work.
+The FamiliarMac section displays the installed version. Opening Settings checks for stable updates in the background, with a six-hour cache. **Check for Updates** refreshes the status inline. When a new version is available, **Download Update…** asks for confirmation. Download progress is shown underneath the version row, followed automatically by verification and installation. Being up to date never opens a separate window. Installation is explicit; system dependencies/themes request administrator authentication. Following success, a **Later / Log Out…** dialog is offered. Log Out opens GNOME's own confirmation and does not force-close work.
 
 Downloads come only from this repository's GitHub Releases over HTTPS. SHA-256 checksums detect corruption; they are not an independent publisher signature. Archives reject path traversal, links, special files and excessive sizes. An exclusive lock prevents simultaneous updates. The release tree stays under `~/.local/share/familiarmac/releases/VERSION` for helpers that refer to it. The updater is also installed independently of the original checkout.
 
