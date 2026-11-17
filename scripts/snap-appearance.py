@@ -41,6 +41,7 @@ def set_native(path, record):
     if KEY in data and (type(data[KEY]) is not int or data[KEY] != 1):
         return 'non-default frame preference retained'
     saved = saved or {'present': KEY in data, 'before': data.get(KEY), 'installed': 0}
+    if running('bluebubbles'): return 'running; preferences deferred until exit'
     if (path.read_text() if path.exists() else None) != before:
         return 'concurrent edit retained'
     write_json(record, saved)
@@ -85,10 +86,11 @@ def mirror_theme(profile):
     write_json(record, {'installed': theme_digest(dest)})
 
 
-def apply():
+def apply(only=None):
     reports=[]
     # Snap desktop-launch links gtk.css but omits its relative SVG directory.
     for profile in (HOME/'snap').glob('*/current'):
+        if only is not None and profile.parent.name != only: continue
         mirror_theme(profile)
         for gtk in ('gtk-3.0', 'gtk-4.0'):
             css=profile/'.config'/gtk/'gtk.css'
@@ -105,7 +107,7 @@ def apply():
                 write_json(rec, {'before': saved['before'] if saved else old, 'installed': new})
                 dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(new)
     profile=HOME/'snap/bluebubbles/current'
-    if profile.exists():
+    if profile.exists() and only in (None, 'bluebubbles'):
         if running('bluebubbles'): status='running; preferences deferred until next integration pass'
         else:
             path=profile/'.local/share/app.bluebubbles.BlueBubbles/shared_preferences.json'

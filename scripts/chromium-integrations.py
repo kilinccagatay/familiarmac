@@ -14,14 +14,21 @@ def refresh(app):
     profiles=list(base.glob('*/Preferences'))
     if not profiles: profiles=[base/'Default/Preferences']
     for path in profiles:
-        data=json.loads(path.read_text()) if path.exists() else {}
+        if path.is_symlink(): continue
+        before=path.read_text() if path.exists() else None
+        data=json.loads(before) if before is not None else {}
         browser=data.setdefault('browser',{})
         if not isinstance(browser,dict):continue
         record=STATE/app/(path.parent.name+'.json');record.parent.mkdir(parents=True,exist_ok=True)
-        if not record.exists():record.write_text(json.dumps({'path':str(path),'had_value':'custom_chrome_frame' in browser,'before':browser.get('custom_chrome_frame')}))
+        if record.exists() and browser.get('custom_chrome_frame') is not False:
+            print(app+': later frame preference retained.');continue
+        backup={'path':str(path),'had_value':'custom_chrome_frame' in browser,'before':browser.get('custom_chrome_frame')}
         if browser.get('custom_chrome_frame') is False:continue
         browser['custom_chrome_frame']=False
         path.parent.mkdir(parents=True,exist_ok=True)
+        if os.path.lexists(base/'SingletonLock'): return
+        if (path.read_text() if path.exists() else None)!=before: raise BlockingIOError('Concurrent profile edit')
+        if not record.exists():record.write_text(json.dumps(backup))
         tmp=path.with_name('Preferences.familiarmac-tmp');tmp.write_text(json.dumps(data));tmp.chmod(0o600);tmp.replace(path)
 
 def apply():

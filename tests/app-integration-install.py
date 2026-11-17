@@ -16,11 +16,13 @@ with tempfile.TemporaryDirectory() as tmp:
     with patch('pathlib.Path.home', return_value=home), patch('subprocess.run', side_effect=run), patch('sys.argv', ['installer']):
         runpy.run_path(str(ROOT/'scripts/install-app-integrations.py'))
         dest = home/'.local/lib/familiarmac'
-        for name in ('app-integrations.py', 'toolkit-integrations.py', 'chromium-integrations.py', 'flatpak-appearance.py', 'portal-owners.py'):
+        for name in ('app-lifecycle.py', 'app-integrations.py', 'toolkit-integrations.py', 'chromium-integrations.py', 'flatpak-appearance.py', 'portal-owners.py'):
             assert (dest/name).read_bytes() == (ROOT/'scripts'/name).read_bytes()
         assert (dest/'appearance-config/fixed-traffic-lights.css').is_file()
         assert len(list((dest/'appearance-config/familiarmac-controls').glob('*.svg'))) == 4
         assert '/home/cagatay' not in (home/'.config/systemd/user/familiarmac-app-integrations.path').read_text()
+        assert 'OnUnitInactiveSec=15' in (home/'.config/systemd/user/familiarmac-app-lifecycle.timer').read_text()
+        assert 'familiarmac-app-lifecycle.timer' in calls[-3]
         snapshot = {p.relative_to(home): p.read_bytes() for p in home.rglob('*') if p.is_file()}
         runpy.run_path(str(ROOT/'scripts/install-app-integrations.py'))
         assert snapshot == {p.relative_to(home): p.read_bytes() for p in home.rglob('*') if p.is_file()}

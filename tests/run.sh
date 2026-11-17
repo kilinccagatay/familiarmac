@@ -72,3 +72,5 @@ python3 tests/portal-owners.py
 python3 tests/snap-appearance.py
 
 gjs tests/dock-autostart.js
+
+python3 tests/app-lifecycle.py

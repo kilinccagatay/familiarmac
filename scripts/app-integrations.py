@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Event-driven application integration; a fingerprint suppresses self-write loops."""
 from pathlib import Path
+import fcntl
 import hashlib
 import json
 import subprocess
@@ -18,6 +19,8 @@ def fingerprint(entries):
     digest = hashlib.sha256(catalog.read_bytes())
     managed = {e['id'] + '.desktop' for e in entries}
     managed.update(p.name[:-5] for p in (HOME/'.local/state/familiarmac/native-qt').glob('*.json'))
+    managed.update(p.stem.removeprefix('electron-launcher-')+'.desktop'
+                   for p in (HOME/'.local/state/familiarmac/toolkits').glob('electron-launcher-*.json'))
     # Runtime/library upgrades may leave every .desktop file untouched.
     for marker in (Path('/var/lib/dpkg/status'), Path('/var/lib/flatpak/.changed'),
                    HOME/'.local/share/flatpak/.changed'):
@@ -74,4 +77,8 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    state = HOME/'.local/state/familiarmac'
+    state.mkdir(parents=True, exist_ok=True)
+    with (state/'integration.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        sys.exit(main())

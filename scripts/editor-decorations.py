@@ -47,14 +47,32 @@ def native_setting(text):
         index=ts[-2][2];text=text[:index]+','+text[index:];closing+=1
     return text[:closing]+'\n  "'+KEY+'": "native"\n'+text[closing:]
 
-def apply():
+def installed(desktop, flatpak):
+    roots=[HOME/'.local/share/applications',Path('/usr/share/applications'),Path('/usr/local/share/applications')]
+    if flatpak: roots += [HOME/'.local/share/flatpak/exports/share/applications',Path('/var/lib/flatpak/exports/share/applications')]
+    return any((p/desktop).is_file() for p in roots)
+
+def running(profile, flatpak, desktop):
+    if os.path.lexists(profile/'SingletonLock'): return True
+    names = ('code-insiders',) if 'insiders' in desktop else ('code', 'code-oss')
+    for proc in Path('/proc').glob('[0-9]*'):
+        try:
+            if proc.stat().st_uid != os.getuid(): continue
+            if (proc/'exe').readlink().name in names: return True
+        except OSError: continue
+    return False
+
+def apply(only=None):
     report=[]
     for desktop,flatpak,folder in PROFILES:
+        if only is not None and desktop != only: continue
         roots=[HOME/'.local/share/applications',Path('/usr/share/applications'),Path('/usr/local/share/applications')]
         if flatpak:roots += [HOME/'.local/share/flatpak/exports/share/applications',Path('/var/lib/flatpak/exports/share/applications')]
         if not any((p/desktop).is_file() for p in roots):continue
         base=HOME/'.var/app'/flatpak/'config' if flatpak else Path(os.environ.get('XDG_CONFIG_HOME',HOME/'.config'))
         path=base/folder/'User/settings.json'
+        if running(base/folder, flatpak, desktop):
+            report.append({'id':desktop,'status':'running; preferences deferred until exit'});continue
         record=STATE/(desktop+'.json')
         before=path.read_text() if path.exists() else None
         saved=json.loads(record.read_text()) if record.exists() else None
@@ -69,11 +87,11 @@ def apply():
             report.append({'id':desktop,'status':'symlinked settings retained'});continue
         STATE.mkdir(parents=True,exist_ok=True)
         data={'path':str(path),'before':before,'installed':after} if saved is None else {**saved,'installed':after}
-        record.write_text(json.dumps(data,indent=2));record.chmod(0o600)
         path.parent.mkdir(parents=True,exist_ok=True)
         # Check again before replacement so concurrent editor writes are not lost.
-        if (path.read_text() if path.exists() else None)!=before:
+        if running(base/folder, flatpak, desktop) or (path.read_text() if path.exists() else None)!=before:
             report.append({'id':desktop,'status':'concurrent edit; no replacement'});continue
+        record.write_text(json.dumps(data,indent=2));record.chmod(0o600)
         tmp=path.with_name(path.name+'.familiarmac-tmp');tmp.write_text(after)
         tmp.chmod(path.stat().st_mode & 0o777 if path.exists() else 0o600);tmp.replace(path)
         report.append({'id':desktop,'status':'native frame configured; full restart and visual verification required'})
@@ -83,6 +101,7 @@ def restore():
     records=list(STATE.glob('*.json'))
     for r in records:
         data=json.loads(r.read_text());p=Path(data['path'])
+        if running(p.parent.parent, None, r.name[:-5]): raise RuntimeError('Close editor before restoring settings')
         if not p.exists() or p.read_text()!=data['installed']:raise RuntimeError('Edited settings: '+str(p))
     for r in records:
         data=json.loads(r.read_text());p=Path(data['path'])
