@@ -126,7 +126,7 @@ and the [audit's remaining limitations](docs/APPLICATION-AUDIT.md).
 |---|---|
 | Desktop integration | Zorin OS 18.x, GNOME Shell 46, Wayland; existing WhiteSur setup for desktop-only mode |
 | Full hardware profile | Intel MacBookPro10,1 (15-inch Retina family); tested machine ran Zorin OS 18.1 |
-| Other Macs / distributions | Not validated. Full installation intentionally refuses other hardware. Contributions for separate profiles are welcome. |
+| General installation | `--all` targets the supported Zorin baseline without a reference hardware profile; physical models beyond the reference machine remain unverified. Other distributions are not supported. |
 | App global menus | Apps exporting compatible D-Bus menus; not every Linux application |
 | ChatGPT patches | Optional, exact-source guarded; unsupported app versions stop rather than patch blindly |
 
@@ -134,28 +134,38 @@ The project name is distribution-independent. The first implementation is not: i
 
 ## Start here
 
+From your normal **Zorin 18.x / GNOME 46 / x86_64 Wayland** desktop session:
+
 ```bash
 git clone https://github.com/kilinccagatay/familiarmac.git
 cd familiarmac
-./install.sh --check
-./install.sh --full --dry-run
+./install.sh --all --dry-run
+./install.sh --all
 ```
 
-Read the [installation guide](docs/INSTALL.md), then on the supported machine:
+One command installs dependencies, shared themes/icons, the desktop and Dock,
+application integration and its install/update watcher, hardware-selected About
+artwork, Apple boot splash and the login screen. It asks for sudo when needed;
+run the command as your desktop user, **not** with `sudo ./install.sh`.
+Save your work and reboot manually afterwards. Open applications may need a full
+restart; unsupported apps do not automatically gain exportable menus.
 
-```bash
-./install.sh --full
-```
+**No reference-machine hardware profile is installed:** no NVIDIA/Nouveau driver
+or firmware repair, Wi-Fi repair, kernel selection, GRUB parameters, keyd mapping,
+gmux fix or reference touchpad scaling. Existing input preferences are preserved.
+The visual boot layer does rebuild initramfs to include Plymouth assets.
+`--full` is the separate legacy MacBookPro10,1 hardware profile, not the recommended
+general installation command. Conflicting modes/hardware options are rejected.
 
-No automatic logout or reboot. Full installation changes keyboard mapping, system themes, boot and login presentation and requires `sudo`. Touchpad preferences, Wi-Fi repair, scroll scaling and application patches are **opt-in**.
+For desktop-only installation, use `--prepare-desktop` followed by `--desktop`.
+For the visual boot/login layer alone, use `--system-appearance` after preparation.
+To undo the combined setup: `./restore.sh --all`. Installed distro dependencies
+and shared assets remain; personal documents are not removed. See
+[installation and recovery](docs/INSTALL.md) and [live VM results](docs/VM-VALIDATION.md).
 
-To add optional application integrations on a supported fresh install:
-
-```bash
-./install.sh --full --scroll --brave --brightness
-```
-
-Do not run a downloaded script through `curl | sudo bash`. Clone, inspect the plan, keep your backups and use the supported baseline. This installation path has preflight/unit/integration tests; a clean-OS end-to-end install has **not yet been independently verified**.
+Clone and inspect the plan; do not pipe a downloaded script into a root shell.
+The supported components were exercised in a clean Zorin Pro VM; this is not a
+claim of verification on every Mac, GPU, distribution or separate Core install.
 
 ## Touchpad scrolling
 
@@ -199,17 +209,9 @@ for restart requirements and current limits.
 
 ### Installing on another older Mac
 
-Use the supported **Zorin 18.x / GNOME 46 / x86_64 Wayland** baseline:
-
-```bash
-./install.sh --check
-./install.sh --prepare-desktop --dry-run
-./install.sh --prepare-desktop
-./install.sh --desktop --dry-run
-./install.sh --desktop
-```
-
-Preparation installs dependencies and shared WhiteSur assets. Desktop mode applies the user theme, menus and application integration. Neither step installs our NVIDIA/Nouveau repairs, changes GRUB/kernel/initramfs, repairs Wi-Fi, or replaces GDM. `--full` remains a separate, explicit **MacBookPro10,1-only** boot/login/keyboard profile; GPU repairs are not included even there.
+Use `./install.sh --all` on the supported Zorin baseline for the complete portable
+setup described above. `./install.sh --check` provides a read-only compatibility
+report; `./install.sh --all --dry-run` shows the planned stages.
 
 About selects one of sixteen original transparent SVG category illustrations: MacBook Pro/laptop, MacBook Air, white MacBook, all-in-one, tower, cylindrical Mac Pro, white iMac, white-top Mac mini, mini computer, 12-inch Retina MacBook, Retina Air, 2016–2020 Intel MacBook Pro, 2019 Mac Pro tower, generic rack, and 13/15-inch Unibody MacBook Pro. Model family and chassis type select the image; it is not an exact-model photograph or a compatibility claim. See [portability and boundaries](docs/PORTABILITY.md) and the [category gallery](docs/HARDWARE-CATALOG.md).
 

@@ -58,38 +58,44 @@ Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmı
 
 ## Mevcut destek
 
-İlk profil **Zorin OS 18.x / GNOME 46 / Wayland** içindir. Tam donanım kurulumu **MacBookPro10,1** ile sınırlandırılmıştır. Projenin adı herhangi bir dağıtıma bağlı değildir; fakat mevcut kodun başka dağıtımlarda çalıştığı iddia edilmez. Ubuntu/Fedora veya farklı Mac modelleri için ayrı ve test edilmiş profiller gerekir.
+İlk profil **Zorin OS 18.x / GNOME 46 / Wayland** içindir. Tam donanım kurulumu **MacBookPro10,1** ile sınırlandırılmıştır. Projenin adı herhangi bir dağıtıma bağlı değildir; fakat mevcut kodun başka dağıtımlarda çalıştığı iddia edilmez. Genel `--all` kurulumu bu donanım profilini uygulamaz; desteklenen Zorin tabanını gerektirir. Ubuntu/Fedora ve farklı fiziksel donanımlar için doğrulama ayrıca gerekir.
 
 ## Kurulum
+
+Normal Zorin 18.x / GNOME 46 / x86_64 Wayland oturumunda:
 
 ```bash
 git clone https://github.com/kilinccagatay/familiarmac.git
 cd familiarmac
-./install.sh --check
-./install.sh --full --dry-run
-# Kurulum rehberini okuyup desteklenen bilgisayarda:
-./install.sh --full
+./install.sh --all --dry-run
+./install.sh --all
 ```
 
-`--full`: tema, klavye eşleme, boot/login ve masaüstü katmanını kurar. Mevcut touchpad tercihlerini korur. Kaydırma azaltma, Brave menü entegrasyonu, ChatGPT yamaları ve Wi-Fi onarımı ayrı seçeneklerdir. `--check` hiçbir ayarı değiştirmez; `--dry-run` çalıştırılacak komutları gösterir. Kurulum oturumu kapatmaz veya bilgisayarı yeniden başlatmaz.
+Tek komut bağımlılıkları, tema ve simgeleri, masaüstünü, Dock'u, uygulama uyarlama
+izleyicisini, cihaza göre seçilen Hakkında çizimini, Apple açılış logosunu ve giriş
+ekranını kurar. Komutu normal kullanıcınla çalıştır; gerektiğinde yönetici parolası
+istenir. Kurulum sonunda çalışmalarını kaydedip kendin yeniden başlat.
 
-```bash
-./install.sh --full --scroll --brave --brightness
-```
+NVIDIA/Nouveau sürücüsü veya firmware onarımı, Wi-Fi onarımı, GRUB parametreleri,
+kernel seçimi, keyd, gmux ve bu bilgisayara özgü touchpad ölçeklemesi **dahil değildir**.
+Açılış görselleri için initramfs yeniden oluşturulur. `--full`, ayrı ve yalnızca
+MacBookPro10,1 için olan eski donanım profilidir; genel kurulum için kullanılmaz.
+`--all` donanıma özel seçeneklerle veya başka bir kurulum modu ile birleştirilemez.
 
-Bu komut isteğe bağlı uygulama entegrasyonlarını ekler. Güncel touchpad denemesinde WSF 1.0.4 ve Touchpad Speed Control 5 ile iki eksende 0.25 katsayısı kullanılıyor. Finder parmak durunca duruyor; ayrı Firefox testinde yumuşatmayı kapatmak gecikmeyi giderdi. Normal Firefox ayarı sonraki açılış için kaydedildi; ChatGPT değişikliği henüz fiziksel olarak doğrulanmadı. `--scroll` artık sabitlenmiş WSF kaynaklarını, Touchpad Speed Control eklentisini ve uygulama kaydırma ayarlarını kurar. Yalnızca bize ait olduğu doğrulanan eski ölçekleyici dosyaları kaldırılır; işletim sisteminin sürücülerine dokunulmaz. Eski `--smooth` seçeneği de artık yalnızca gecikmeyi azaltan uygulama ayarlarını yapar. [Ayarlar, doğrulama ve geri alma](TOUCHPAD.md). Wi-Fi, açılış ve GPU ayarları değişmedi.
+Yalnızca masaüstü için `--prepare-desktop` ardından `--desktop`; hazırlanmış
+sistemde yalnızca boot/login için `--system-appearance` kullanılabilir.
+Genel kurulumu geri almak için `./restore.sh --all` çalıştırılır. Dağıtım paketleri
+ve ortak tema dosyaları kaldırılmaz; kişisel belgeler silinmez.
 
-Ayrıntılı [kurulum/geri alma rehberi](INSTALL.md), [bilinen eksikler](../STATUS.md) ve [kaynak-lisans listesi](../THIRD_PARTY.md) yayımlanmıştır. Yeni kurulum akışı henüz boş bir işletim sisteminde uçtan uca doğrulanmadı; testlerin geçmesi bu doğrulamanın yerine geçmez.
+[Kurulum ve geri alma](INSTALL.md), [gerçek VM bulguları](VM-VALIDATION.md) ve
+[kalan eksikler](../STATUS.md) ayrıntıları içerir. Bileşenler temiz Zorin Pro VM'de
+sınandı; bu, her Mac/GPU veya ayrı bir Core kurulumunun doğrulandığı anlamına gelmez.
+Desteklenen uygulamaların uyarlaması otomatiktir; her uygulamanın menü dışa aktarma
+özelliği olduğu iddia edilmez. Açık uygulamaların tamamen yeniden açılması gerekebilir.
 
-Yerel yedekler `~/.local/state/macbook-zorin` ve `/var/lib/macbook-zorin` altındadır; GitHub'a gönderilmez. Format atmadan önce kendi dosyalarını ve tercihlerini ayrıca yedekle. Proje üçüncü taraf paketleri ve kaynaklarını geri alma sırasında kaldırmaz.
-
-```bash
-./restore.sh
-./restore.sh --system
-```
-
-Apple ile bağlantılı veya Apple tarafından desteklenen bir proje değildir. Kaynaklar ve özgün lisanslar korunur.
-
+Yerel yedekler kullanıcı durum klasöründe ve `/var/lib/macbook-zorin` ile
+`/var/lib/familiarmac/system-appearance` altında tutulur; GitHub'a gönderilmez.
+Format öncesi kişisel dosyalarını ayrıca yedekle.
 
 ## Otomatik uygulama uyarlaması
 
@@ -136,11 +142,9 @@ arka planda kalır. Kurulum otomatik çıkış veya yeniden başlatma yapmaz.
 
 ### Başka bir eski Mac'e kurulum ve cihaz çizimleri
 
-Zorin 18.x / GNOME 46 / x86_64 Wayland için önce `./install.sh --check`,
-ardından `./install.sh --prepare-desktop` ve `./install.sh --desktop` kullanılır.
-Her iki kurulum adımı önce `--dry-run` ile incelenebilir. Bu yol NVIDIA/Nouveau,
-Wi-Fi, GRUB, kernel, initramfs ve GDM ayarlarını değiştirmez. `--full` ayrı ve
-yalnızca MacBookPro10,1 için açıkça seçilen bir profildir.
+Desteklenen Zorin tabanında `./install.sh --all` genel kurulumun tamamını yapar.
+`--check` uyumluluk raporunu, `--all --dry-run` kurulum adımlarını gösterir.
+Donanıma özel onarımlar bu akışa dahil değildir.
 
 Hakkında ekranında 16 özgün çizimden biri hedef bilgisayarın model ailesi ve kasa
 türüne göre otomatik seçilir. A1398 çizimi aynen korunur. Rack kasa bilgisi yoksa

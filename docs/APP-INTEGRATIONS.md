@@ -149,6 +149,10 @@ replace a full install test on a clean supported OS.
 
 ### Actual menu shortcut hints
 
+The portable setup retains native Control accelerators when the reference keyd
+mapper is absent. It does not label those bindings as Command or install a
+hardware keyboard profile just to change the hint.
+
 The shared menu reader consumes `accel` / `x-gtk-accel` from GMenu and
 `shortcut` alternatives from D-BusMenu, independently of application name.
 Exported bindings take precedence, retain action targets and use the common
@@ -164,6 +168,21 @@ private shortcuts discoverable. Source changes are monitored, not polled.
 The installer includes the shared readers and optional adapter. Updates to
 already-imported GNOME Shell JavaScript take effect on the next normal login;
 reopening only the application is not sufficient for these reader updates.
+
+### Native Electron and current editor identities
+
+Native packages with a directly identifiable Electron executable are inspected
+for their own D-Bus menu exporter and application payload. Supported launchers
+receive `--ozone-platform=x11` in a user override, including their desktop actions.
+The desktop remains Wayland. Explicit backends, D-Bus activation, unverified
+wrappers and user-edited overrides are left alone. No application code is run
+during detection and no application binaries or libraries are patched.
+
+The editor frame adapter recognizes both historical `code.desktop` IDs and
+current official `com.microsoft.VSCode.desktop` IDs. Existing JSONC comments and
+unrelated settings are preserved; running profiles are deferred to the lifecycle
+timer. See the [real VM test](VM-VALIDATION.md) for the observed first-profile,
+normal-exit, next-launch and reboot results, plus remaining GTK shortcut gaps.
 
 ### Shared title and control spacing
 

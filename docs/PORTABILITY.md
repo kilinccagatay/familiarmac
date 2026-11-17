@@ -10,6 +10,8 @@
 
 ## What a new user experiences
 
+`--all` combines preparation, the user desktop/app adapters and the portable visual boot/login layer in one command. It excludes the reference-machine hardware profile and rejects hardware-specific options. `restore.sh --all` restores those layers without the legacy hardware restore.
+
 `--check` only reports compatibility/dependencies. The supported baseline remains Zorin OS 18.x, GNOME 46, x86_64 and Wayland; this is not a universal Linux/Apple Silicon installer. `--prepare-desktop` installs the prerequisites and shared theme assets, with sudo for those tasks. `--desktop` then installs the user profile, extensions and automatic app adapters. Apps may require reopening and Shell extensions require a new login. Unsupported app/toolkit behaviour remains subject to the integration coverage report; we do not promise every app has an exportable native menu.
 
 The existing working machine does not need preparation or a full reinstall. This change only installs the selected About image here; no GPU, Wi-Fi, keyboard or boot configuration is reapplied.
@@ -17,8 +19,10 @@ The existing working machine does not need preparation or a full reinstall. This
 | Path | Driver/firmware/boot changes | Scope |
 |---|---|---|
 | `--check` / `--dry-run` | None | Inspection |
+| `--all` | Visual Plymouth/initramfs and GDM only; no driver/input profile | Combined preparation, desktop/app adaptation and portable boot/login |
 | `--prepare-desktop` | None | Dependencies, shared themes/icons/wallpaper |
 | `--desktop` | None | User theme, menus, integration and About image |
+| `--system-appearance` | Plymouth assets/initramfs and GDM presentation only; no hardware profile | Explicit opt-in after preparation |
 | `--full` | Plymouth/initramfs, login and keyboard profile; no GPU driver repair | Explicit MacBookPro10,1-only profile |
 | `--wifi` | BCM4360 driver repair | Explicit flag requiring full mode |
 | Early KMS, video firmware, kernel selection, GRUB experiments | Potential boot/driver changes | Separate manual scripts, not called by public installer |
@@ -36,4 +40,56 @@ Settings retains its native hardware/OS fields and binary-hash-guarded user reso
 
 ## Validation limits
 
+The subsequent [real installed VM validation](VM-VALIDATION.md) covers dependency
+installation, live menus, deferred-profile scheduling and reboot persistence on
+one Zorin 18.1 Pro guest, and records both fixes and remaining gaps. Core's missing
+Dock dependency is handled, but a separate Core OS installation is not claimed.
+
 Tests cover old Mac family selection, chassis fallbacks, asset hashes and repeated About installation/restoration in an isolated HOME. Portable installer dry runs exclude hardware and login repair commands. This is not a physical compatibility test on every category of computer.
+
+## Isolated clean-user integration test (2026-11-17)
+
+Run on the supported Zorin baseline, without sudo:
+
+```sh
+python3 tests/clean-desktop-sandbox.py --node /path/to/node
+```
+
+This opt-in test requires Bubblewrap and existing build dependencies. It creates
+an empty HOME, theme/icon destinations and Flatpak repository; mounts the host
+root read-only; hides the host home, runtime sockets and installed Flatpaks; uses
+an independent D-Bus session and persistent keyfile GSettings backend; and reports
+a foreign `PortableTestPC` model. Network and host process namespaces are isolated.
+All generated state is removed afterward. Host system/user services are **not**
+started: `systemctl` calls are recorded and checked for user scope, and `sudo`
+is blocked. Dependency installation with apt is not executed.
+
+Observed results:
+
+- Real pinned GTK/icon theme build into empty destinations passed.
+- Real `install.sh --desktop`, then a second install, passed with native adapters,
+  Shell extension files, About overlay, shared GTK controls and watcher units.
+- A deliberately missing favorite app no longer aborts Dock icon setup.
+- `--full` rejected the foreign model before any privileged command.
+- The installed lifecycle helper discovered a new supported editor fixture and
+  configured its native frame; a new locked Chromium profile remained untouched.
+  After lock removal, the helper applied the pending frame preference, retained
+  unrelated JSON fields and avoided rewriting the unchanged profile.
+- Readable host boot, module, initramfs and NetworkManager file hashes were
+  unchanged. Existing full regression suite passed.
+
+The test exposed and fixed two issues: missing favorite desktop entries caused
+PyGObject's `DesktopAppInfo.new()` to raise, and the upstream theme installer tried
+to install its unrelated theme-switcher application. Desktop preparation now skips
+that pinned upstream call with a source guard and extracts without restoring
+archive ownership.
+
+**Limits:** this is an empty-user/install integration test on existing Zorin
+libraries, not a fresh OS VM, physical GPU test, live Shell visual test or real
+systemd timer scheduling test. Native system apps/libraries are read-only host
+inputs. Supported app profiles are synthetic; existing unit tests additionally
+cover process detection and retry logic. A new Zorin VM or spare computer is still
+needed when repeating dependency installation, login, visible menus and automatic
+service scheduling end to end; the later VM report above records that additional
+test on one configuration. No claim of universal application or hardware
+compatibility follows from these results.

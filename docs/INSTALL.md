@@ -2,22 +2,59 @@
 
 ## Supported baseline
 
-Start inside your normal **Zorin OS 18.x / GNOME 46 Wayland** user session, not a root shell, SSH-only session or a different desktop. Full mode requires **MacBookPro10,1**. Other models/distributions need a new profile and testing; there is no `--force` switch.
+Start inside your normal **Zorin OS 18.x / GNOME 46 Wayland** user session, not a root shell, SSH-only session or a different desktop. Full mode requires **MacBookPro10,1**. The general `--all` mode does not require this model; it requires the supported OS/session baseline. Other distributions are unsupported; there is no `--force` switch.
 
 Install Git from the distro if needed (`sudo apt install git`), clone this repository, and inspect:
 
 ```bash
 ./install.sh --check
-./install.sh --full --dry-run
+./install.sh --all --dry-run
 ```
 
 `--check` reports OS, Shell version, session, model and missing tools. It does not alter settings. `--dry-run` prints the planned commands; it does not execute package managers, installers, or preference writes. It is a plan, not proof of machine compatibility; actual installs run strict preflight and checksum validation.
+
+## Complete general installation (recommended)
+
+```bash
+./install.sh --all --dry-run
+./install.sh --all
+```
+
+Run as the logged-in desktop user. The command checks compatibility and vendor
+checksums, installs dependencies/shared themes, validates the prepared desktop,
+installs the user profile and app adapters/watchers, then installs the portable
+boot/login layer. It stops at the first failed stage; after resolving the reported
+problem, rerun the same command. Existing installer journals preserve original
+backups across reapplication. It is a staged installation, not a cross-package
+atomic transaction: successful earlier stages remain if a later stage fails.
+
+It excludes all reference-machine driver/firmware repairs, kernel selection,
+GRUB settings, keyd, gmux brightness, reference input presets and scroll scaling.
+Those options cannot be combined with `--all`, nor can two installation modes be
+combined. The boot visuals explicitly rebuild initramfs. No applications such as
+Chrome or ChatGPT are downloaded by this command; supported installed applications
+are adapted and later installations/updates are watched. Generic integration is
+capability-based; unsupported custom menus still require adapter work.
+
+Save work and reboot manually after completion. No session is closed automatically.
+Restore the portable setup with `./restore.sh --all`; this restores the visual
+system layer and then the user profile using their backups, without invoking the
+legacy hardware restore. Distro dependencies/shared theme assets remain installed.
 
 ## Desktop-only installation on other Intel Macs
 
 Run `./install.sh --prepare-desktop` from the supported desktop session to install dependencies, shared WhiteSur theme/icon assets and wallpaper, then `./install.sh --desktop`. Both support `--dry-run`. Preparation may request sudo for packages/assets; it does not install keyd, GPU/Wi-Fi repairs, GDM overlays or boot changes. No serial number is needed for the About image. See [portability](PORTABILITY.md).
 
-## Fresh installation
+The installer selects the separate Dock instead of assuming a previously selected
+Pro layout. Core may need the Zorin Dash package from the shared distro repository;
+preparation installs it when absent. An existing Dock is not automatically upgraded.
+The optional keyd extension is enabled only when its mapper is installed.
+
+**Boot and login:** desktop-only installation leaves the system boot splash and
+GDM login theme unchanged. Do not run the reference hardware profile merely to get
+those visuals. See the [live VM results and remaining limits](VM-VALIDATION.md).
+
+## Reference MacBookPro10,1 installation
 
 ```bash
 ./install.sh --full
@@ -33,6 +70,7 @@ Do not disable an existing third-party keyd setup to bypass the installer guard.
 
 | Option | Effect | Activation |
 |---|---|---|
+| `--all` | Complete portable dependency, desktop, app and boot/login setup; no reference hardware profile | Reboot manually |
 | `--desktop` | Reapply user profile/extensions and rounding. Requires `--prepare-desktop` or an earlier full setup. Changes desktop shortcuts/theme/dock, not boot or GDM. | Reopen session |
 | `--full` | Full supported hardware profile including keyboard, theme, boot/login and desktop | Reboot manually |
 | `--input-preset` | Opt into initial reference natural scroll, click/tap and gesture preferences. Previously recorded input preferences are not repeatedly reset. | Session/device dependent |
@@ -135,3 +173,41 @@ No applications are launched automatically by `install.sh`.
 ### Responsive touchpad setup
 
 `--scroll` installs the new pinned WSF method on GNOME 46 Wayland. It does not change distro packages, Wi-Fi, GPU or boot settings. `--smooth` is retained as an app-settings-only option; it no longer enables smooth scrolling. See [TOUCHPAD.md](TOUCHPAD.md) for validation status, prerequisites and rollback. Clean-OS installation remains unverified; local install and repeat-install passed.
+
+### Optional boot splash and login screen (portable)
+
+After `./install.sh --prepare-desktop`, run as your desktop user:
+
+```sh
+./install.sh --system-appearance
+```
+
+This separate, explicit system option installs the Apple Plymouth splash and the
+FamiliarMac GDM layout/background. It does not require an Apple model and does not
+install the reference MacBook's NVIDIA/Nouveau, Wi-Fi, keyboard, GRUB or kernel
+parameters. It rebuilds existing initramfs images to include the splash assets.
+The firmware/GRUB phase before Plymouth starts is unchanged. No automatic reboot
+or logout occurs; see the result at the next reboot.
+
+Supported here: Zorin 18.x / GNOME 46, with the prepared shared theme assets and
+Zorin's GDM resource alternative. The login source is checked before installation;
+a GNOME library update disables the custom layout safely until it is rebuilt by
+running this option again. Authentication and session selection stay with GDM.
+Encrypted disk prompts remain handled by Plymouth; an encrypted installation has
+not yet been tested. Proprietary Apple fonts are not downloaded; Inter is the
+portable fallback. The existing full reference-machine installation is deliberately
+not overwritten by this separate installer.
+
+To undo **only** this system appearance layer:
+
+```sh
+./restore.sh --system-appearance
+```
+
+The installer saves previous files and alternative selections under
+`/var/lib/familiarmac/system-appearance`. Restore rebuilds initramfs again, without
+restoring/removing the desktop profile or changing hardware settings.
+
+Rollback retains a harmless GNOME Shell forwarding executable: existing user
+managers can cache its launch path until reboot. It no longer loads the custom
+login overlay and avoids interrupting a login while restoring the theme.
