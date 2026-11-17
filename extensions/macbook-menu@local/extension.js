@@ -6,6 +6,7 @@ import {SystemAppearance} from './systemAppearance.js';
 import {OsdStyle} from './osdStyle.js';
 import {NotificationCenter} from './notificationCenter.js';
 import {PanelClock} from './panelClock.js';
+import {DialogFocus} from './dialogFocus.js';
 import {SessionDialog} from './sessionDialog.js';
 import {ControlCenter} from './controlCenter.js';
 import {DownloadsStack} from './downloadsStack.js';
@@ -46,6 +47,7 @@ export default class MacBookMenu extends Extension {
         this._notificationBanner = new NotificationBanner();
         this._controlCenter = new ControlCenter(this.path);
         this._osdStyle = new OsdStyle();
+        this._dialogFocus = new DialogFocus();
         this._sessionDialog = new SessionDialog();
         this._panelClock = new PanelClock();
         this._captureBindings = new CaptureBindings();
@@ -248,6 +250,8 @@ export default class MacBookMenu extends Extension {
         this._osdStyle = null;
         this._panelClock?.destroy();
         this._panelClock = null;
+        this._dialogFocus?.destroy();
+        this._dialogFocus = null;
         this._sessionDialog?.destroy();
         this._sessionDialog = null;
         this._controlCenter?.destroy();

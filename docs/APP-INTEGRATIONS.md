@@ -204,3 +204,18 @@ These are shared selectors, not application-name exceptions.
 
 See [the application audit](APPLICATION-AUDIT.md) for scope and remaining
 custom-toolkit/first-run limitations.
+
+### System confirmation focus
+
+The Shell extension gives initial focus to the confirmation button when a GNOME
+Shell dialog has exactly two visible buttons, the first explicitly binds Escape,
+and neither specifies its own default. Restart, shutdown and logout use this
+shared policy. The initial-focus getter resolves the target synchronously before
+Shell grabs focus; no idle callback moves focus after opening. Hidden
+boot-option alternatives are excluded. Native button
+activation remains responsible for Enter; Escape and Tab navigation are retained.
+No action is invoked while choosing focus. Explicit defaults, input focus,
+disabled confirmation buttons and multi-choice dialogs are preserved.
+
+This covers Shell system dialogs, not arbitrary GTK/Qt/Electron application
+windows or GDM authentication. The JavaScript change loads on the next login.
