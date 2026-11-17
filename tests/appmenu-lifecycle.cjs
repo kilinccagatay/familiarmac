@@ -35,3 +35,12 @@ const result=ctx.build('Example',null,null,{topLevelMenus:[{children:[settings]}
 assert.ok(result.includes(settings));result.find(x=>x.label==='Settings…').activate();assert.equal(activated,1);
 assert.equal(ctx.build('Example',null,null,null).find(x=>x.label==='Settings…').sensitive,false);
 console.log('Late registration, registrar restart, cleanup and real Settings callback: PASS');
+
+// Lazy exporters advertise submenus before supplying any child rows.
+const lazyItem = {property_get: key => key === 'children-display' ? 'submenu' : 'File'};
+assert.equal(manager._lazyChildren(lazyItem, []).length, 1);
+assert.equal(manager._lazyChildren(lazyItem, [])[0].sensitive, false);
+const ready = [{label:'Open', shortcut:['Control','o']}];
+assert.equal(manager._lazyChildren(lazyItem, ready), ready);
+assert.equal(manager._lazyChildren({property_get:()=>null}, []).length, 0);
+console.log('Lazy advertised menus retain an inert row until AboutToShow: PASS');

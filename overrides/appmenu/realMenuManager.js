@@ -342,6 +342,12 @@ export class RealMenuManager {
         this._onChanged = onChanged;
         this._client = null;
         this._clientSignalIds = [];
+        this._menuClients = new Map();
+        this._primedMenus = new WeakSet();
+        this._menuClientWindows = [];
+        this._menuClientValid = true;
+        this._menuPropertySignal = 0;
+        this._menuPropertyRefresh = 0;
         this._currentKey = null;
         this._currentRegistration = null;
         this._currentAppName = '';
@@ -358,6 +364,12 @@ export class RealMenuManager {
             REGISTRAR_BUS_NAME, REGISTRAR_INTERFACE, null, REGISTRAR_OBJECT_PATH,
             null, Gio.DBusSignalFlags.NONE, (_c, _s, _p, _i, signal, params) => {
                 if (!['WindowRegistered', 'WindowUnregistered'].includes(signal)) return;
+                if (signal === 'WindowUnregistered') {
+                    const id = params.deepUnpack()[0];
+                    for (const [key, entry] of this._menuClients)
+                        if (entry.windows.includes(id)) this._menuClients.delete(key);
+                    if (this._menuClientWindows.includes(id)) this._menuClientValid = false;
+                }
                 const window = this._currentWindow;
                 if (!window || !windowIds(window).includes(params.deepUnpack()[0])) return;
                 this._startLookup(window, this._detectedApp, this._wmClass);
@@ -366,6 +378,8 @@ export class RealMenuManager {
             'org.freedesktop.DBus', 'org.freedesktop.DBus', 'NameOwnerChanged',
             '/org/freedesktop/DBus', REGISTRAR_BUS_NAME, Gio.DBusSignalFlags.NONE, () => {
                 this._registrarFailed = false;
+                this._menuClients.clear();
+                this._menuClientValid = false;
                 if (this._currentWindow)
                     this._startLookup(this._currentWindow, this._detectedApp, this._wmClass);
             });
@@ -398,6 +412,7 @@ export class RealMenuManager {
         this._cachedWinActions = null;
         this._registrarFailed = false;
         this._setBackend(null, null);
+        this._menuClients.clear();
         this._settings = null;
         this._onChanged = null;
     }
@@ -719,6 +734,12 @@ export class RealMenuManager {
     }
 
     _disposeCurrentBackend() {
+        if (this._menuPropertySignal)
+            Gio.DBus.session.signal_unsubscribe(this._menuPropertySignal);
+        this._menuPropertySignal = 0;
+        if (this._menuPropertyRefresh)
+            GLib.source_remove(this._menuPropertyRefresh);
+        this._menuPropertyRefresh = 0;
         this._gtkMenu?.destroy();
         this._gtkMenu = null;
         if (this._client) {
@@ -726,6 +747,13 @@ export class RealMenuManager {
                 try { this._client.disconnect(id); } catch (_e) { /* ignore */ }
             });
             this._clientSignalIds = [];
+            if (this._menuClientValid && this._currentKey) {
+                this._menuClients.set(this._currentKey, {client: this._client,
+                    primed: this._primedMenus, windows: this._menuClientWindows});
+                // Keep live, window-specific clients, never disk snapshots of actions.
+                while (this._menuClients.size > 8)
+                    this._menuClients.delete(this._menuClients.keys().next().value);
+            }
             this._client = null;
         }
         this._currentGtkContext = null;
@@ -733,15 +761,27 @@ export class RealMenuManager {
 
     _setDbusmenuClient(registration) {
         try {
-            this._client = new Dbusmenu.Client({
+            const cached = this._menuClients.get(this._currentKey);
+            this._menuClients.delete(this._currentKey);
+            this._client = cached?.client ?? new Dbusmenu.Client({
                 dbus_name: registration.service,
                 dbus_object: registration.path,
             });
+            this._primedMenus = cached?.primed ?? new WeakSet();
+            this._menuClientWindows = windowIds(this._currentWindow);
+            this._menuClientValid = true;
 
             this._clientSignalIds = [
-                this._client.connect(Dbusmenu.CLIENT_SIGNAL_ROOT_CHANGED, () => this._emitChanged()),
-                this._client.connect(Dbusmenu.CLIENT_SIGNAL_LAYOUT_UPDATED, () => this._emitChanged()),
+                this._client.connect(Dbusmenu.CLIENT_SIGNAL_ROOT_CHANGED, () => this._dbusLayoutChanged()),
+                this._client.connect(Dbusmenu.CLIENT_SIGNAL_LAYOUT_UPDATED, () => this._dbusLayoutChanged()),
             ];
+            // Exporters may publish accelerators and enabled state after the
+            // layout. libdbusmenu updates its items without layout-updated.
+            this._menuPropertySignal = Gio.DBus.session.signal_subscribe(
+                registration.service, 'com.canonical.dbusmenu',
+                'ItemsPropertiesUpdated', registration.path, null,
+                Gio.DBusSignalFlags.NONE, () => this._queueMenuPropertyRefresh());
+            this._dbusLayoutChanged();
         } catch (e) {
             Logger.error(`Failed to create Dbusmenu client for ${registration.service}${registration.path}: ${e}`);
             this._client = null;
@@ -749,6 +789,29 @@ export class RealMenuManager {
             this._currentRegistration = null;
             this._currentKey = null;
         }
+    }
+
+    _dbusLayoutChanged() {
+        // Prime only advertised, empty top-level menus. AboutToShow prepares
+        // rows; it does not activate a command. Nested dynamic menus stay lazy.
+        for (const item of this._client?.get_root()?.get_children() ?? []) {
+            if (item.property_get('children-display') !== 'submenu' ||
+                item.get_children().length || this._primedMenus.has(item)) continue;
+            this._primedMenus.add(item);
+            this._aboutToShow(item);
+        }
+        this._queueMenuPropertyRefresh();
+    }
+
+    _queueMenuPropertyRefresh() {
+        if (this._menuPropertyRefresh || !this._client) return;
+        // Let libdbusmenu consume the signal first; batch a property burst into
+        // one rebuild. Backend disposal cancels this before switching apps.
+        this._menuPropertyRefresh = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            this._menuPropertyRefresh = 0;
+            if (this._client) this._emitChanged();
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     // ── GTK action helpers ─────────────────────────────────────────────
@@ -816,9 +879,17 @@ export class RealMenuManager {
 
         return {
             label,
-            children: this._buildChildren(item),
+            children: this._lazyChildren(item, this._buildChildren(item)),
             onOpen: () => this._aboutToShow(item),
         };
+    }
+
+    _lazyChildren(item, children) {
+        // PopupMenu refuses to open an empty menu. Electron populates advertised
+        // submenus only after AboutToShow, so retain an inert initial row.
+        if (!children.length && item.property_get('children-display') === 'submenu')
+            return [{label: _('Loading…'), sensitive: false}];
+        return children;
     }
 
     _buildChildren(parentItem) {
@@ -837,7 +908,7 @@ export class RealMenuManager {
 
         const label = _normalizeLabel(item.property_get(Dbusmenu.MENUITEM_PROP_LABEL));
         const children = this._buildChildren(item);
-        const hasSubmenu = children.length > 0;
+        const hasSubmenu = children.length > 0 || item.property_get('children-display') === 'submenu';
 
         if (!label && !hasSubmenu)
             return null;
@@ -846,7 +917,7 @@ export class RealMenuManager {
             return {
                 type: 'submenu',
                 label: label || _('More'),
-                children,
+                children: this._lazyChildren(item, children),
                 onOpen: () => this._aboutToShow(item),
             };
         }
@@ -862,7 +933,7 @@ export class RealMenuManager {
 
     _aboutToShow(item) {
         try {
-            item.send_about_to_show();
+            item.send_about_to_show(null, null);
         } catch (e) {
             Logger.debug(`Dbusmenu about-to-show failed: ${e}`);
         }

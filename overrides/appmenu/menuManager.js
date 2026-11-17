@@ -226,6 +226,14 @@ const TopLevelMenuButton = GObject.registerClass(
         if (this._destroyed || !this.menu)
             return;
 
+        const openPath = [];
+        let cursor = this.menu;
+        while (cursor?.isOpen) {
+            const item = cursor._getMenuItems().find(row => row.menu?.isOpen);
+            if (!item) break;
+            openPath.push(item.label.text);
+            cursor = item.menu;
+        }
         this._disconnectMenuSignals();
 
         try {
@@ -236,6 +244,20 @@ const TopLevelMenuButton = GObject.registerClass(
         }
         this._setMenuOpenHandler(openHandler);
         this._buildSubMenu(children, this.menu);
+        // LayoutUpdated may replace the placeholder of an open lazy submenu.
+        // Reopen that same path without asking the exporter to populate it again.
+        this._restoringMenu = true;
+        try {
+            cursor = this.menu;
+            for (const label of openPath) {
+                const item = cursor._getMenuItems().find(row => row.menu && row.label.text === label);
+                if (!item) break;
+                item.menu.open(false);
+                cursor = item.menu;
+            }
+        } finally {
+            this._restoringMenu = false;
+        }
     }
 
     destroy() {
@@ -264,7 +286,7 @@ const TopLevelMenuButton = GObject.registerClass(
           subMenu.setOrnament(PopupMenu.Ornament.NONE);
           if (typeof item.onOpen === 'function') {
               const sid = subMenu.menu.connect('open-state-changed', (_menu, isOpen) => {
-                  if (isOpen)
+                  if (isOpen && !this._restoringMenu)
                       item.onOpen();
               });
               this._subMenuSignalIds.push({ target: subMenu.menu, id: sid });

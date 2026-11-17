@@ -11,6 +11,7 @@ import subprocess
 import sys
 import re
 import shlex
+import mmap
 from gi.repository import Gio, GLib
 
 HOME = Path.home()
@@ -40,6 +41,80 @@ def qt_capable(metadata, files):
         return True
     return (any(files.glob('lib/**/libQt*Widgets.so*')) and
             any(files.glob('lib/**/libqxcb.so')))
+
+
+def electron_menu_capable(files):
+    """Require an Electron payload and its native D-Bus menu exporter, not an ID.
+
+    Do not run application code or infer support from Chromium assets alone.
+    Libraries must already be supplied by the package; no cross-runtime injection.
+    """
+    if not any((files/'lib').glob('**/libdbusmenu-glib.so*')):
+        return False
+    for asset in files.rglob('chrome_100_percent.pak'):
+        folder = asset.parent
+        if not ((folder/'resources/app.asar').is_file() or
+                (folder/'resources/app/package.json').is_file()):
+            continue
+        for binary in folder.iterdir():
+            if not binary.is_file() or not binary.stat().st_mode & 0o111:
+                continue
+            with binary.open('rb') as stream:
+                if stream.read(4) != b'\x7fELF': continue
+                with mmap.mmap(stream.fileno(), 0, access=mmap.ACCESS_READ) as data:
+                    if all(data.find(token) >= 0 for token in (
+                            b'Electron', b'com.canonical.AppMenu.Registrar', b'libdbusmenu-glib.so')):
+                        return True
+    return False
+
+
+def electron_launcher_text(text, app):
+    """Preserve desktop field codes/actions; set the backend on the app argv."""
+    result = []; count = 0
+    for line in text.splitlines(keepends=True):
+        if line.startswith('Exec='):
+            if '--ozone-platform' in line:
+                raise ValueError('Explicit Electron launch backend retained')
+            tokens = shlex.split(line[5:])
+            if not any(Path(t).name == 'flatpak' for t in tokens) or tokens.count(app) != 1:
+                raise ValueError('Unsupported Electron desktop Exec')
+            line, changed = re.subn(r'(?<= )'+re.escape(app)+r'(?=\s|$)',
+                                   app+' --ozone-platform=x11', line, count=1)
+            if changed != 1: raise ValueError('Unsupported Electron app argument')
+            count += 1
+        result.append(line)
+    if not count: raise ValueError('Missing Electron desktop Exec')
+    return ''.join(result)
+
+
+def prepare_electron_launcher(app):
+    dest = HOME/'.local/share/applications'/(app+'.desktop')
+    record = STATE/('electron-launcher-'+app+'.json')
+    roots = [HOME/'.local/share/flatpak/exports/share/applications',
+             Path('/var/lib/flatpak/exports/share/applications')]
+    source = next((root/(app+'.desktop') for root in roots if (root/(app+'.desktop')).is_file()), None)
+    if source is None: raise ValueError('Missing exported Electron launcher')
+    saved = json.loads(record.read_text()) if record.exists() else None
+    current = dest.read_text() if dest.exists() else None
+    if dest.is_symlink() or (saved and current != saved['installed']) or (not saved and current is not None):
+        raise ValueError('User-owned Electron launcher retained')
+    text = electron_launcher_text(source.read_text(), app)
+    if current == text: return
+    STATE.mkdir(parents=True, exist_ok=True)
+    record.write_text(json.dumps({'before': saved['before'] if saved else current,
+                                 'installed': text, 'path': str(dest)}))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix('.desktop.tmp'); tmp.write_text(text); tmp.replace(dest)
+
+
+def explicit_electron_backend(target, managed):
+    if managed or not target.exists(): return False
+    cfg = configparser.ConfigParser(interpolation=None)
+    cfg.read(target)
+    sockets = cfg.get('Context', 'sockets', fallback='').split(';')
+    return ('wayland' in sockets or '!x11' in sockets or
+            any(cfg.has_option('Environment', key) for key in
+                ('ELECTRON_OZONE_PLATFORM_HINT', 'OZONE_PLATFORM', 'OZONE_PLATFORM_HINT')))
 
 
 def gtk3_capable(metadata, files):
@@ -81,6 +156,13 @@ def gtk3_capable(metadata, files):
 
 
 def restore():
+    for record in STATE.glob('electron-launcher-*.json'):
+        saved = json.loads(record.read_text()); dest = Path(saved['path'])
+        if not dest.exists() or dest.read_text() != saved['installed']:
+            raise RuntimeError('Edited Electron launcher; restore refused')
+        if saved['before'] is None: dest.unlink()
+        else: dest.write_text(saved['before'])
+        record.unlink()
     snap_frames.restore()
     native_qt.restore()
     editor_frames.restore()
@@ -172,25 +254,31 @@ def apply():
                 cfg = configparser.ConfigParser(interpolation=None)
                 cfg.read_string(output('flatpak', 'info', '--show-metadata', app))
                 files = Path(output('flatpak', 'info', '--show-location', app)) / 'files'
+                electron = electron_menu_capable(files)
                 if app == 'org.mozilla.firefox':
                     status = 'dedicated Firefox adapter'
-                elif qt_capable(cfg, files) or gtk3_capable(cfg, files):
+                elif electron or qt_capable(cfg, files) or gtk3_capable(cfg, files):
                     target = HOME / '.local/share/flatpak/overrides' / app
                     record = STATE / ('flatpak-' + app + '.json')
+                    if electron and explicit_electron_backend(target, record.exists()):
+                        report.append({'id': app, 'package': 'flatpak', 'status': 'explicit Electron backend retained; review required'})
+                        continue
                     data = json.loads(record.read_text()) if record.exists() else {
                         'id': app, 'before': target.read_text() if target.exists() else None}
-                    qt = qt_capable(cfg, files)
+                    if electron: prepare_electron_launcher(app)
+                    qt = not electron and qt_capable(cfg, files)
                     menu_options = []
-                    if not qt:
+                    if not qt and not electron:
                         if gtk_folder is None: gtk_folder = gtk_menu.prepare(HOME)
                         menu_options = gtk_menu.options(app, gtk_folder)
+                    backend_options = [] if electron else ['--env=QT_QPA_PLATFORM=xcb' if qt else '--env=GDK_BACKEND=x11']
                     subprocess.run(['flatpak', 'override', '--user',
                                     '--talk-name=' + REGISTRAR, '--socket=x11',
                                     '--nosocket=wayland',
-                                    '--env=QT_QPA_PLATFORM=xcb' if qt else '--env=GDK_BACKEND=x11', *menu_options, app], check=True)
+                                    *backend_options, *menu_options, app], check=True)
                     data['installed'] = target.read_text()
                     record.write_text(json.dumps(data, indent=2))
-                    status = ('Qt Widgets' if qt else 'GTK3') + ': X11/menu permission configured; runtime menu needs verification'
+                    status = ('Electron native D-Bus menu' if electron else 'Qt Widgets' if qt else 'GTK3') + ': X11/menu permission configured; runtime menu needs verification'
                 else:
                     status = 'GTK appearance files supplied; toolkit/native-frame option not detected; review required'
                 report.append({'id': app, 'package': 'flatpak', 'status': status})
