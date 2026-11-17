@@ -60,6 +60,8 @@ The menu bar follows the active application. Firefox and Files (shown as Finder)
 
 ## What it includes
 
+- Dock & Window includes an on-demand application picker and a compact, non-modal menu checker with Adapted status.
+- Desktop icons start at the top right using Zorin’s native placement setting; manually saved icon positions are preserved.
 - A single Apple-style system menu, application menus where apps export them, and Finder-like desktop actions.
 - A fixed bottom dock that reserves window space, native running dots, and separate close/quit shortcuts.
 - Left-side window controls, rounded outer corners, compact menus and optional minimize animation.
@@ -224,9 +226,20 @@ The original A1398 MacBook Pro artwork is preserved. Pre-Retina Unibody MacBook 
 FamiliarMac Genie is included in the desktop installation (also `--all`).
 Windows minimize into separate previews beside Downloads, restore from their
 own preview, and have an **Open “window title”** context menu. Closing uses a
-short fade. Control motion from **Settings’ Dock context menu → Dock & Window
-Effects…**. System reduced-motion preferences are respected.
+short fade. Control motion from **Settings → Dock & Window**. System reduced-motion preferences are respected.
 
 Existing installations switch from Magic Lamp to Genie on reapply; Magic Lamp
 is no longer downloaded or bundled. Existing third-party files are left intact
 but disabled. See [Genie behavior, controls and limits](docs/GENIE.md).
+
+The same Settings page lists installed applications. **Check menus** re-runs live
+menu/shortcut discovery for one running app, without closing it or changing its
+preferences. **Configured** describes configuration evidence; **Adapted** records
+a successful menu discovery with its timestamp, not a guarantee of every command.
+See [Dock & Window settings](docs/DOCK-WINDOW.md).
+
+## Releases and desktop updates
+
+Install the tested portable bundle from [GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases). Verify `SHA256SUMS`, extract the archive and run `./install.sh --all` as your desktop user. **Settings → Dock & Window → FamiliarMac** shows the installed version and offers **Check for Updates…**. Updates require confirmation, preserve desktop preferences and offer logout afterward without forcing it.
+
+NVIDIA/Nouveau firmware, Broadcom repairs and reference-machine kernel/GRUB fixes are **manual only** and excluded from release installation/update paths. [Release/update guide](docs/RELEASES.md).

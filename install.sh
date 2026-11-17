@@ -41,6 +41,9 @@ if [[ $mode == all && $input$scroll$brightness$chatgpt$wifi != 00000 ]]; then
   echo '--all excludes reference input/scaling, gmux, binary patches and Wi-Fi repairs; use the separately documented options deliberately.' >&2
   exit 2
 fi
+if [[ -f RELEASE.json && ( $mode == full || $wifi == 1 || $brightness == 1 || $chatgpt == 1 ) ]]; then
+  echo "Release packages exclude machine-specific repairs. See the repository manual hardware guide." >&2; exit 2
+fi
 if [[ $mode == check ]]; then python3 scripts/doctor.py; exit; fi
 [[ $EUID != 0 ]] || { echo 'Run as your desktop user, without sudo.' >&2; exit 1; }
 [[ $mode == full || $chatgpt$wifi == 00 ]] || { echo '--chatgpt/--wifi require --full.' >&2; exit 2; }
@@ -86,7 +89,9 @@ fi
 if [[ $wifi == 1 ]]; then run sudo bash scripts/wifi.sh; fi
 if [[ $mode == all ]]; then
   run sudo bash scripts/install-system-appearance.sh
+  if [[ ${FAMILIARMAC_UPDATING:-0} != 1 ]]; then run python3 scripts/release-update.py --register "$PWD"; fi
   echo 'Complete portable setup installed. Save work and reboot manually to load desktop and login visuals.'
   exit 0
 fi
+if [[ ${FAMILIARMAC_UPDATING:-0} != 1 ]]; then run python3 scripts/release-update.py --register "$PWD"; fi
 echo 'Done. New Shell code/scroll library loads on next login; app patches on next app launch.'

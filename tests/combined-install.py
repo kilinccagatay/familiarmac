@@ -24,7 +24,8 @@ if [ -n "$FAIL_ON" ]; then case "$*" in *"$FAIL_ON"*) exit 19;; esac; fi
               'python3 scripts/doctor.py --require desktop','python3 scripts/desktop.py',
               'python3 scripts/install-rounded-corners.py','python3 scripts/install-apps.py',
               'python3 scripts/install-about.py','python3 scripts/install-dock-icons.py',
-              'python3 scripts/install-trash-drop.py','sudo bash scripts/install-system-appearance.sh']
+              'python3 scripts/install-trash-drop.py','sudo bash scripts/install-system-appearance.sh',
+              'python3 scripts/release-update.py --register '+str(base)]
     assert lines==expected,lines
     for failed in ('--require prepare','bootstrap.sh','--require desktop','scripts/desktop.py','install-system-appearance.sh'):
         result,lines=run('--all',fail=failed)

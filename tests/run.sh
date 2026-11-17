@@ -21,6 +21,7 @@ for f in tests/*.cjs; do
   [[ $f == tests/login-layout.cjs ]] && continue
   "$NODE" "$f"
 done
+python3 tests/keyd-ipc.py
 bash scripts/test.sh
 python3 tests/editor-decorations.py
 python3 tests/native-qt-decorations.py
@@ -36,6 +37,7 @@ python3 tests/brightness.py
 python3 tests/lean-initramfs.py
 
 GIO_USE_VFS=local dbus-run-session -- gjs -m tests/gtk-menu-model.js
+GIO_USE_VFS=local dbus-run-session -- gjs -m tests/gtk-appmenu-only.js
 python3 tests/app-integrations.py
 
 python3 tests/quiet-kernel-entry.py
@@ -86,6 +88,11 @@ gjs tests/lazy-dbusmenu.js
 "$NODE" tests/dbusmenu-warm-cache.cjs
 
 python3 tests/hardware-catalog.py
+python3 tests/settings-applications.py
 python3 tests/hardware-install-boundary.py
 
 python3 tests/combined-install.py
+
+python3 tests/release-update.py
+
+python3 tests/release-package.py

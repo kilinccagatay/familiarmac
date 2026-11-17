@@ -162,3 +162,9 @@ Desteklenen uygulamalarda ilk açılışta oluşan profiller ve uygulama kapanı
 ertelenen ayarlar artık yaşam döngüsü zamanlayıcısıyla tekrar kontrol edilir.
 Açık uygulamalar otomatik kapatılmaz. Electron menülerinde geç gelen kısayollar
 güncellenir; pencereye özel canlı menü önbelleği yeni pencere geçişlerini hızlandırır.
+
+## Sürümler ve güncellemeler
+
+[GitHub Releases](https://github.com/kilinccagatay/familiarmac/releases) üzerinden taşınabilir paketi ve `SHA256SUMS` dosyasını indirin. Sağlamasını doğrulayıp arşivi açtıktan sonra normal kullanıcınızla `./install.sh --all` çalıştırın. **Ayarlar → Dock & Window → FamiliarMac** kurulu sürümü gösterir; **Check for Updates…** yeni sürümü kontrol eder. Kurulum onay ister, masaüstü tercihlerini korur ve tamamlanınca isteğe bağlı oturum kapatma sunar.
+
+NVIDIA/Nouveau firmware, Broadcom, kernel/GRUB ve referans bilgisayara özel onarımlar otomatik kurulmaz; yalnızca ayrı ve manuel donanım işlemleridir. [Ayrıntılar](RELEASES.md).

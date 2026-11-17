@@ -1,0 +1,38 @@
+name: Release
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+    tags: ['v[0-9]*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify version and install test dependencies
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then test "$GITHUB_REF_NAME" = "v$(cat VERSION)"; fi
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y gjs dbus-daemon build-essential python3 python3-gi gir1.2-gtk-3.0 gir1.2-dbusmenu-glib-0.4 xvfb xauth libinput10 libglib2.0-bin gnome-shell-common
+      - name: Test
+        run: xvfb-run -a env GDK_BACKEND=x11 bash tests/run.sh
+      - name: Package and verify
+        run: |
+          python3 scripts/release-package.py dist
+          cd dist
+          sha256sum --check SHA256SUMS
+      - name: Publish tested assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$(cat VERSION)"
+          gh release create "$tag" dist/*.tar.gz dist/SHA256SUMS --target "$GITHUB_SHA" --title "FamiliarMac $tag" --notes-file "docs/releases/$tag.md" --draft
+          gh release edit "$tag" --draft=false --latest
