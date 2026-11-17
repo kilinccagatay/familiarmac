@@ -2,7 +2,7 @@
 """Read-only preflight; prints no usernames, network identities or secrets."""
 import argparse, os, platform, shutil, subprocess
 from pathlib import Path
-p=argparse.ArgumentParser();p.add_argument('--require',choices=['desktop','full']);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--require',choices=['desktop','full','prepare']);args=p.parse_args()
 osinfo={}
 for line in Path('/etc/os-release').read_text().splitlines():
     if '=' in line:
@@ -17,6 +17,8 @@ required=['python3','gnome-extensions','glib-compile-schemas','gresource','gcc',
 missing=[x for x in required if not shutil.which(x)]
 print('Missing tools:',', '.join(missing) or 'none')
 errors=[]
+if platform.machine() not in ('x86_64','amd64'):errors.append('Supported architecture: Intel/AMD x86_64; Apple Silicon and PowerPC are not supported')
+print('Hardware repairs: NVIDIA/Nouveau, kernel, firmware and Wi-Fi repairs are never automatic.')
 if osinfo.get('ID')!='zorin' or osinfo.get('VERSION_ID','').split('.')[0]!='18':errors.append('Supported baseline: Zorin OS 18.x')
 if not version.startswith('GNOME Shell 46.'):errors.append('Supported Shell: GNOME 46.x')
 if os.environ.get('XDG_SESSION_TYPE')!='wayland':errors.append('Supported session: Wayland')
@@ -25,6 +27,6 @@ if args.require=='desktop':
     if not list(Path('/usr/lib').glob('*/gtk-3.0/modules/libappmenu-gtk-module.so')):
         errors.append('Missing GTK menu module: sudo bash scripts/bootstrap.sh')
     if missing:errors.append('Install missing dependencies: sudo bash scripts/bootstrap.sh')
-    if not Path('/usr/share/themes/MacBook-WhiteSur-Dark').is_dir():errors.append('Desktop-only needs WhiteSur installed by a previous full install; see docs/INSTALL.md')
+    if not Path('/usr/share/themes/MacBook-WhiteSur-Dark').is_dir():errors.append('Desktop themes missing: run ./install.sh --prepare-desktop first')
 for e in errors:print('CHECK:',e)
 if args.require and errors:raise SystemExit(1)

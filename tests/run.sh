@@ -76,6 +76,12 @@ gjs tests/dock-autostart.js
 python3 tests/app-lifecycle.py
 
 gjs tests/lazy-dbusmenu.js
+
 "$NODE" tests/lazy-menu-rebuild.cjs
+
 "$NODE" tests/dbusmenu-property-refresh.cjs
+
 "$NODE" tests/dbusmenu-warm-cache.cjs
+
+python3 tests/hardware-catalog.py
+python3 tests/hardware-install-boundary.py

@@ -5,8 +5,9 @@ cd -- "$(dirname -- "$0")"
 mode=check; dry=0; input=0; scroll=0; smooth=0; brave=0; chatgpt=0; wifi=0; brightness=0
 usage() {
   cat <<'EOF'
-Usage: ./install.sh [--check | --desktop | --full] [options]
+Usage: ./install.sh [--check | --prepare-desktop | --desktop | --full] [options]
   --check          Read-only compatibility and dependency report (default)
+  --prepare-desktop Install dependencies and shared themes only; no hardware profile
   --desktop        GNOME user profile + extensions + window rounding
   --full           Above + WhiteSur, keyd, boot, GDM (MacBookPro10,1 only)
   --input-preset   Opt into initial reference touchpad/gesture preferences
@@ -23,7 +24,7 @@ EOF
 }
 for arg in "$@"; do
   case "$arg" in
-    --check) mode=check;; --desktop) mode=desktop;; --full) mode=full;;
+    --check) mode=check;; --prepare-desktop) mode=prepare;; --desktop) mode=desktop;; --full) mode=full;;
     --dry-run) dry=1;; --input-preset) input=1;; --scroll) scroll=1;;
     --brightness) brightness=1;; --smooth) smooth=1;; --brave) brave=1;; --chatgpt) chatgpt=1;; --wifi) wifi=1;;
     --help|-h) usage; exit;; *) echo "Unknown option: $arg" >&2; usage; exit 2;;
@@ -36,6 +37,12 @@ run() { printf ' +'; printf ' %q' "$@"; printf '\n'; if [[ $dry == 0 ]]; then "$
 if [[ $dry == 0 ]]; then
   python3 scripts/doctor.py --require "$mode"
   sha256sum --check vendor/SHA256SUMS
+fi
+if [[ $mode == prepare ]]; then
+  run sudo bash scripts/bootstrap.sh
+  run sudo bash scripts/install-desktop-themes.sh
+  echo 'Preparation complete. Next: ./install.sh --desktop'
+  exit 0
 fi
 if [[ $mode == full ]]; then
   run sudo bash scripts/bootstrap.sh

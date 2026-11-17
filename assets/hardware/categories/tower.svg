@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="550" height="330" viewBox="0 0 550 330"><title>Mac Pro aluminium tower Mid 2010 and Mid 2012</title><desc>Original vector artwork with proportions checked against Apple historical product photography.</desc><defs>
+ <linearGradient id="rim" x2="0" y2="1"><stop stop-color="#b7b9bb"/><stop offset=".18" stop-color="#777a7c"/><stop offset="1" stop-color="#414345"/></linearGradient>
+ <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#151719"/><stop offset=".55" stop-color="#070809"/><stop offset="1" stop-color="#1d1e20"/></linearGradient>
+ <linearGradient id="deck"><stop stop-color="#6c6e70"/><stop offset=".025" stop-color="#e8e9e9"/><stop offset=".12" stop-color="#b6b9bc"/><stop offset=".5" stop-color="#f3f4f4"/><stop offset=".87" stop-color="#b4b7ba"/><stop offset=".975" stop-color="#edeef0"/><stop offset="1" stop-color="#606365"/></linearGradient>
+ <linearGradient id="lip" x2="0" y2="1"><stop stop-color="#d7d9da"/><stop offset=".55" stop-color="#979b9e"/><stop offset="1" stop-color="#4b4f52"/></linearGradient>
+ <linearGradient id="display" x2="0" y2="1"><stop stop-color="#568aa0"/><stop offset=".55" stop-color="#324f68"/><stop offset="1" stop-color="#172b3b"/></linearGradient>
+ <linearGradient id="recess" x2="0" y2="1"><stop stop-color="#5c6063"/><stop offset="1" stop-color="#c4c7c9"/></linearGradient>
+ <clipPath id="screen"><path d="M69 22H481V280H69Z"/></clipPath>
+
+<linearGradient id="silver" x1="0" y1="0" x2=".85" y2="1"><stop stop-color="#f1f2f3"/><stop offset=".36" stop-color="#c7cace"/><stop offset=".69" stop-color="#e4e6e7"/><stop offset="1" stop-color="#a4a8ab"/></linearGradient>
+<linearGradient id="white" x2="0" y2="1"><stop stop-color="#fafafb"/><stop offset=".8" stop-color="#e9ebed"/><stop offset="1" stop-color="#cdd1d4"/></linearGradient>
+<linearGradient id="whiteEdge" x2="0" y2="1"><stop stop-color="#fafbfc"/><stop offset=".45" stop-color="#e7eaec"/><stop offset=".8" stop-color="#c4c9cc"/><stop offset="1" stop-color="#8c9397"/></linearGradient>
+<linearGradient id="stand" x2="0" y2="1"><stop stop-color="#7a7e83"/><stop offset=".36" stop-color="#aeb2b6"/><stop offset=".7" stop-color="#e9ebed"/><stop offset=".82" stop-color="#a4a9ae"/><stop offset="1" stop-color="#cdd1d5"/></linearGradient>
+<linearGradient id="miniTop" x1=".15" y1="0" x2=".75" y2="1"><stop stop-color="#e7eaed"/><stop offset=".42" stop-color="#fafbfc"/><stop offset="1" stop-color="#b7bdc2"/></linearGradient>
+<linearGradient id="miniSide"><stop stop-color="#62686d"/><stop offset=".025" stop-color="#b3b9be"/><stop offset=".09" stop-color="#e3e7e9"/><stop offset=".25" stop-color="#b5bcc1"/><stop offset=".65" stop-color="#cbd0d5"/><stop offset=".94" stop-color="#e4e8ea"/><stop offset="1" stop-color="#737b82"/></linearGradient>
+<linearGradient id="cylinderBody"><stop stop-color="#090b0d"/><stop offset=".04" stop-color="#303437"/><stop offset=".09" stop-color="#111416"/><stop offset=".25" stop-color="#44484b"/><stop offset=".275" stop-color="#060809"/><stop offset=".55" stop-color="#101214"/><stop offset=".84" stop-color="#323639"/><stop offset=".95" stop-color="#222628"/><stop offset="1" stop-color="#090c0e"/></linearGradient>
+<linearGradient id="cylinderRim"><stop stop-color="#61676b"/><stop offset=".24" stop-color="#16191c"/><stop offset=".65" stop-color="#565c60"/><stop offset="1" stop-color="#989fa4"/></linearGradient>
+<pattern id="holes" width="4.2" height="3.65" patternUnits="userSpaceOnUse"><rect width="4.2" height="3.65" fill="#aeb4b9"/><circle cx="1.05" cy=".91" r=".76" fill="#272e33"/><circle cx="3.15" cy="2.74" r=".76" fill="#272e33"/></pattern>
+<linearGradient id="towerRail"><stop stop-color="#666f76"/><stop offset=".17" stop-color="#c9ced2"/><stop offset=".44" stop-color="#f0f2f4"/><stop offset=".72" stop-color="#bfc5ca"/><stop offset="1" stop-color="#747c83"/></linearGradient>
+</defs><rect x="214" y="29" width="122" height="273" rx="5" fill="#606970"/>
+<rect x="218" y="32" width="114" height="266" rx="2" fill="url(#holes)" stroke="#e5e8eb" stroke-width="1"/>
+<path d="M213 42V24Q213 9 230 9H320Q337 9 337 24V42H331V25Q331 17 320 17H230Q219 17 219 25V42Z" fill="url(#towerRail)" stroke="#a8afb5" stroke-width=".6"/>
+<path d="M213 289V306Q213 321 230 321H320Q337 321 337 306V289H331V305Q331 313 320 313H230Q219 313 219 305V289Z" fill="url(#towerRail)" stroke="#a8afb5" stroke-width=".6"/>
+<path d="M213 39H219V294H213Z M331 39H337V294H331Z" fill="url(#towerRail)"/>
+<rect x="225" y="49" width="100" height="12" rx=".6" fill="url(#silver)" stroke="#6c747b" stroke-width=".6"/>
+<rect x="225" y="78" width="100" height="12" rx=".6" fill="url(#silver)" stroke="#6c747b" stroke-width=".6"/>
+<path d="M228 60H322M228 89H322" stroke="#f2f3f5" stroke-width=".6"/>
+<rect x="225" y="187" width="13" height="62" rx="1.5" fill="#c1c7cc" stroke="#89929a" stroke-width=".5"/>
+<circle cx="231.5" cy="195" r="2.2" fill="#616d76"/><path d="M231.5 191v3" stroke="#e4e9ed" stroke-width=".7"/>
+<circle cx="231.5" cy="205" r="1.4" fill="#273640"/>
+<rect x="228" y="214" width="7" height="3" fill="#35434c"/>
+<rect x="228" y="222" width="7" height="3" fill="#35434c"/>
+<path d="M228 231h7v4h-7Z M228 240h7v4h-7Z" fill="#35434c"/>
+<path d="M229 215h5M229 223h5M229 233h5M229 242h5" stroke="#cad0d4" stroke-width=".6"/></svg>

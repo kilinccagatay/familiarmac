@@ -1,0 +1,72 @@
+{
+  "laptop": {
+    "label": "Laptop",
+    "asset": "macbook-pro-a1398.svg",
+    "sha256": "837dbf36e77cf772551d3dbc035f63237f22e98f7bf1383b5ce7dc00e4078604"
+  },
+  "all-in-one": {
+    "label": "All-in-one desktop",
+    "asset": "categories/all-in-one.svg",
+    "sha256": "df0e3ff69ec3abe448665a43303968be8430eaa1081ae3a84ab25dc6fa298ec7"
+  },
+  "tower": {
+    "label": "Desktop computer",
+    "asset": "categories/tower.svg",
+    "sha256": "aa8639745944785e2b735ee48be7398c90201b32626f243116b32c9eb016a9ae"
+  },
+  "mini": {
+    "label": "Mini computer",
+    "asset": "categories/mini.svg",
+    "sha256": "04ec402686bc59de0f9cb899c839805af33d675ee55290e67ec21ba5b90b0096"
+  },
+  "macbook-air": {
+    "label": "MacBook Air",
+    "asset": "categories/macbook-air.svg",
+    "sha256": "cc7480a517e80f112269d2bd74e90bea6a7da86f9490a727da90cf2b82a0311a"
+  },
+  "white-macbook": {
+    "label": "White MacBook",
+    "asset": "categories/white-macbook.svg",
+    "sha256": "0b435fecd545e78158a7e410d49bfa7db62b15c5609ecf8d9de387013cf91c43"
+  },
+  "cylinder": {
+    "label": "Cylindrical Mac Pro",
+    "asset": "categories/cylinder.svg",
+    "sha256": "1f5d578cd402498d3f72ca484a3eea60dbbcce326f65dd7b2a3c9c9e13c516bf"
+  },
+  "white-imac": {
+    "label": "White iMac",
+    "asset": "categories/white-imac.svg",
+    "sha256": "00675584313141556a81ec08c8364424d136372d512e9a0478bf12b7652a1f0f"
+  },
+  "white-top-mini": {
+    "label": "White-top Mac mini",
+    "asset": "categories/white-top-mini.svg",
+    "sha256": "95788264675d74a07439c4f7590ffd5c3d0dfcaaf022af68007ecc63ea953076"
+  },
+  "macbook-retina": {
+    "label": "MacBook 12-inch \u00b7 2015\u20132017",
+    "asset": "categories/macbook-retina.svg",
+    "sha256": "0bd9bbe2e10f5bb44032b2cb7a55cc5f684f323508b4b53c0232e36b5b41f833"
+  },
+  "air-retina": {
+    "label": "Retina MacBook Air \u00b7 2018\u20132020",
+    "asset": "categories/air-retina.svg",
+    "sha256": "e0c090e39f7e015de0cc3d305a184ce49d953155a9197236638fc5dac7ad9165"
+  },
+  "pro-2016": {
+    "label": "MacBook Pro \u00b7 2016\u20132020 Intel",
+    "asset": "categories/pro-2016.svg",
+    "sha256": "d32c3a587c3c1d2771e5c0aa9509739d63be246bedc8e71fcf2bbc73b1dfaa68"
+  },
+  "tower-2019": {
+    "label": "Mac Pro tower \u00b7 2019",
+    "asset": "categories/tower-2019.svg",
+    "sha256": "9e99d75a3fc59692c4c59638bc3e77cdb07f2f33e49f762d87d223745bc3250e"
+  },
+  "rack": {
+    "label": "Generic rack computer",
+    "asset": "categories/rack.svg",
+    "sha256": "2e0c179920851967173a66edaa8791420efec90830bce04f07515c15a86c62c1"
+  }
+}

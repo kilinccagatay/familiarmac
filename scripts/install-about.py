@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """User-scoped, binary-version-guarded About illustration; no package file edits."""
-import hashlib, pathlib, shlex, shutil, subprocess, sys, xml.etree.ElementTree as ET
+import hashlib, json, pathlib, shlex, shutil, subprocess, sys, xml.etree.ElementTree as ET
+from hardware_identity import read_identity, select_device, asset_path
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 home=pathlib.Path.home()
 base=home/'.local/share/familiarmac/about'
@@ -18,15 +19,16 @@ if '--restore' in sys.argv:
 binary=pathlib.Path('/usr/bin/gnome-control-center')
 resource='/org/gnome/control-center/system/about/cc-about-page.ui'
 if not binary.exists(): raise SystemExit(0)
-model=pathlib.Path('/sys/class/dmi/id/product_name').read_text().strip()
-if model not in ('MacBookPro10,1','MacBookPro11,2','MacBookPro11,3'):
- print('A1398 illustration skipped on other hardware'); raise SystemExit(0)
+selection=select_device(read_identity())
+image=asset_path(selection)
 xml=subprocess.check_output(['gresource','extract',str(binary),resource])
 tree=ET.fromstring(xml)
 logo=tree.find('.//object[@id="os_logo"]')
 if logo is None or logo.get('class')!='GtkPicture': raise SystemExit('Unsupported About template; unchanged')
 base.mkdir(parents=True,exist_ok=True)
-shutil.copy2(ROOT/'assets/hardware/macbook-pro-a1398.svg',base/'device.svg')
+device=base/('device'+image.suffix)
+shutil.copy2(image,device)
+(base/'device.json').write_text(json.dumps(selection,indent=2)+'\n')
 # Keep the native bound object alive for setup_os_logo and dark-mode callbacks.
 ET.SubElement(logo,'property',name='visible').text='False'
 parent=next(e for e in tree.iter() if logo in list(e))
@@ -34,7 +36,7 @@ box=ET.Element('object',{'class':'GtkBox'})
 parent.remove(logo);parent.append(box)
 ET.SubElement(box,'child').append(logo)
 picture=ET.SubElement(ET.SubElement(box,'child'),'object',{'class':'GtkPicture'})
-for name,value in [('file',(base/'device.svg').as_uri()),('alternative-text','MacBook Pro A1398'),('can-shrink','True'),('content-fit','contain'),('hexpand','True')]:
+for name,value in [('file',device.as_uri()),('alternative-text',selection['label']),('can-shrink','True'),('content-fit','contain'),('hexpand','True')]:
  ET.SubElement(picture,'property',name=name).text=value
 ET.ElementTree(tree).write(base/'cc-about-page.ui',encoding='utf-8',xml_declaration=True)
 sha=hashlib.sha256(binary.read_bytes()).hexdigest()
