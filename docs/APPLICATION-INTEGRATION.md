@@ -190,3 +190,15 @@ correcting that resolver, the open chooser visibly displayed “VLC media player
 Cancellation cleared the ownership state, and VLC’s native Media menu and
 shortcut hints were visually rechecked. The same resolver was loaded live and
 installed for subsequent logins; no logout was needed for this verification.
+
+## Native Qt window controls
+
+Native Qt Widgets executables are now detected through ELF dependencies, matching the existing Qt Flatpak integration. When an XCB plugin is present, a per-user launcher selects XCB so GNOME supplies the shared frame and left-side window controls. Explicit platform flags, user-owned launchers and D-Bus-activated launchers are left unchanged. Arguments and desktop actions are preserved; edited managed launchers are protected during refresh/restore. Package changes trigger the existing integration watcher. No application binaries or background daemons are modified.
+
+CoolerControl 5.1.2 was visually verified with the shared left-side controls after reopening its UI; its cooling daemon remained active. Other detected applications require normal next-launch verification. The adapter is `scripts/native-qt-decorations.py`, with backups/ownership records under `~/.local/state/familiarmac/native-qt`.
+
+See the [window-control coverage matrix](WINDOW-CONTROL-COVERAGE.md) for native Qt/Qt Quick and editor support, primary-source research, and explicit unsupported cases. Coverage does not imply visual verification for an uninstalled application.
+
+Snap desktop installation/update events are also watched. Supported native-frame
+preferences and shared GTK control assets are handled by `snap-appearance.py`;
+see the [coverage limitations](WINDOW-CONTROL-COVERAGE.md#snap--flutter-bluebubbles).

@@ -343,3 +343,36 @@ the earlier 40px-content rule: use 32px minimum content with symmetric 4px
 outer gutters, a 28px inner-box minimum and 24px ordinary header controls.
 Calendar's persistent application service retained old CSS after its Quit action;
 reloaded the test process and visually verified the actual new geometry.
+
+### Automatic integration audit — 2026-11-17
+
+The reference machine now has 101 visible launchers. This count is an inventory,
+not 101 passing applications. The old generated report assigned a generic
+"shared GTK module / native exporter available" description to 62 launchers
+without checking their actual frame/menu capability. That wording was misleading
+and has been removed. Unknown Flatpak toolkits also no longer receive a description
+that can be mistaken for verified GTK support. Desktop IDs are normalized before
+deduplication, so native Qt adapters do not get a second generic report row.
+
+Each generated row now explicitly identifies configuration-only evidence and
+states that this scanner does not visually verify controls, menu export or
+shortcuts. Historical human/visual observations above remain separate evidence.
+
+Lifecycle gaps found by inspection:
+- Chromium has a pre-launch refresh wrapper for deferred profile settings.
+- Snap/BlueBubbles and editor preferences do not have an equivalent pre-launch
+  retry. Running apps and profiles created later need another integration pass.
+- Package/desktop updates are watched; changing the desktop color scheme alone
+  is not an integration event. Already accessible GTK themes can be selected by
+  GTK, but missing new custom themes need synchronization before use.
+- The Snap theme mirror covers GTK3. It does not style arbitrary Flutter, Electron,
+  Tauri, or Qt Quick content. BlueBubbles requires its explicit native-frame option.
+- Native Qt ELF detection skips shell/Python wrappers, D-Bus activation and user
+  launchers; these are review cases, not silently supported applications.
+- Logseq's native-frame preference is known upstream, but installed-version/profile
+  verification remains pending. JetBrains and Zed are documented capability cases,
+  not installed-and-tested integrations.
+
+BlueBubbles Snap 2.1.6.0 was visually checked after its native-frame option,
+missing SVG assets and missing WhiteSur GTK3 theme were supplied: controls are on
+the left and the title bar is dark. This does not certify all Snap applications.

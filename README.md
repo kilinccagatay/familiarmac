@@ -185,3 +185,11 @@ The tests run without changing your desktop. D-Bus integration and GDM-source te
 Built on keyd, WhiteSur, AppMenu, Rounded Window Corners, Touchpad Gesture Customization, Magic Lamp, GNOME and libinput. See [THIRD_PARTY.md](THIRD_PARTY.md) for exact versions, licenses, source URLs and our modifications; checksums are in [vendor/SHA256SUMS](vendor/SHA256SUMS).
 
 Project-authored integration code is GPL-3.0-or-later. Third-party code/assets retain their original licenses and notices; see [LICENSE](LICENSE). Apple, macOS, MacBook and the Apple logo are Apple trademarks. Names and visual references describe the compatibility goal and do not imply affiliation or endorsement. No macOS system binaries, account credentials or user photos are included.
+
+Window controls: [automatic coverage and known exceptions](docs/WINDOW-CONTROL-COVERAGE.md) documents native Qt, Qt Quick, VS Code and application-owned title bars.
+
+Snap integration now detects desktop installation/update events and supplies
+missing shared GTK control assets. BlueBubbles has a supported native-frame
+adapter; custom Flutter controls are not universally themeable. See
+[window-control coverage](docs/WINDOW-CONTROL-COVERAGE.md#snap--flutter-bluebubbles)
+for restart requirements and current limits.

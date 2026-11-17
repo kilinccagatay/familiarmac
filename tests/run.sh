@@ -22,6 +22,8 @@ for f in tests/*.cjs; do
   "$NODE" "$f"
 done
 bash scripts/test.sh
+python3 tests/editor-decorations.py
+python3 tests/native-qt-decorations.py
 python3 tests/responsive-scrolling.py
 python3 tests/wsf-installer.py
 python3 tests/installer-plan.py
@@ -66,3 +68,5 @@ python3 tests/seahorse-layout.py
 
 python3 tests/portal-owners.py
 "$NODE" tests/portal-owners.cjs
+
+python3 tests/snap-appearance.py

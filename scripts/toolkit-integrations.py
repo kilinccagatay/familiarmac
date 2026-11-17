@@ -20,7 +20,13 @@ spec = importlib.util.spec_from_file_location('flatpak_appearance', Path(__file_
 appearance = importlib.util.module_from_spec(spec); spec.loader.exec_module(appearance)
 spec = importlib.util.spec_from_file_location('flatpak_gtk3_menu', Path(__file__).with_name('flatpak-gtk3-menu.py'))
 gtk_menu = importlib.util.module_from_spec(spec); spec.loader.exec_module(gtk_menu)
+spec = importlib.util.spec_from_file_location('native_qt', Path(__file__).with_name('native-qt-decorations.py'))
+native_qt = importlib.util.module_from_spec(spec); spec.loader.exec_module(native_qt)
+spec = importlib.util.spec_from_file_location('editor_frames', Path(__file__).with_name('editor-decorations.py'))
+editor_frames = importlib.util.module_from_spec(spec); spec.loader.exec_module(editor_frames)
 
+spec = importlib.util.spec_from_file_location('snap_frames', Path(__file__).with_name('snap-appearance.py'))
+snap_frames = importlib.util.module_from_spec(spec); spec.loader.exec_module(snap_frames)
 
 
 def output(*args):
@@ -75,6 +81,9 @@ def gtk3_capable(metadata, files):
 
 
 def restore():
+    snap_frames.restore()
+    native_qt.restore()
+    editor_frames.restore()
     appearance.restore(HOME)
     record = STATE / 'gtk.json'
     if record.exists():
@@ -127,7 +136,7 @@ def apply():
     config = Path(__file__).with_name('appearance-config')
     if not config.exists(): config = Path(__file__).resolve().parents[1]/'config'
     appearance.apply(HOME, [], config, include_native=True)
-    report = []
+    report = native_qt.apply() + editor_frames.apply() + snap_frames.apply()
     if shutil.which('flatpak'):
         target = HOME / '.local/share/flatpak/overrides/global'
         record = STATE / 'global-flatpak.json'
@@ -183,7 +192,7 @@ def apply():
                     record.write_text(json.dumps(data, indent=2))
                     status = ('Qt Widgets' if qt else 'GTK3') + ': X11/menu permission configured; runtime menu needs verification'
                 else:
-                    status = 'shared GTK3/GTK4 controls and theme access installed; menu export depends on toolkit'
+                    status = 'GTK appearance files supplied; toolkit/native-frame option not detected; review required'
                 report.append({'id': app, 'package': 'flatpak', 'status': status})
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, RuntimeError, configparser.Error) as e:
                 report.append({'id': app, 'package': 'flatpak', 'status': 'error: ' + str(e)})
@@ -191,10 +200,21 @@ def apply():
     for app in Gio.AppInfo.get_all():
         if not app.should_show() or not app.get_id():
             continue
-        if any(r['id'] + '.desktop' == app.get_id() for r in report):
+        if any(r['id'].removesuffix('.desktop') == app.get_id().removesuffix('.desktop') for r in report):
             continue
-        report.append({'id': app.get_id(), 'package': 'desktop',
-                       'status': 'shared GTK module / native exporter available; custom UI not guaranteed'})
+        filename = app.get_filename() if hasattr(app, 'get_filename') else ''
+        package = 'snap' if '/snapd/desktop/' in (filename or '') else 'desktop'
+        report.append({'id': app.get_id(), 'package': package,
+                       'status': 'no application-specific capability check; shared system configuration is not proof of support'})
+    for row in report:
+        # A configuration scan cannot certify running UI, exported menus or shortcuts.
+        row['evidence'] = 'configuration-scan-only'
+        row['visual_verification'] = 'not-performed-by-this-scanner'
+        row['menu_and_shortcut_verification'] = 'not-performed-by-this-scanner'
+        status = row['status']
+        row['needs_review'] = any(term in status for term in (
+            'review', 'not detected', 'no application-specific', 'deferred',
+            'running;', 'retained', 'error:', 'needs app support'))
     (STATE / 'applications.json').write_text(json.dumps(report, indent=2))
     print('Toolkit integration prepared; inventory:', len(report), 'applications.')
 
