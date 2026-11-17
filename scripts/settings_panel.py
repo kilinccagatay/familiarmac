@@ -46,7 +46,7 @@ def prepare(root, base, home, binary):
     ET.SubElement(label,'property',name='xalign').text='0'
     ET.ElementTree(tree).write(base/'cc-window.ui',encoding='utf-8',xml_declaration=True)
     # Keep these beside the helper so About restore removes this entire integration.
-    for name in ('settings-applications.py','menu_setup.py','dock-window.ui','release-update.py','release-update-ui.py'):
+    for name in ('settings-applications.py','menu_setup.py','dock-window.ui','release-update.py'):
         shutil.copy2(root/'scripts'/name,base/name)
     subprocess.run(['/usr/bin/python3',str(base/'settings-applications.py'),'--generate',str(base/'dock-page.ui')],check=True)
     import shlex
@@ -55,7 +55,6 @@ def prepare(root, base, home, binary):
         f'  export FAMILIARMAC_DOCK_UI={q(str(base/"dock-page.ui"))}\n'
         f'  export FAMILIARMAC_GENIE_SCHEMAS={q(str(schema))}\n'
         f'  export FAMILIARMAC_UPDATER={q(str(base/"release-update.py"))}\n'
-        f'  export FAMILIARMAC_UPDATE_UI={q(str(base/"release-update-ui.py"))}\n'
         f'  export FAMILIARMAC_APP_RECHECK={q(str(base/"settings-applications.py"))}\n'
         f'  export LD_PRELOAD={q(str(target))}${{LD_PRELOAD:+:$LD_PRELOAD}}\n'
         f'  export G_RESOURCE_OVERLAYS="/org/gnome/Settings/gtk={base}:$G_RESOURCE_OVERLAYS"\n fi\n')

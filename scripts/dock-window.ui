@@ -6,6 +6,12 @@
    <child type="top"><object class="AdwHeaderBar" /></child>
    <property name="content"><object class="AdwPreferencesPage">
     <child><object class="AdwPreferencesGroup">
+     <property name="title">Dock</property>
+     <child><object class="AdwActionRow"><property name="title">Size</property><child type="suffix"><object class="GtkScale" id="dock_size_scale"><property name="draw-value">False</property><property name="width-request">220</property><property name="valign">center</property><property name="digits">0</property><property name="adjustment"><object class="GtkAdjustment" id="dock_size"><property name="lower">0</property><property name="upper">100</property><property name="step-increment">1</property><property name="page-increment">8</property></object></property></object></child></object></child>
+     <child><object class="AdwActionRow" id="dock_zoom_row"><property name="title">Magnification</property><child type="suffix"><object class="GtkScale" id="dock_zoom_scale"><property name="draw-value">False</property><property name="width-request">220</property><property name="valign">center</property><property name="digits">1</property><property name="adjustment"><object class="GtkAdjustment" id="dock_zoom"><property name="lower">0</property><property name="upper">100</property><property name="step-increment">1</property></object></property></object></child></object></child>
+     <child><object class="AdwSwitchRow" id="dock_autohide"><property name="title">Automatically hide and show the Dock</property><property name="subtitle">Move the pointer to the screen edge to reveal it.</property></object></child>
+    </object></child>
+    <child><object class="AdwPreferencesGroup">
      <property name="title">Window motion</property>
      <property name="description">Minimized windows appear as previews in the Dock.</property>
      <child><object class="AdwSwitchRow" id="genie_switch"><property name="title">Genie animation</property><property name="subtitle">Animate windows when minimizing and restoring.</property></object></child>
@@ -18,7 +24,8 @@
     <child><object class="AdwPreferencesGroup">
      <property name="title">FamiliarMac</property>
      <property name="description">Desktop updates. Device-specific drivers and repairs are managed separately.</property>
-     <child><object class="AdwActionRow" id="release_status"><property name="title">Version</property><property name="subtitle">Checking for updates…</property><child type="suffix"><object class="GtkButton"><property name="name">fm-check-updates</property><property name="label">Check for Updates…</property><property name="valign">center</property></object></child></object></child>
+     <child><object class="AdwActionRow" id="release_status"><property name="title">Version</property><property name="subtitle">Checking for updates…</property><child type="suffix"><object class="GtkButton"><property name="name">fm-check-updates</property><property name="label">Check for Updates</property><property name="valign">center</property></object></child></object></child>
+     <child><object class="GtkProgressBar" id="release_progress"><property name="visible">False</property><property name="show-text">True</property><property name="margin-top">8</property><property name="margin-bottom">8</property></object></child>
     </object></child>
    </object></property>
   </object></property>

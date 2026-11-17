@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -23,14 +24,23 @@ def read(path, default=None):
 def save(path, data):
     path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
     path.parent.chmod(0o700)
-    tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(data,indent=2)+'\n');tmp.replace(path)
+    with tempfile.NamedTemporaryFile(mode='w',dir=path.parent,prefix='.'+path.name,delete=False) as stream:
+        stream.write(json.dumps(data,indent=2)+'\n');tmp=Path(stream.name)
+    tmp.replace(path)
 def version(value):
     if not isinstance(value,str) or not re.fullmatch(r'\d+\.\d+\.\d+',value): raise ValueError('Invalid release version')
     return tuple(map(int,value.split('.')))
-def fetch(url, limit):
+def fetch(url, limit, progress=None):
     request=urllib.request.Request(url,headers={'User-Agent':'FamiliarMac-Updater/1','Accept':'application/vnd.github+json'})
     with urllib.request.urlopen(request,timeout=25) as response:
-        body=response.read(limit+1)
+        total=int(response.headers.get('Content-Length',0));parts=[];size=0
+        while True:
+            chunk=response.read(min(262144,limit-size+1))
+            if not chunk: break
+            parts.append(chunk);size+=len(chunk)
+            if size>limit: raise ValueError('Release download exceeds size limit')
+            if progress: progress(size,total)
+        body=b''.join(parts)
     if len(body)>limit: raise ValueError('Release download exceeds size limit')
     return body
 
@@ -73,12 +83,13 @@ def register(root):
     v=(root/'VERSION').read_text().strip();version(v)
     destination=Path.home()/'.local/share/familiarmac/updater'
     destination.mkdir(parents=True,exist_ok=True)
-    for file in ('release-update.py','release-update-ui.py'):
+    for file in ('release-update.py',):
         shutil.copy2(root/'scripts'/file,destination/file)
     save(STATE/'installed.json',{'version':v,'installed_at':time.time()})
 
-def install(expected):
+def install(expected, progress=lambda fraction,message:None):
     version(expected)
+    progress(0,'Checking release…')
     STATE.mkdir(parents=True,exist_ok=True,mode=0o700)
     STATE.chmod(0o700)
     with (STATE/'update.lock').open('w') as lock:
@@ -95,7 +106,8 @@ def install(expected):
         if len(hashes)!=1 or not re.fullmatch('[0-9a-f]{64}',hashes[0]): raise ValueError('Invalid checksum file')
         DATA.mkdir(parents=True,exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='.download-',dir=DATA) as temp:
-            temp=Path(temp);archive=temp/name;archive.write_bytes(fetch(base+name,150_000_000))
+            temp=Path(temp);archive=temp/name;archive.write_bytes(fetch(base+name,150_000_000,lambda size,total:progress(.05+.6*min(size/total,1) if total else .05,f'Downloading… {size//1024} KB'+(f' / {total//1024} KB' if total else ''))))
+            progress(.68,'Verifying package…')
             if hashlib.sha256(archive.read_bytes()).hexdigest()!=hashes[0]: raise ValueError('Package checksum mismatch')
             root=extract(archive,temp,expected)
             final=DATA/expected
@@ -108,7 +120,9 @@ def install(expected):
         log=STATE/'install.log'
         try:
             with log.open('w') as stream:
+                progress(.75,'Installing shared themes — administrator authentication may be required…')
                 subprocess.run(['pkexec','bash',str(final/'scripts/update-portable-system.sh')],stdout=stream,stderr=subprocess.STDOUT,check=True)
+                progress(.85,'Installing desktop update…')
                 env=dict(os.environ,FAMILIARMAC_UPDATING='1')
                 subprocess.run(['bash','install.sh','--desktop'],cwd=final,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
         except Exception:
@@ -116,18 +130,31 @@ def install(expected):
             raise RuntimeError(f'Update incomplete. Previous version retained. See {log}')
         finally:
             subprocess.run(['dconf','load','/'],input=snapshot,check=True)
+        progress(.97,'Finishing installation…')
         register(final)
         save(STATE/'transaction.json',{'version':expected,'status':'complete','logout_required':True})
+        progress(1,'Update installed.')
         return 'Update installed. Log out and back in to load the new desktop code.'
 
+def emit_progress(fraction,message):
+    # Closing Settings must not interrupt an already confirmed installation.
+    try: print(f'{fraction:.4f}\t{message}',flush=True)
+    except BrokenPipeError:
+        sys.stdout=open(os.devnull,'w')
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--check',action='store_true');p.add_argument('--force',action='store_true');p.add_argument('--panel',action='store_true');p.add_argument('--install');p.add_argument('--register',type=Path)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--check',action='store_true');p.add_argument('--force',action='store_true');p.add_argument('--panel',action='store_true');p.add_argument('--progress',action='store_true');p.add_argument('--install');p.add_argument('--register',type=Path)
     a=p.parse_args()
     try:
         if a.register: register(a.register.resolve())
-        elif a.install: print(install(a.install))
+        elif a.install:
+            progress=emit_progress if a.progress else (lambda *args:None)
+            print(install(a.install,progress))
         else:
             result=check(a.force)
             if a.panel: print('FamiliarMac '+read(STATE/'installed.json').get('version','Development build'))
             print(result['message'])
-    except Exception as e: print('Update check/install failed: '+str(e));raise SystemExit(1)
+            if a.panel:
+                current=read(STATE/'installed.json').get('version');latest=result.get('latest')
+                print(latest if latest and (not current or version(latest)>version(current)) else '')
+    except Exception as e: print(('-1\t' if a.progress else '')+'Update check/install failed: '+str(e),flush=True);raise SystemExit(1)

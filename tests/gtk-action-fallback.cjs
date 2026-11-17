@@ -4,7 +4,7 @@ source+='\nglobalThis.Manager=RealMenuManager;';
 const calls=[],subs=new Map();let id=0;
 const session={signal_subscribe(...args){subs.set(++id,args);return id;},signal_unsubscribe(i){subs.delete(i);},
  async call(bus,path,iface,method,params,type,flags){calls.push({bus,path,method,flags});
- if(method==='DescribeAll')return {deepUnpack:()=>[path.endsWith('/window/7')?{open:[true,'',[]],find:[true,'',[]]}:{custom:[true,'',[]],preferences:[true,'',[]],quit:[true,'',[]]}]};return null;}};
+ if(method==='DescribeAll')return {deepUnpack:()=>[path.endsWith('/window/7')?{open:[true,'',[]],find:[true,'',[]]}:{'familiarmac-dock':[true,'',[]],custom:[true,'',[]],preferences:[true,'',[]],quit:[true,'',[]]}]};return null;}};
 const Gio={_promisify(){},DBusConnection:{prototype:{}},DBus:{session},DBusSignalFlags:{NONE:0},DBusCallFlags:{NO_AUTO_START:1,NONE:0},dbus_is_name:()=>true};
 const GLib={getenv:()=>'',Variant:class{constructor(...args){this.args=args;}static is_object_path(){return true;}},source_remove(){}};
 class ApplicationShortcuts{lookup(){return '';}destroy(){}}
@@ -19,6 +19,7 @@ vm.runInNewContext(source,ctx);
  const tree=m.buildCurrentMenuModel();
  assert(tree.appMenuChildren.some(i=>i.label==='Settings'));
  assert(tree.topLevelMenus.find(i=>i.label==='More').children.some(i=>i.label==='Custom'),'unclassified command dropped');
+ assert(!tree.topLevelMenus.flatMap(i=>i.children).some(i=>i.actionId==='app.familiarmac-dock'),'private integration action leaked');
  const file=tree.topLevelMenus.find(i=>i.label==='File');assert(file.children.some(i=>i.label==='Open…'));
  assert(tree.topLevelMenus.find(i=>i.label==='Edit').children.some(i=>i.label==='Find…'));
  await file.children[0].activate();assert.equal(calls.at(-1).path,'/actual/app/window/7');

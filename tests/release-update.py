@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory() as temp:
     u.save(u.STATE/'installed.json',{'version':'1.0.0'})
     payload=bundle();digest=hashlib.sha256(payload).hexdigest()
     release={'tag_name':'v1.1.0','assets':[{'name':'familiarmac-1.1.0.tar.gz'},{'name':'SHA256SUMS'}]}
-    def fetch(url,limit):
+    def fetch(url,limit,progress=None):
         if url.endswith('/latest'): return json.dumps(release).encode()
         if url.endswith('SHA256SUMS'):return f'{digest}  familiarmac-1.1.0.tar.gz\n'.encode()
         return payload
@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory() as temp:
             u.install('1.1.0');register.assert_called_once_with(u.DATA/'1.1.0')
             assert u.read(u.STATE/'transaction.json')['logout_required'] is True
         bad=b'broken'
-        def badfetch(url,limit):return bad if url.endswith('.tar.gz') else fetch(url,limit)
+        def badfetch(url,limit,progress=None):return bad if url.endswith('.tar.gz') else fetch(url,limit)
         with patch.object(u,'fetch',side_effect=badfetch),patch.object(u.subprocess,'run') as run:
             try:u.install('1.1.0');raise AssertionError('Corrupt package accepted')
             except ValueError as e:assert 'checksum' in str(e)
@@ -71,4 +71,11 @@ for forbidden in ('scripts/system.sh','wifi.sh','keyd','nvidia','modprobe','grub
     assert forbidden not in system,forbidden
 assert '/var/lib/familiarmac/system-appearance/installed' in system
 assert "['bash','install.sh','--desktop']" in (root/'scripts/release-update.py').read_text()
+# Overlapping native/background and explicit checks must use distinct temp files.
+with tempfile.TemporaryDirectory() as tmp:
+    from concurrent.futures import ThreadPoolExecutor
+    target=Path(tmp)/'available.json'
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(lambda n:u.save(target,{'n':n}),range(150)))
+    assert isinstance(u.read(target)['n'],int)
 print('Release checks, checksum rejection, archive safety, install failure/version boundaries and portable update scope PASS')

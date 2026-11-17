@@ -100,8 +100,9 @@ if __name__ == '__main__':
         elif args.activate_panel:
             try:
                 bus=Gio.bus_get_sync(Gio.BusType.SESSION,None)
-                bus.call_sync('org.gnome.Settings','/org/gnome/Settings','org.gtk.Actions','Describe',GLib.Variant('(s)',('familiarmac-dock',)),None,Gio.DBusCallFlags.NO_AUTO_START,2000,None)
-                bus.call_sync('org.gnome.Settings','/org/gnome/Settings','org.gtk.Actions','Activate',GLib.Variant('(sava{sv})',('familiarmac-dock',[],{})),None,Gio.DBusCallFlags.NO_AUTO_START,2000,None)
+                description=bus.call_sync('org.gnome.Settings','/org/gnome/Settings','org.gtk.Actions','Describe',GLib.Variant('(s)',('familiarmac-dock',)),None,Gio.DBusCallFlags.NO_AUTO_START,2000,None)
+                parameters=[GLib.Variant('s','dock-window')] if description.unpack()[1]=='s' else []
+                bus.call_sync('org.gnome.Settings','/org/gnome/Settings','org.gtk.Actions','Activate',GLib.Variant('(sava{sv})',('familiarmac-dock',parameters,{})),None,Gio.DBusCallFlags.NO_AUTO_START,2000,None)
             except GLib.Error: raise SystemExit(1)
         elif args.open: launch(args.open)
         elif args.recheck: print(recheck(args.recheck, args.ui, args.ticket))

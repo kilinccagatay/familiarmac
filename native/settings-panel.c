@@ -32,7 +32,7 @@ extern int g_subprocess_communicate_utf8_finish(P,P,char**,char**,P*),g_subproce
 extern int gtk_widget_get_mapped(P);
 extern P gtk_window_get_application(P),g_simple_action_new(const char*,P);
 extern void gtk_window_present(P),g_action_map_add_action(P,P),g_action_map_remove_action(P,const char*);
-typedef struct {P window,app,split,list,row,native_list,page,previous,genie,desktop,toggle,motion,dialog,update_row;int changing,syncing,startup;} State;
+typedef struct {P window,app,split,list,row,native_list,page,previous,genie,desktop,dock,dock_size,dock_zoom,toggle,motion,dialog,update_row;int changing,syncing,startup;} State;
 static P find(P root,const char *type,const char *name) {
  if(!root)return NULL;
  if((!type||!strcmp(g_type_name_from_instance(root),type))&&(!name||!strcmp(gtk_widget_get_name(root),name)))return root;
@@ -90,7 +90,7 @@ static void show_native(P list,const char *id,const char *parent,State *s) {
 }
 static void show_dock(P list,P row,State *s) {
  (void)list;if(row!=s->row)return;
- if(s->update_row)check_updates(s->update_row);
+ check_updates(s->window);
  P current=adw_navigation_split_view_get_content(s->split);
  if(current!=s->page){
   if(s->previous)g_object_unref(s->previous);
@@ -104,7 +104,7 @@ static void activate_dock(P action,P parameter,State*s){(void)action;(void)param
 static void first_map(P widget,State*s){(void)widget;activate_dock(NULL,NULL,s);}
 static int open_requested(P window){State*s=g_object_get_data(window,"familiarmac-dock-panel");if(s)activate_dock(NULL,NULL,s);g_object_unref(window);return 0;}
 static int closing(P window,State *s){(void)window;show_native(NULL,NULL,NULL,s);return 0;}
-static void free_state(P ptr){State*s=ptr;g_action_map_remove_action(s->app,"familiarmac-dock");g_object_unref(s->app);if(s->previous)g_object_unref(s->previous);gtk_window_destroy(s->dialog);g_object_unref(s->dialog);g_object_unref(s->page);g_object_unref(s->genie);g_object_unref(s->desktop);free(s);}
+static void free_state(P ptr){State*s=ptr;g_action_map_remove_action(s->app,"familiarmac-dock");g_object_unref(s->app);if(s->previous)g_object_unref(s->previous);gtk_window_destroy(s->dialog);g_object_unref(s->dialog);g_object_unref(s->page);g_object_unref(s->genie);g_object_unref(s->desktop);if(s->dock)g_object_unref(s->dock);free(s);}
 static void configure_apps(P button,P unused){
  (void)button;(void)unused;
  const char*worker=getenv("FAMILIARMAC_APP_RECHECK");if(!worker)return;
@@ -113,32 +113,43 @@ static void configure_apps(P button,P unused){
  if(process)g_object_unref(process);
  if(error)g_error_free(error);
 }
-/* Async update checks retain only their row, never the window state. */
-static void updates_checked(P process,P result,P row){
- char*out=NULL,*err=NULL;P error=NULL;
- int ok=g_subprocess_communicate_utf8_finish(process,result,&out,&err,&error);
- if(ok&&g_subprocess_get_successful(process)&&out){
-  char*message=strchr(out,'\n');
-  if(message){*message++=0;adw_preferences_row_set_title(row,out);message[strcspn(message,"\r\n")]=0;adw_action_row_set_subtitle(row,message);}
+#include "settings-updates.h"
+extern int g_settings_get_int(P,const char*),g_settings_set_int(P,const char*,int);
+static void dock_size_sync(P settings,const char*key,State*s){
+ (void)settings;(void)key;s->syncing=1;
+ g_object_set(s->dock_size,"value",(g_settings_get_int(s->dock,"dash-max-icon-size")-24)*100.0/48,NULL);s->syncing=0;
+}
+static void dock_size_changed(P adjustment,P spec,State*s){
+ (void)spec;if(s->syncing)return;double value=0;g_object_get(adjustment,"value",&value,NULL);
+ g_settings_set_int(s->dock,"dash-max-icon-size",24+(int)(value*48/100+0.5));
+}
+extern double g_settings_get_double(P,const char*);
+extern int g_settings_set_double(P,const char*,double);
+extern void gtk_scale_add_mark(P,double,int,const char*);
+static void dock_zoom_sync(P settings,const char*key,State*s){
+ (void)settings;(void)key;if(s->syncing)return;
+ double value=g_settings_get_boolean(s->genie,"dock-magnification")?
+  20+(g_settings_get_double(s->genie,"dock-magnification-scale")-1.1)*80/0.9:0;
+ s->syncing=1;g_object_set(s->dock_zoom,"value",value,NULL);s->syncing=0;
+}
+static void dock_zoom_changed(P adjustment,P spec,State*s){
+ (void)spec;if(s->syncing)return;double value=0;g_object_get(adjustment,"value",&value,NULL);
+ s->syncing=1;
+ if(value>0)g_settings_set_double(s->genie,"dock-magnification-scale",1.1+(value<20?0:(value-20))*0.9/80);
+ g_settings_set_boolean(s->genie,"dock-magnification",value>0);
+ s->syncing=0;
+}
+static void dock_hide_changed(P row,P spec,State*s){
+ (void)spec;int active=0;g_object_get(row,"active",&active,NULL);
+ if(active){
+  g_settings_set_boolean(s->dock,"require-pressure-to-show",0);
+  g_settings_set_double(s->dock,"show-delay",0.0);
+  g_settings_set_double(s->dock,"hide-delay",0.15);
+  g_settings_set_double(s->dock,"animation-time",0.28);
  }
- else adw_action_row_set_subtitle(row,"Unable to check. Use Check for Updates to retry.");
- if(out)g_free(out);
- if(err)g_free(err);
- if(error)g_error_free(error);
- g_object_unref(row);g_object_unref(process);
-}
-static void check_updates(P row){
- const char*worker=getenv("FAMILIARMAC_UPDATER");if(!worker)return;
- const char*argv[]={"/usr/bin/python3",worker,"--check","--panel",NULL};P error=NULL;
- P process=g_subprocess_newv(argv,12,&error);
- if(process)g_subprocess_communicate_utf8_async(process,NULL,NULL,updates_checked,g_object_ref(row));
- else adw_action_row_set_subtitle(row,"Update checker unavailable.");
- if(error)g_error_free(error);
-}
-static void open_updates(P button,P unused){
- (void)button;(void)unused;const char*worker=getenv("FAMILIARMAC_UPDATE_UI");if(!worker)return;
- const char*argv[]={"/usr/bin/python3",worker,NULL};P error=NULL;
- P process=g_subprocess_newv(argv,0,&error);if(process)g_object_unref(process);if(error)g_error_free(error);
+ g_settings_set_boolean(s->dock,"intellihide",0);
+ g_settings_set_boolean(s->dock,"autohide",active);
+ g_settings_set_boolean(s->dock,"dock-fixed",!active);
 }
 static void motion_changed(P settings,const char*key,State*s){
  (void)settings;(void)key;
@@ -179,6 +190,30 @@ static int attach(P window){
  State*s=calloc(1,sizeof(*s));s->window=window;s->app=g_object_ref(gtk_window_get_application(window));s->split=split;s->list=sidebar;s->row=row;s->native_list=native;s->page=g_object_ref(page);
  s->genie=g_settings_new_full(schema,NULL,NULL);g_settings_schema_unref(schema);s->desktop=g_settings_new("org.gnome.desktop.interface");
  s->toggle=toggle;s->motion=reduce;s->dialog=g_object_ref(dialog);
+ P dock_schema=g_settings_schema_source_lookup(g_settings_schema_source_get_default(),"org.gnome.shell.extensions.zorin-dash",1);
+ if(dock_schema){
+  s->dock=g_settings_new_full(dock_schema,NULL,NULL);g_settings_schema_unref(dock_schema);
+  P hide=gtk_builder_get_object(builder,"dock_autohide");
+  s->dock_size=gtk_builder_get_object(builder,"dock_size");
+  dock_size_sync(NULL,NULL,s);
+  g_signal_connect_data(s->dock,"changed::dash-max-icon-size",dock_size_sync,s,NULL,0);
+  g_signal_connect_data(s->dock_size,"notify::value",dock_size_changed,s,NULL,0);
+  g_object_set(hide,"active",g_settings_get_boolean(s->dock,"autohide")&&!g_settings_get_boolean(s->dock,"dock-fixed"),NULL);
+  g_signal_connect_data(hide,"notify::active",dock_hide_changed,s,NULL,0);
+ }
+ /* GtkScale marks are native stop values: pointer drags gently snap at them. */
+ P size_scale=gtk_builder_get_object(builder,"dock_size_scale");
+ gtk_scale_add_mark(size_scale,0,3,"Small");
+ gtk_scale_add_mark(size_scale,50,3,"<span alpha='55%'>•</span>");
+ gtk_scale_add_mark(size_scale,100,3,"Large");
+ P zoom_scale=gtk_builder_get_object(builder,"dock_zoom_scale");
+ gtk_scale_add_mark(zoom_scale,0,3,"Off");
+ gtk_scale_add_mark(zoom_scale,20,3,"<span alpha='55%'>•</span>\nSmall");
+ gtk_scale_add_mark(zoom_scale,100,3,"Large");
+ s->dock_zoom=gtk_builder_get_object(builder,"dock_zoom");dock_zoom_sync(NULL,NULL,s);
+ g_signal_connect_data(s->dock_zoom,"notify::value",dock_zoom_changed,s,NULL,0);
+ g_signal_connect_data(s->genie,"changed::dock-magnification",dock_zoom_sync,s,NULL,0);
+ g_signal_connect_data(s->genie,"changed::dock-magnification-scale",dock_zoom_sync,s,NULL,0);
  gtk_window_set_transient_for(dialog,window);
  motion_changed(NULL,NULL,s);
  g_signal_connect_data(s->desktop,"changed::enable-animations",motion_changed,s,NULL,0);
@@ -189,7 +224,7 @@ static int attach(P window){
  g_signal_connect_data(split,"notify::content",content_changed,s,NULL,0);
  g_signal_connect_data(panel,"show-panel",show_native,s,NULL,1); /* after native handler */
  g_signal_connect_data(window,"close-request",closing,s,NULL,0);
- P action=g_simple_action_new("familiarmac-dock",NULL);
+ P action=g_simple_action_new("familiarmac-dock",(P)"s");
  g_signal_connect_data(action,"activate",activate_dock,s,NULL,0);g_action_map_add_action(s->app,action);g_object_unref(action);
  P css=gtk_css_provider_new();
  gtk_css_provider_load_from_data(css,"#fm-dock-header, #fm-dock-list { padding: 0; margin: 0; background: transparent; }",-1);
@@ -204,11 +239,7 @@ static int attach(P window){
   if(gtk_widget_get_mapped(window))activate_dock(NULL,NULL,s);
   else g_signal_connect_data(window,"map",first_map,s,NULL,1);
  }
- P update_row=gtk_builder_get_object(builder,"release_status");
- s->update_row=update_row;
- if(update_row)check_updates(update_row);
- P update_button=find(page,"GtkButton","fm-check-updates");
- if(update_button)g_signal_connect_data(update_button,"clicked",open_updates,NULL,NULL,0);
+ updates_attach(window,builder,page);
  P configure=find(page,"GtkButton","fm-configure-apps");
  if(configure)g_signal_connect_data(configure,"clicked",configure_apps,NULL,NULL,0);
 g_object_set_data_full(window,"familiarmac-dock-panel",s,free_state);g_object_unref(builder);

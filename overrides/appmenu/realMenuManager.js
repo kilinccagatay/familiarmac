@@ -321,7 +321,7 @@ async function _probeGtkActions(busName, objectPath, cancellable) {
             return null;
         return Object.entries(descriptions)
             .map(([name, details]) => ({name, objectPath, ..._unpackGtkActionDetails(details)}))
-            .filter(a => a.parameterType === '');
+            .filter(a => a.parameterType === '' && !a.name.startsWith('familiarmac-')); // Private integration actions are never inferred menu commands.
     } catch (_e) {
         return null;
     }
