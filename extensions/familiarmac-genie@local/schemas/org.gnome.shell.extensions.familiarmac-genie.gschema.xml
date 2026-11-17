@@ -1,0 +1,5 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.familiarmac-genie" path="/org/gnome/shell/extensions/familiarmac-genie/">
+    <key name="animate" type="b"><default>true</default><summary>Animate minimizing and restoring windows</summary></key>
+  </schema>
+</schemalist>

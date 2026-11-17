@@ -90,7 +90,7 @@ if os.geteuid()==0: raise SystemExit('Bu betiği sudo ile çalıştırmayın.')
 
 values = {
  'org.gnome.desktop.wm.preferences': {'button-layout': "'close,minimize,maximize:'", 'action-double-click-titlebar': "'toggle-maximize'"},
- 'org.gnome.desktop.interface': {'gtk-theme': "'ZorinGrey-Dark'", 'icon-theme': "'ZorinGrey-Dark'", 'color-scheme': "'prefer-dark'", 'enable-animations': 'true', 'enable-hot-corners': 'false', 'show-battery-percentage': 'true', 'clock-show-date': 'true'},
+ 'org.gnome.desktop.interface': {'gtk-theme': "'ZorinGrey-Dark'", 'icon-theme': "'ZorinGrey-Dark'", 'color-scheme': "'prefer-dark'", 'enable-hot-corners': 'false', 'show-battery-percentage': 'true', 'clock-show-date': 'true'},
  'org.gnome.desktop.peripherals.touchpad': {'natural-scroll': 'true', 'tap-and-drag': 'false', 'speed': '-0.15', 'accel-profile': "'adaptive'", 'two-finger-scrolling-enabled': 'true', 'edge-scrolling-enabled': 'false', 'click-method': "'fingers'", 'disable-while-typing': 'true', 'middle-click-emulation': 'false'},
  'org.gnome.shell.extensions.zorin-dash': {'dock-position': "'BOTTOM'", 'extend-height': 'false', 'dash-max-icon-size': '48', 'autohide': 'false', 'intellihide': 'false', 'dock-fixed': 'true', 'running-indicator-style': "'DOTS'", 'show-trash': 'true', 'show-show-apps-button': 'false', 'show-apps-at-top': 'false', 'show-mounts': 'true', 'apply-custom-theme': 'false', 'custom-background-color': 'true', 'background-color': "'#242424'", 'background-opacity': '0.82', 'transparency-mode': "'FIXED'"},
  'org.gnome.desktop.wm.keybindings': {'switch-input-source': "['XF86Keyboard']", 'switch-applications': "['<Alt>Tab']", 'switch-applications-backward': "['<Shift><Alt>Tab']", 'switch-windows': '@as []', 'switch-windows-backward': '@as []', 'minimize': "['<Super>h']", 'switch-to-workspace-left': "['<Control><Alt>Left', '<Super>Page_Up']", 'switch-to-workspace-right': "['<Control><Alt>Right', '<Super>Page_Down']", 'move-to-workspace-left': "['<Control><Alt><Shift>Left']", 'move-to-workspace-right': "['<Control><Alt><Shift>Right']"},
@@ -191,17 +191,18 @@ for key, value in {
     'touchpad-pinch-speed': '1.0',
 }.items(): setting('org.gnome.shell.extensions.touchpad-gesture-customization', key, value)
 
-# Pinned, GNOME 46-compatible dock-directed minimize animation.
-lamp_dir = Path.home()/'.local/share/gnome-shell/extensions/compiz-alike-magic-lamp-effect@hermes83.github.com'
-with zipfile.ZipFile(ROOT/'vendor/magic-lamp-v25.zip') as archive:
-    for name in archive.namelist():
-        if not name.endswith('/'):
-            if Path(name).is_absolute() or '..' in Path(name).parts: raise ValueError(name)
-            write(lamp_dir/name, archive.read(name))
+# FamiliarMac Genie replaces the old third-party Magic Lamp. Use write() for
+# every asset so clean install, repeat apply and rollback share the same manifest.
+genie_source = ROOT/'extensions/familiarmac-genie@local'
+genie_dir = Path.home()/'.local/share/gnome-shell/extensions/familiarmac-genie@local'
+for source in genie_source.rglob('*'):
+    if source.is_file() and source.name != 'gschemas.compiled':
+        write(genie_dir/source.relative_to(genie_source), source.read_bytes())
 with tempfile.TemporaryDirectory() as tmp:
-    subprocess.run(['glib-compile-schemas', '--strict', '--targetdir='+tmp, str(lamp_dir/'schemas')], check=True)
-    write(lamp_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
-setting('org.gnome.shell.extensions.com.github.hermes83.compiz-alike-magic-lamp-effect', 'duration', '400.0')
+    subprocess.run(['glib-compile-schemas', '--strict', '--targetdir='+tmp, str(genie_dir/'schemas')], check=True)
+    write(genie_dir/'schemas/gschemas.compiled', (Path(tmp)/'gschemas.compiled').read_bytes())
+write(Path.home()/'.local/share/applications/familiarmac-genie-preferences.desktop',
+      (ROOT/'config/familiarmac-genie-preferences.desktop').read_text())
 
 # Real exported app menus; generic File/Edit fallback is intentionally disabled.
 appmenu_dir = Path.home()/'.local/share/gnome-shell/extensions/appmenu@ChathurangaBW.github.io'

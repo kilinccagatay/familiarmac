@@ -58,9 +58,13 @@ with tempfile.TemporaryDirectory(prefix='fm-clean-install-') as td:
     assert (t/'themes/MacBook-WhiteSur-Dark/gtk-4.0/gtk.css').is_file()
     assert (t/'localshare/macbook-zorin/wallpaper.png').is_file()
     run(['gsettings','set','org.gnome.shell','favorite-apps',"['org.familiarmac.Missing.desktop']"])
+    run(['gsettings','set','org.gnome.desktop.interface','enable-animations','false'])
     run(['bash','install.sh','--desktop'])
     h=t/'home'
-    expected=['.local/share/gnome-shell/extensions/macbook-menu@local/extension.js',
+    expected=['.local/share/gnome-shell/extensions/familiarmac-genie@local/extension.js',
+              '.local/share/gnome-shell/extensions/familiarmac-genie@local/schemas/gschemas.compiled',
+              '.local/share/applications/familiarmac-genie-preferences.desktop',
+              '.local/share/gnome-shell/extensions/macbook-menu@local/extension.js',
               '.local/lib/familiarmac/app-lifecycle.py','.config/systemd/user/familiarmac-app-lifecycle.timer',
               '.local/share/familiarmac/about/device.svg','.config/gtk-4.0/gtk.css',
               '.local/share/gnome-shell/extensions/familiarmac-desktop-icons@local/metadata.json']
@@ -70,8 +74,25 @@ with tempfile.TemporaryDirectory(prefix='fm-clean-install-') as td:
     r=run(['bash','install.sh','--full'],check=False)
     assert r.returncode!=0 and 'Full hardware profile only supports MacBookPro10,1' in r.stdout
     assert 'Unexpected privileged' not in r.stdout
+    old='compiz-alike-magic-lamp-effect@hermes83.github.com'
+    genie='familiarmac-genie@local'
+    assert not (h/'.local/share/gnome-shell/extensions'/old).exists()
+    assert genie in run(['gsettings','get','org.gnome.shell','enabled-extensions']).stdout
+    assert 'false' in run(['gsettings','get','org.gnome.desktop.interface','enable-animations']).stdout
+    # Simulate an older installed profile, without destroying user extension files.
+    legacy=h/'.local/share/gnome-shell/extensions'/old;legacy.mkdir();(legacy/'keep.txt').write_text('user-owned')
+    run(['gsettings','set','org.gnome.shell','enabled-extensions',f"['{old}']"])
+    run(['gsettings','set','org.gnome.shell','disabled-extensions',f"['{genie}']"])
+    schema='/home/test/.local/share/gnome-shell/extensions/familiarmac-genie@local/schemas'
+    run(['gsettings','--schemadir',schema,'set','org.gnome.shell.extensions.familiarmac-genie','animate','false'])
     # Second application must succeed and retain a single owned CSS block.
     run(['bash','install.sh','--desktop'])
+    enabled=run(['gsettings','get','org.gnome.shell','enabled-extensions']).stdout
+    disabled=run(['gsettings','get','org.gnome.shell','disabled-extensions']).stdout
+    assert genie in enabled and old not in enabled and old in disabled and genie not in disabled
+    assert (legacy/'keep.txt').read_text()=='user-owned'
+    assert 'false' in run(['gsettings','--schemadir',schema,'get','org.gnome.shell.extensions.familiarmac-genie','animate']).stdout
+    assert 'false' in run(['gsettings','get','org.gnome.desktop.interface','enable-animations']).stdout
     assert (h/'.config/gtk-4.0/gtk.css').read_text().count('/* BEGIN macbook-zorin */')==1
     calls=(h/'service-calls.log').read_text();assert 'familiarmac-app-lifecycle.timer' in calls
     assert all(line.startswith('--user ') for line in calls.splitlines())

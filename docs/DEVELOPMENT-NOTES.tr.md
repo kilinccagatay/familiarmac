@@ -300,3 +300,8 @@ GTK4 başlık çubuklarında ortak yatay boşluk azaltıldı (`config/headerbar-
 ### 2026-11-17: Kaydırma yönteminin değiştirilmesi
 
 Yukarıdaki özel scroll-scale ve enable-smooth-scrolling notları tarihsel kayıttır; artık kurulum yöntemi değildir. Özel ölçekleyicinin kaynak/test yolu kaldırıldı. `--scroll` WSF 1.0.4 ve Touchpad Speed Control 5 kurar; `--smooth` artık yumuşatmayı kapatan uygulama ayarlarıdır. Güncel ayrıntılar: [TOUCHPAD.md](TOUCHPAD.md).
+
+
+17 Kasım güncellemesi: Yukarıdaki Magic Lamp kurulumu tarihsel nottur. Artık
+FamiliarMac Genie kuruluyor; eski efekt devre dışı bırakılıyor ve arşivi
+dağıtılmıyor. Ayarlar, Reduce Motion desteği ve sınırlar: [GENIE.md](GENIE.md).

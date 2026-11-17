@@ -1,0 +1,10 @@
+{
+  "uuid": "familiarmac-genie@local",
+  "name": "FamiliarMac Genie",
+  "description": "Minimized-window previews and Genie animation with reduced-motion support.",
+  "shell-version": [
+    "46"
+  ],
+  "version": 1,
+  "settings-schema": "org.gnome.shell.extensions.familiarmac-genie"
+}

@@ -20,7 +20,7 @@ This inventory covers project behavior, not every typo or intermediate experimen
 | Running indicators | Finder uses native dock dot; tracked process identity keeps a dot while an observed app process lives; PID reuse/exit checks | `processTracker.js`, `extension.js` |
 | Dock reopen | One pending launch while last window exits; repeated clicks coalesce; bounded wait for background process | `dockLaunch.js` |
 | Window rounding | Pinned outer-actor shader, 12px/.2 profile, maximized padding/inset fixes, texture signal lifecycle cleanup | `scripts/install-rounded-corners.py`, `overrides/rounded-window-corners/` |
-| Minimize animation | Pinned Magic Lamp extension, 400ms profile | desktop installer / vendor |
+| Minimize animation | FamiliarMac Genie, 480ms curve, individual Dock previews and reduced-motion support | desktop installer / vendor |
 | Keyboard | keyd physical Apple keyboard match excluding touchpad; Cmd-style copy/paste/quit, terminal-specific shortcuts, Ctrl+C interrupt preserved, function key setting | `config/apple.conf`, `config/app.conf`, `scripts/system.sh` |
 | Screenshots | Cmd+Shift+3/4 and clipboard variants, Shell screenshot UI, popup/modal-aware capture, freeze-before-area-selection, HiDPI crop, async file writes | `capture.js`, `scripts/screenshot-clipboard.sh`, keyboard profile |
 | Workspaces/gestures | Dynamic horizontal workspaces, opt-in gesture profile, pinned upstream gesture customization; input settings no longer reset by default | desktop installer, gesture vendor |

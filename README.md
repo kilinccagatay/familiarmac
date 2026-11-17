@@ -194,7 +194,7 @@ The tests run without changing your desktop. D-Bus integration and GDM-source te
 
 ## Credits and licensing
 
-Built on keyd, WhiteSur, AppMenu, Rounded Window Corners, Touchpad Gesture Customization, Magic Lamp, GNOME and libinput. See [THIRD_PARTY.md](THIRD_PARTY.md) for exact versions, licenses, source URLs and our modifications; checksums are in [vendor/SHA256SUMS](vendor/SHA256SUMS).
+Built on keyd, WhiteSur, AppMenu, Rounded Window Corners, Touchpad Gesture Customization, GNOME and libinput. See [THIRD_PARTY.md](THIRD_PARTY.md) for exact versions, licenses, source URLs and our modifications; checksums are in [vendor/SHA256SUMS](vendor/SHA256SUMS).
 
 Project-authored integration code is GPL-3.0-or-later. Third-party code/assets retain their original licenses and notices; see [LICENSE](LICENSE). Apple, macOS, MacBook and the Apple logo are Apple trademarks. Names and visual references describe the compatibility goal and do not imply affiliation or endorsement. No macOS system binaries, account credentials or user photos are included.
 
@@ -218,3 +218,15 @@ About selects one of sixteen original transparent SVG category illustrations: Ma
 ![Sixteen hardware illustration categories](docs/screenshots/hardware-categories.png)
 
 The original A1398 MacBook Pro artwork is preserved. Pre-Retina Unibody MacBook Pro models now select separate 13-inch and 15-inch front-view illustrations with the front-right IR receiver. The 17-inch models share the representative larger Unibody drawing; they are not claimed as an exact-size match. Rack selection uses chassis information; artwork selection does not enable hardware-specific repairs.
+
+### Window animation and minimized previews
+
+FamiliarMac Genie is included in the desktop installation (also `--all`).
+Windows minimize into separate previews beside Downloads, restore from their
+own preview, and have an **Open “window title”** context menu. Closing uses a
+short fade. Control motion from **Settings’ Dock context menu → Dock & Window
+Effects…**. System reduced-motion preferences are respected.
+
+Existing installations switch from Magic Lamp to Genie on reapply; Magic Lamp
+is no longer downloaded or bundled. Existing third-party files are left intact
+but disabled. See [Genie behavior, controls and limits](docs/GENIE.md).

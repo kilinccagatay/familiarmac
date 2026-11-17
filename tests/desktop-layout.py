@@ -24,3 +24,13 @@ assert KEYD not in disabled
 enabled, disabled = select_extensions(enabled, disabled, False)
 assert KEYD not in enabled and KEYD in disabled
 print('Portable layout: fresh preset, existing Dock, optional mapper, idempotence PASS')
+
+# Fresh installation and upgrade both select Genie, never the retired effect.
+old = 'compiz-alike-magic-lamp-effect@hermes83.github.com'
+new = 'familiarmac-genie@local'
+for active, blocked in [([], []), ([old, 'unrelated@local'], [new])]:
+    active, blocked = select_extensions(active, blocked, False)
+    assert new in active and new not in blocked
+    assert old not in active and old in blocked
+    assert select_extensions(active, blocked, False) == (active, blocked)
+print('Genie clean install and Magic Lamp migration PASS')

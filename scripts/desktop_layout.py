@@ -3,7 +3,7 @@
 REQUIRED = (
     'zorin-dash@zorinos.com',
     'appmenu@ChathurangaBW.github.io',
-    'compiz-alike-magic-lamp-effect@hermes83.github.com',
+    'familiarmac-genie@local',
     'touchpad-gesture-customization@coooolapps.com',
     'macbook-menu@local',
     'familiarmac-panel-layout@local',
@@ -11,6 +11,7 @@ REQUIRED = (
     'user-theme@gnome-shell-extensions.gcampax.github.com',
 )
 CONFLICTS = (
+    'compiz-alike-magic-lamp-effect@hermes83.github.com',
     'zorin-taskbar@zorinos.com',
     'zorin-menu@zorinos.com',
     'zorin-hide-activities-move-clock@zorinos.com',

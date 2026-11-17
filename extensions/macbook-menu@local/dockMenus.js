@@ -179,7 +179,9 @@ export class DockMenus {
             const panels = settingsPanels();
             for (const panel of panels)
                 menu.addAction(panel.name, () => Util.spawn([settingsCommand(), ...panel.args]));
-            if (panels.length) separator();
+            const effects = Gio.DesktopAppInfo.new('familiarmac-genie-preferences.desktop');
+            if (effects) menu.addAction('Dock & Window Effects…', () => effects.launch([], null));
+            if (panels.length || effects) separator();
         }
         if (running && !isSettings) {
             for (const window of windows) {
