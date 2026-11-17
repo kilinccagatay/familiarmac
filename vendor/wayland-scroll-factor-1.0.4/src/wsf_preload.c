@@ -1,0 +1,1234 @@
+#define _GNU_SOURCE
+
+#include <ctype.h>
+#include <dlfcn.h>
+#include <errno.h>
+#include <limits.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/inotify.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
+
+#ifdef __has_include
+#if __has_include(<libinput.h>)
+#include <libinput.h>
+#define WSF_HAVE_LIBINPUT_HEADERS 1
+#endif
+#endif
+
+#include "wsf_config.h"
+#include "wsf_proc.h"
+
+/*
+ * The library is built with -fvisibility=hidden (see src/meson.build) so
+ * only the libinput entry points we interpose are exported. Each wrapper
+ * below is tagged WSF_EXPORT; everything else stays internal.
+ */
+#define WSF_EXPORT __attribute__((visibility("default")))
+
+/* Injected by meson when configured with -Dhyprland=enabled; the
+ * fallback keeps hyprland support compiled out by default. */
+#ifndef WSF_ENABLE_HYPRLAND
+#define WSF_ENABLE_HYPRLAND 0
+#endif
+
+struct libinput_event;
+struct libinput_event_pointer;
+struct libinput_event_gesture;
+
+#if defined(WSF_HAVE_LIBINPUT_HEADERS)
+typedef enum libinput_pointer_axis wsf_axis_t;
+typedef enum libinput_pointer_axis_source wsf_axis_source_t;
+typedef enum libinput_event_type wsf_event_type_t;
+#else
+typedef int wsf_axis_t;
+typedef int wsf_axis_source_t;
+typedef int wsf_event_type_t;
+#endif
+
+typedef double (*wsf_scroll_value_fn)(struct libinput_event_pointer *, wsf_axis_t);
+typedef wsf_axis_source_t (*wsf_axis_source_fn)(struct libinput_event_pointer *);
+typedef double (*wsf_gesture_value_fn)(struct libinput_event_gesture *);
+typedef struct libinput_event *(*wsf_base_event_fn)(struct libinput_event_pointer *);
+typedef wsf_event_type_t (*wsf_event_type_fn)(struct libinput_event *);
+
+#if defined(WSF_HAVE_LIBINPUT_HEADERS) && defined(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)
+#define WSF_AXIS_SCROLL_VERTICAL LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL
+#define WSF_AXIS_SCROLL_HORIZONTAL LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL
+#else
+#define WSF_AXIS_SCROLL_VERTICAL 0
+#define WSF_AXIS_SCROLL_HORIZONTAL 1
+#endif
+
+#if defined(WSF_HAVE_LIBINPUT_HEADERS) && defined(LIBINPUT_POINTER_AXIS_SOURCE_WHEEL)
+#define WSF_AXIS_SOURCE_WHEEL LIBINPUT_POINTER_AXIS_SOURCE_WHEEL
+#define WSF_AXIS_SOURCE_FINGER LIBINPUT_POINTER_AXIS_SOURCE_FINGER
+#define WSF_AXIS_SOURCE_CONTINUOUS LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS
+#define WSF_AXIS_SOURCE_WHEEL_TILT LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT
+#else
+#define WSF_AXIS_SOURCE_WHEEL 1
+#define WSF_AXIS_SOURCE_FINGER 2
+#define WSF_AXIS_SOURCE_CONTINUOUS 3
+#define WSF_AXIS_SOURCE_WHEEL_TILT 4
+#endif
+
+#if defined(WSF_HAVE_LIBINPUT_HEADERS) && defined(LIBINPUT_EVENT_POINTER_SCROLL_FINGER)
+#define WSF_EVENT_POINTER_AXIS LIBINPUT_EVENT_POINTER_AXIS
+#define WSF_EVENT_POINTER_SCROLL_WHEEL LIBINPUT_EVENT_POINTER_SCROLL_WHEEL
+#define WSF_EVENT_POINTER_SCROLL_FINGER LIBINPUT_EVENT_POINTER_SCROLL_FINGER
+#define WSF_EVENT_POINTER_SCROLL_CONTINUOUS LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS
+#else
+#define WSF_EVENT_POINTER_AXIS 403
+#define WSF_EVENT_POINTER_SCROLL_WHEEL 404
+#define WSF_EVENT_POINTER_SCROLL_FINGER 405
+#define WSF_EVENT_POINTER_SCROLL_CONTINUOUS 406
+#endif
+
+static wsf_scroll_value_fn wsf_real_scroll_value = NULL;
+static wsf_scroll_value_fn wsf_real_scroll_value_v120 = NULL;
+static wsf_scroll_value_fn wsf_real_axis_value = NULL;
+static wsf_scroll_value_fn wsf_real_axis_value_discrete = NULL;
+static wsf_axis_source_fn wsf_real_axis_source = NULL;
+static wsf_gesture_value_fn wsf_real_gesture_scale = NULL;
+static wsf_gesture_value_fn wsf_real_gesture_angle_delta = NULL;
+static wsf_base_event_fn wsf_real_base_event = NULL;
+static wsf_event_type_fn wsf_real_event_type = NULL;
+
+static void wsf_init_internal(void);
+static void *wsf_load_symbol(const char *name);
+
+static bool wsf_debug = false;
+static bool wsf_trace = false;
+static bool wsf_active = false;
+static bool wsf_is_launcher = false;
+static bool wsf_is_gnome_shell = false;
+static bool wsf_scroll_active = false;
+static bool wsf_gesture_active = false;
+/*
+ * The four effective factors are the only state written AFTER init: the
+ * live-reload path (wsf_reload_factors_if_needed) updates them from
+ * whichever thread next calls an interposed libinput getter, while other
+ * getter calls read them. _Atomic makes that reader/writer overlap a
+ * defined relaxed access instead of a C11 data race — this library runs
+ * inside the compositor, so "benign on x86" is not a good enough excuse.
+ */
+static _Atomic double wsf_scroll_vertical_factor = WSF_FACTOR_DEFAULT;
+static _Atomic double wsf_scroll_horizontal_factor = WSF_FACTOR_DEFAULT;
+static _Atomic double wsf_pinch_zoom_factor = WSF_FACTOR_DEFAULT;
+static _Atomic double wsf_pinch_rotate_factor = WSF_FACTOR_DEFAULT;
+static bool wsf_init_done = false;
+static bool wsf_config_seen = false;
+static bool wsf_config_present = false;
+static long long wsf_last_config_check_ms = 0;
+static struct timespec wsf_config_mtime = {0};
+/* inotify instance (set once at init) and its watch on the config dir.
+ * The watch descriptor is only touched under the reload guard. */
+static int wsf_config_watch_fd = -1;
+static int wsf_config_watch_wd = -1;
+static long long wsf_last_watch_check_ms = 0;
+static bool wsf_logged_missing_scroll = false;
+static bool wsf_logged_missing_scroll_v120 = false;
+static bool wsf_logged_missing_axis_value = false;
+static bool wsf_logged_missing_axis_value_discrete = false;
+static bool wsf_logged_missing_axis_source = false;
+static bool wsf_logged_missing_gesture_scale = false;
+static bool wsf_logged_missing_gesture_angle = false;
+static unsigned int wsf_trace_scroll_logs = 0;
+static unsigned int wsf_trace_v120_logs = 0;
+static unsigned int wsf_trace_axis_logs = 0;
+
+#define WSF_TRACE_MAX_LOGS 40
+
+static void wsf_debug_log(const char *fmt, ...) {
+	if (!wsf_debug) {
+		return;
+	}
+
+	va_list args;
+
+	va_start(args, fmt);
+	fprintf(stderr, "wsf: ");
+	vfprintf(stderr, fmt, args);
+	fprintf(stderr, "\n");
+	va_end(args);
+}
+
+static bool wsf_env_truthy(const char *name) {
+	const char *value = getenv(name);
+
+	if (value == NULL || value[0] == '\0') {
+		return false;
+	}
+
+	return strcmp(value, "1") == 0 ||
+		strcasecmp(value, "true") == 0 ||
+		strcasecmp(value, "yes") == 0 ||
+		strcasecmp(value, "on") == 0;
+}
+
+static wsf_event_type_t wsf_event_type_for_pointer_event(
+	struct libinput_event_pointer *event
+) {
+	struct libinput_event *base = NULL;
+
+	if (event == NULL) {
+		return 0;
+	}
+
+	if (wsf_real_base_event == NULL) {
+		wsf_real_base_event =
+			(wsf_base_event_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_base_event"
+			);
+	}
+	if (wsf_real_event_type == NULL) {
+		wsf_real_event_type =
+			(wsf_event_type_fn) wsf_load_symbol(
+				"libinput_event_get_type"
+			);
+	}
+
+	if (wsf_real_base_event == NULL || wsf_real_event_type == NULL) {
+		return 0;
+	}
+
+	base = wsf_real_base_event(event);
+	if (base == NULL) {
+		return 0;
+	}
+
+	return wsf_real_event_type(base);
+}
+
+static wsf_axis_source_t wsf_axis_source_for_pointer_event(
+	struct libinput_event_pointer *event
+) {
+	if (event == NULL) {
+		return 0;
+	}
+
+	if (wsf_real_axis_source == NULL) {
+		wsf_real_axis_source =
+			(wsf_axis_source_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_axis_source"
+			);
+	}
+
+	if (wsf_real_axis_source == NULL) {
+		return 0;
+	}
+
+	return wsf_real_axis_source(event);
+}
+
+static void wsf_trace_scroll_event(
+	const char *hook,
+	struct libinput_event_pointer *event,
+	wsf_axis_t axis,
+	double value,
+	double factor,
+	bool scaled,
+	double result,
+	unsigned int *counter
+) {
+	wsf_event_type_t type = 0;
+	wsf_axis_source_t source = 0;
+
+	if (!wsf_trace || counter == NULL || *counter >= WSF_TRACE_MAX_LOGS) {
+		return;
+	}
+
+	type = wsf_event_type_for_pointer_event(event);
+	source = wsf_axis_source_for_pointer_event(event);
+	(*counter)++;
+
+	wsf_debug_log(
+		"trace %s: axis=%d value=%.4f factor=%.4f scaled=%s result=%.4f event_type=%d axis_source=%d",
+		hook,
+		(int) axis,
+		value,
+		factor,
+		scaled ? "yes" : "no",
+		result,
+		(int) type,
+		(int) source
+	);
+}
+
+static bool wsf_target_list_matches(const char *targets) {
+	const char *cursor = targets;
+
+	if (targets == NULL || targets[0] == '\0') {
+		return false;
+	}
+
+	while (*cursor != '\0') {
+		char token[256];
+		const char *start = NULL;
+		size_t token_len = 0;
+
+		while (*cursor == ',' || *cursor == ':' ||
+			isspace((unsigned char) *cursor)) {
+			cursor++;
+		}
+		if (*cursor == '\0') {
+			break;
+		}
+
+		start = cursor;
+		while (*cursor != '\0' && *cursor != ',' && *cursor != ':' &&
+			!isspace((unsigned char) *cursor)) {
+			cursor++;
+		}
+
+		token_len = (size_t) (cursor - start);
+		if (token_len > 0 && token_len < sizeof(token)) {
+			memcpy(token, start, token_len);
+			token[token_len] = '\0';
+			if (wsf_proc_matches(token)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static void wsf_configure_activity(void) {
+	const char *targets = getenv("WSF_TARGETS");
+	bool has_targets = targets != NULL && targets[0] != '\0';
+	bool is_gnome_shell = wsf_proc_matches("gnome-shell");
+	bool targeted = has_targets ?
+		wsf_target_list_matches(targets) :
+		is_gnome_shell;
+#if WSF_ENABLE_HYPRLAND
+	bool is_hyprland = wsf_proc_matches("Hyprland");
+	bool hyprland_gestures = is_hyprland &&
+		(targeted ||
+		wsf_env_truthy("WSF_HYPRLAND_GESTURES") ||
+		wsf_env_truthy("WSF_HYPRLAND_GESTURES_ONLY"));
+#endif
+
+	wsf_scroll_active = false;
+	wsf_gesture_active = false;
+	wsf_is_gnome_shell = is_gnome_shell;
+
+	if (is_gnome_shell && targeted) {
+		wsf_scroll_active = true;
+		wsf_gesture_active = true;
+	}
+#if WSF_ENABLE_HYPRLAND
+	else if (hyprland_gestures) {
+		wsf_gesture_active = true;
+		wsf_scroll_active = wsf_env_truthy("WSF_HYPRLAND_SCROLL_PRELOAD");
+	}
+#endif
+
+	wsf_active = wsf_scroll_active || wsf_gesture_active;
+}
+
+static long long wsf_monotonic_ms(void) {
+	struct timespec ts;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+		return 0;
+	}
+
+	return (long long) ts.tv_sec * 1000LL + ts.tv_nsec / 1000000LL;
+}
+
+static bool wsf_timespec_equal(struct timespec a, struct timespec b) {
+	return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
+}
+
+static const char *wsf_basename(const char *path) {
+	const char *slash = strrchr(path, '/');
+
+	if (slash == NULL) {
+		return path;
+	}
+
+	return slash + 1;
+}
+
+static bool wsf_is_self_preload_entry(const char *entry, const char *self_path) {
+	if (entry == NULL || entry[0] == '\0') {
+		return false;
+	}
+
+	if (self_path != NULL && self_path[0] != '\0' && strcmp(entry, self_path) == 0) {
+		return true;
+	}
+
+	return strcmp(wsf_basename(entry), "libwsf_preload.so") == 0;
+}
+
+static void wsf_prune_ld_preload_env(void) {
+	Dl_info info;
+	const char *preload = getenv("LD_PRELOAD");
+	char *copy = NULL;
+	char *filtered = NULL;
+	char *cursor = NULL;
+	size_t filtered_len = 0;
+	bool changed = false;
+
+	if (preload == NULL || preload[0] == '\0') {
+		return;
+	}
+
+	if (!wsf_active && wsf_env_truthy("WSF_DEFER_PRUNE_UNTIL_TARGET")) {
+		wsf_debug_log("keeping LD_PRELOAD until a configured target process loads");
+		return;
+	}
+
+	if (dladdr((void *) wsf_init_internal, &info) == 0 ||
+		info.dli_fname == NULL || info.dli_fname[0] == '\0') {
+		return;
+	}
+
+	copy = strdup(preload);
+	filtered = calloc(strlen(preload) + 1, 1);
+	if (copy == NULL || filtered == NULL) {
+		free(copy);
+		free(filtered);
+		return;
+	}
+
+	cursor = copy;
+	while (*cursor != '\0') {
+		char *token = NULL;
+		size_t token_len = 0;
+
+		while (*cursor == ':' || isspace((unsigned char) *cursor)) {
+			cursor++;
+		}
+		if (*cursor == '\0') {
+			break;
+		}
+
+		token = cursor;
+		while (*cursor != '\0' && *cursor != ':' &&
+			!isspace((unsigned char) *cursor)) {
+			cursor++;
+		}
+
+		if (*cursor != '\0') {
+			*cursor = '\0';
+			cursor++;
+		}
+
+		if (wsf_is_self_preload_entry(token, info.dli_fname)) {
+			changed = true;
+			continue;
+		}
+
+		token_len = strlen(token);
+		if (token_len == 0) {
+			continue;
+		}
+
+		if (filtered_len != 0) {
+			filtered[filtered_len++] = ' ';
+		}
+		memcpy(filtered + filtered_len, token, token_len);
+		filtered_len += token_len;
+		filtered[filtered_len] = '\0';
+	}
+
+	if (changed) {
+		if (filtered_len == 0) {
+			unsetenv("LD_PRELOAD");
+			wsf_debug_log("removed WSF from LD_PRELOAD for child processes");
+		} else {
+			setenv("LD_PRELOAD", filtered, 1);
+			wsf_debug_log(
+				"pruned WSF from LD_PRELOAD for child processes: %s",
+				filtered
+			);
+		}
+	}
+
+	free(copy);
+	free(filtered);
+}
+
+static bool wsf_config_snapshot(struct timespec *mtime, bool *present) {
+	const char *path = wsf_config_path();
+	struct stat st;
+
+	if (mtime == NULL || present == NULL) {
+		return false;
+	}
+
+	mtime->tv_sec = 0;
+	mtime->tv_nsec = 0;
+	*present = false;
+
+	if (path == NULL || path[0] == '\0') {
+		return false;
+	}
+
+	if (stat(path, &st) != 0) {
+		return false;
+	}
+
+	*present = true;
+	*mtime = st.st_mtim;
+	return true;
+}
+
+/*
+ * Change notification for the config file, so a `wsf set` is picked up on
+ * the next libinput event instead of on the next 250 ms stat tick. The
+ * directory is watched, not the file, because the CLI replaces the config
+ * by atomic rename. Draining the watch is a single non-blocking read() on
+ * the inotify fd: no path lookup and no file I/O, so it cannot stall on a
+ * network home. When the watch is unavailable (no inotify, directory not
+ * created yet, remote change on NFS) the stat tick still catches changes.
+ */
+static void wsf_config_watch_arm(void) {
+	const char *path = NULL;
+	const char *slash = NULL;
+	char dir[PATH_MAX];
+	size_t len = 0;
+
+	if (wsf_config_watch_fd < 0 || wsf_config_watch_wd >= 0) {
+		return;
+	}
+
+	path = wsf_config_path();
+	if (path == NULL || (slash = strrchr(path, '/')) == NULL) {
+		return;
+	}
+
+	len = (size_t) (slash - path);
+	if (len == 0 || len >= sizeof(dir)) {
+		return;
+	}
+	memcpy(dir, path, len);
+	dir[len] = '\0';
+
+	wsf_config_watch_wd = inotify_add_watch(
+		wsf_config_watch_fd,
+		dir,
+		IN_CLOSE_WRITE | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE |
+			IN_MOVE_SELF | IN_ONLYDIR
+	);
+	if (wsf_config_watch_wd >= 0) {
+		wsf_debug_log("watching %s for config changes", dir);
+	}
+}
+
+/* Returns true if the config may have changed since the last drain. */
+static bool wsf_config_watch_drain(void) {
+	char buf[4096]
+		__attribute__((aligned(__alignof__(struct inotify_event))));
+	const char *name = NULL;
+	bool changed = false;
+	int saved_errno = errno;
+
+	if (wsf_config_watch_fd < 0) {
+		return false;
+	}
+
+	for (;;) {
+		ssize_t len = read(wsf_config_watch_fd, buf, sizeof(buf));
+		char *cursor = buf;
+
+		if (len < 0 && errno == EINTR) {
+			continue;
+		}
+		if (len <= 0) {
+			break;
+		}
+
+		while (cursor < buf + len) {
+			const struct inotify_event *event =
+				(const struct inotify_event *) cursor;
+
+			cursor += sizeof(*event) + event->len;
+
+			if (event->mask & IN_Q_OVERFLOW) {
+				changed = true;
+				continue;
+			}
+			if (event->wd != wsf_config_watch_wd) {
+				continue;
+			}
+			if (event->mask & (IN_IGNORED | IN_MOVE_SELF)) {
+				/* Directory removed or renamed: drop the watch and
+				 * let the stat tick re-arm it on the new path. */
+				if (event->mask & IN_MOVE_SELF) {
+					inotify_rm_watch(
+						wsf_config_watch_fd,
+						wsf_config_watch_wd
+					);
+				}
+				wsf_config_watch_wd = -1;
+				changed = true;
+				continue;
+			}
+			if (event->len == 0) {
+				continue;
+			}
+			if (name == NULL) {
+				const char *path = wsf_config_path();
+
+				name = path != NULL ? wsf_basename(path) : "config";
+			}
+			/* Ignore the rest of the directory, including the CLI's
+			 * config.tmp.XXXXXX staging file. */
+			if (strcmp(event->name, name) == 0) {
+				changed = true;
+			}
+		}
+	}
+
+	errno = saved_errno;
+	return changed;
+}
+
+static void wsf_apply_effective_factors(bool log_change) {
+	struct wsf_effective_factors factors;
+
+	if (wsf_effective_factors(&factors, wsf_debug) == WSF_CONFIG_ERROR) {
+		factors.scroll_vertical = WSF_FACTOR_DEFAULT;
+		factors.scroll_horizontal = WSF_FACTOR_DEFAULT;
+		factors.pinch_zoom = WSF_FACTOR_DEFAULT;
+		factors.pinch_rotate = WSF_FACTOR_DEFAULT;
+	}
+
+	wsf_scroll_vertical_factor = factors.scroll_vertical;
+	wsf_scroll_horizontal_factor = factors.scroll_horizontal;
+	wsf_pinch_zoom_factor = factors.pinch_zoom;
+	wsf_pinch_rotate_factor = factors.pinch_rotate;
+
+	if (log_change) {
+		wsf_debug_log(
+			"reloaded factors: scroll_vertical=%.4f scroll_horizontal=%.4f pinch_zoom=%.4f pinch_rotate=%.4f",
+			wsf_scroll_vertical_factor,
+			wsf_scroll_horizontal_factor,
+			wsf_pinch_zoom_factor,
+			wsf_pinch_rotate_factor
+		);
+	}
+}
+
+static void wsf_reload_factors_if_needed(void) {
+	static atomic_flag reloading = ATOMIC_FLAG_INIT;
+	struct timespec mtime = {0};
+	long long now_ms = 0;
+	bool present = false;
+	bool changed = false;
+	bool notified = false;
+	bool throttled = false;
+
+	if (!wsf_active) {
+		return;
+	}
+
+	now_ms = wsf_monotonic_ms();
+	throttled = wsf_last_config_check_ms != 0 &&
+		now_ms - wsf_last_config_check_ms < 250;
+
+	/* Between stat ticks only the watch can report a change. */
+	if (throttled && wsf_config_watch_fd < 0) {
+		return;
+	}
+
+	/*
+	 * Single-writer: if another thread is already inside the reload, skip
+	 * rather than re-enter. The throttle + snapshot below are not worth
+	 * racing two event threads over. Pending watch events stay queued for
+	 * the next call.
+	 */
+	if (atomic_flag_test_and_set(&reloading)) {
+		return;
+	}
+
+	/* At most one drain per millisecond: mutter queries both axes of a
+	 * scroll event back to back, and one read() covers them both. */
+	if (throttled && now_ms == wsf_last_watch_check_ms) {
+		atomic_flag_clear(&reloading);
+		return;
+	}
+	wsf_last_watch_check_ms = now_ms;
+
+	notified = wsf_config_watch_drain();
+	if (throttled && !notified) {
+		atomic_flag_clear(&reloading);
+		return;
+	}
+
+	wsf_last_config_check_ms = now_ms;
+
+	/* Arm before the snapshot so a write landing in between is either
+	 * reported by the watch or visible in the mtime. */
+	wsf_config_watch_arm();
+	(void) wsf_config_snapshot(&mtime, &present);
+
+	if (!wsf_config_seen) {
+		wsf_config_seen = true;
+		wsf_config_present = present;
+		wsf_config_mtime = mtime;
+		wsf_apply_effective_factors(false);
+		atomic_flag_clear(&reloading);
+		return;
+	}
+
+	/* A watch event forces the reload even if the mtime looks unchanged:
+	 * two writes inside one timestamp tick share an mtime. */
+	changed = notified || present != wsf_config_present;
+	if (!changed && present) {
+		changed = !wsf_timespec_equal(mtime, wsf_config_mtime);
+	}
+
+	wsf_config_present = present;
+	wsf_config_mtime = mtime;
+
+	/*
+	 * Only re-read + re-parse the config file when it actually changed
+	 * (watch event or new mtime). Previously wsf_apply_effective_factors
+	 * ran every 250 ms during scrolling regardless, doing a synchronous
+	 * fopen/getline/parse (plus newlocale x5) on $HOME from gnome-shell's
+	 * input path — a stall on a network/automounted home would freeze
+	 * scroll handling. The cheap stat above stays as the fallback change
+	 * detector.
+	 */
+	if (changed) {
+		wsf_apply_effective_factors(true);
+	}
+
+	atomic_flag_clear(&reloading);
+}
+
+static void *wsf_load_symbol(const char *name) {
+	const char *error = NULL;
+	void *symbol = NULL;
+
+	dlerror();
+	symbol = dlsym(RTLD_NEXT, name);
+	error = dlerror();
+
+	if (error != NULL) {
+		wsf_debug_log("symbol %s not found: %s", name, error);
+		return NULL;
+	}
+
+	return symbol;
+}
+
+static void wsf_init_internal(void) {
+	struct timespec config_mtime = {0};
+	bool config_present = false;
+	char proc_name[128] = "unknown";
+
+	if (wsf_init_done) {
+		return;
+	}
+
+	wsf_debug = wsf_debug_enabled();
+	wsf_trace = wsf_env_truthy("WSF_TRACE");
+	if (wsf_trace) {
+		wsf_debug = true;
+	}
+	if (!wsf_proc_name(proc_name, sizeof(proc_name))) {
+		snprintf(proc_name, sizeof(proc_name), "unknown");
+	}
+	wsf_configure_activity();
+	wsf_apply_effective_factors(false);
+	wsf_real_scroll_value =
+		(wsf_scroll_value_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_scroll_value"
+		);
+	wsf_real_scroll_value_v120 =
+		(wsf_scroll_value_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_scroll_value_v120"
+		);
+	wsf_real_axis_value =
+		(wsf_scroll_value_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_axis_value"
+		);
+	wsf_real_axis_value_discrete =
+		(wsf_scroll_value_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_axis_value_discrete"
+		);
+	wsf_real_axis_source =
+		(wsf_axis_source_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_axis_source"
+		);
+	wsf_real_base_event =
+		(wsf_base_event_fn) wsf_load_symbol(
+			"libinput_event_pointer_get_base_event"
+		);
+	wsf_real_event_type =
+		(wsf_event_type_fn) wsf_load_symbol(
+			"libinput_event_get_type"
+		);
+	wsf_real_gesture_scale =
+		(wsf_gesture_value_fn) wsf_load_symbol(
+			"libinput_event_gesture_get_scale"
+		);
+	wsf_real_gesture_angle_delta =
+		(wsf_gesture_value_fn) wsf_load_symbol(
+			"libinput_event_gesture_get_angle_delta"
+		);
+
+	/*
+	 * Launcher/wrapper detection: some distros install the compositor
+	 * behind a wrapper that execs the real binary (e.g. nixpkgs installs
+	 * bin/gnome-shell as a wrapper around .gnome-shell-wrapped). The
+	 * wrapper process is named like the target but does not link
+	 * libinput, so none of the real symbols resolve. Treat it as a
+	 * launcher: stay inactive and keep LD_PRELOAD intact so the exec'd
+	 * child (the real compositor) still loads the preload.
+	 */
+	if (wsf_active &&
+		wsf_real_event_type == NULL &&
+		wsf_real_base_event == NULL &&
+		wsf_real_scroll_value == NULL &&
+		wsf_real_axis_value == NULL) {
+		wsf_debug_log(
+			"init: target name matched but libinput is not loaded; "
+			"assuming launcher, preserving LD_PRELOAD for children"
+		);
+		wsf_is_launcher = true;
+		wsf_active = false;
+		wsf_scroll_active = false;
+		wsf_gesture_active = false;
+		wsf_is_gnome_shell = false;
+	}
+
+	wsf_init_done = true;
+	if (!wsf_is_launcher) {
+		wsf_prune_ld_preload_env();
+	}
+	if (wsf_active) {
+		wsf_config_watch_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
+		wsf_config_watch_arm();
+	}
+	(void) wsf_config_snapshot(&config_mtime, &config_present);
+	wsf_config_seen = true;
+	wsf_config_present = config_present;
+	wsf_config_mtime = config_mtime;
+	wsf_last_config_check_ms = wsf_monotonic_ms();
+
+	wsf_debug_log(
+		"init: process=%s active=%s scroll_active=%s gesture_active=%s scroll_vertical=%.4f scroll=%s v120=%s",
+		proc_name,
+		wsf_active ? "yes" : "no",
+		wsf_scroll_active ? "yes" : "no",
+		wsf_gesture_active ? "yes" : "no",
+		wsf_scroll_vertical_factor,
+		wsf_real_scroll_value ? "yes" : "no",
+		wsf_real_scroll_value_v120 ? "yes" : "no"
+	);
+	wsf_debug_log(
+		"init: trace=%s config_watch=%s",
+		wsf_trace ? "yes" : "no",
+		wsf_config_watch_wd >= 0 ? "yes" : "no"
+	);
+	wsf_debug_log(
+		"init: scroll_vertical=%.4f scroll_horizontal=%.4f",
+		wsf_scroll_vertical_factor,
+		wsf_scroll_horizontal_factor
+	);
+	wsf_debug_log(
+		"init: axis_value=%s axis_discrete=%s",
+		wsf_real_axis_value ? "yes" : "no",
+		wsf_real_axis_value_discrete ? "yes" : "no"
+	);
+	wsf_debug_log(
+		"init: event_type=%s base_event=%s",
+		wsf_real_event_type ? "yes" : "no",
+		wsf_real_base_event ? "yes" : "no"
+	);
+	wsf_debug_log(
+		"init: axis_source=%s",
+		wsf_real_axis_source ? "yes" : "no"
+	);
+	wsf_debug_log(
+		"init: gesture_scale=%s gesture_angle=%s pinch_zoom=%.4f pinch_rotate=%.4f",
+		wsf_real_gesture_scale ? "yes" : "no",
+		wsf_real_gesture_angle_delta ? "yes" : "no",
+		wsf_pinch_zoom_factor,
+		wsf_pinch_rotate_factor
+	);
+}
+
+/*
+ * pthread_once guarantees wsf_init_internal runs exactly once even if two
+ * threads hit an interposed getter before the constructor-driven init has
+ * finished — otherwise a second thread could observe half-initialized
+ * function pointers. The wsf_init_done flag inside wsf_init_internal is now
+ * belt-and-suspenders.
+ */
+static pthread_once_t wsf_init_once = PTHREAD_ONCE_INIT;
+
+static void wsf_run_init_once(void) {
+	wsf_init_internal();
+}
+
+__attribute__((constructor)) static void wsf_init(void) {
+	pthread_once(&wsf_init_once, wsf_run_init_once);
+}
+
+static void wsf_ensure_init(void) {
+	pthread_once(&wsf_init_once, wsf_run_init_once);
+}
+
+static double wsf_scroll_factor_for_axis(wsf_axis_t axis) {
+	if (axis == WSF_AXIS_SCROLL_HORIZONTAL) {
+		return wsf_scroll_horizontal_factor;
+	}
+
+	return wsf_scroll_vertical_factor;
+}
+
+static bool wsf_should_scale_scroll(
+	struct libinput_event_pointer *event,
+	double factor
+) {
+	wsf_axis_source_t source = 0;
+	int type = 0;
+	struct libinput_event *base = NULL;
+
+	if (!wsf_scroll_active || factor == 1.0) {
+		return false;
+	}
+
+	if (wsf_real_base_event == NULL) {
+		wsf_real_base_event =
+			(wsf_base_event_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_base_event"
+			);
+	}
+	if (wsf_real_event_type == NULL) {
+		wsf_real_event_type =
+			(wsf_event_type_fn) wsf_load_symbol(
+				"libinput_event_get_type"
+			);
+	}
+
+	if (wsf_real_base_event != NULL && wsf_real_event_type != NULL) {
+		base = wsf_real_base_event(event);
+		if (base != NULL) {
+			type = wsf_real_event_type(base);
+			if (type == WSF_EVENT_POINTER_SCROLL_WHEEL) {
+				return false;
+			}
+			if (type == WSF_EVENT_POINTER_SCROLL_FINGER ||
+				type == WSF_EVENT_POINTER_SCROLL_CONTINUOUS) {
+				return true;
+			}
+			if (type != WSF_EVENT_POINTER_AXIS) {
+				return false;
+			}
+		}
+	}
+
+	if (wsf_real_axis_source == NULL) {
+		wsf_real_axis_source =
+			(wsf_axis_source_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_axis_source"
+			);
+	}
+
+	if (wsf_real_axis_source == NULL) {
+		if (wsf_debug && !wsf_logged_missing_axis_source) {
+			wsf_debug_log("axis_source symbol missing; scroll scaling disabled");
+			wsf_logged_missing_axis_source = true;
+		}
+		return false;
+	}
+
+	source = wsf_real_axis_source(event);
+	if (source == WSF_AXIS_SOURCE_FINGER ||
+		source == WSF_AXIS_SOURCE_CONTINUOUS) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool wsf_should_scale_scroll_value(
+	struct libinput_event_pointer *event,
+	double factor
+) {
+	if (!wsf_scroll_active || factor == 1.0) {
+		return false;
+	}
+
+	/* Mutter 50 uses get_scroll_value() for finger/continuous scroll and
+	 * get_scroll_value_v120() for wheel scroll. Keeping this GNOME-specific
+	 * fast path avoids depending on libinput's legacy axis source query for
+	 * touchpad scroll while preserving wheel behavior through the v120 path.
+	 */
+	if (wsf_is_gnome_shell) {
+		return true;
+	}
+
+	return wsf_should_scale_scroll(event, factor);
+}
+
+WSF_EXPORT double libinput_event_pointer_get_axis_value(
+	struct libinput_event_pointer *event,
+	wsf_axis_t axis
+) {
+	double value = 0.0;
+	double factor = 0.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_axis_value == NULL) {
+		wsf_real_axis_value =
+			(wsf_scroll_value_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_axis_value"
+			);
+	}
+
+	if (wsf_real_axis_value == NULL) {
+		if (wsf_debug && !wsf_logged_missing_axis_value) {
+			wsf_debug_log("axis_value symbol missing; returning 0");
+			wsf_logged_missing_axis_value = true;
+		}
+		return 0.0;
+	}
+
+	value = wsf_real_axis_value(event, axis);
+	factor = wsf_scroll_factor_for_axis(axis);
+	if (!wsf_should_scale_scroll(event, factor)) {
+		wsf_trace_scroll_event(
+			"axis_value",
+			event,
+			axis,
+			value,
+			factor,
+			false,
+			value,
+			&wsf_trace_axis_logs
+		);
+		return value;
+	}
+
+	wsf_trace_scroll_event(
+		"axis_value",
+		event,
+		axis,
+		value,
+		factor,
+		true,
+		value * factor,
+		&wsf_trace_axis_logs
+	);
+	return value * factor;
+}
+
+WSF_EXPORT double libinput_event_pointer_get_axis_value_discrete(
+	struct libinput_event_pointer *event,
+	wsf_axis_t axis
+) {
+	double value = 0.0;
+	double factor = 0.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_axis_value_discrete == NULL) {
+		wsf_real_axis_value_discrete =
+			(wsf_scroll_value_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_axis_value_discrete"
+			);
+	}
+
+	if (wsf_real_axis_value_discrete == NULL) {
+		if (wsf_debug && !wsf_logged_missing_axis_value_discrete) {
+			wsf_debug_log("axis_value_discrete symbol missing; returning 0");
+			wsf_logged_missing_axis_value_discrete = true;
+		}
+		return 0.0;
+	}
+
+	value = wsf_real_axis_value_discrete(event, axis);
+	factor = wsf_scroll_factor_for_axis(axis);
+	if (!wsf_should_scale_scroll(event, factor)) {
+		return value;
+	}
+
+	return value * factor;
+}
+
+WSF_EXPORT double libinput_event_pointer_get_scroll_value(
+	struct libinput_event_pointer *event,
+	wsf_axis_t axis
+) {
+	double value = 0.0;
+	double factor = 0.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_scroll_value == NULL) {
+		wsf_real_scroll_value =
+			(wsf_scroll_value_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_scroll_value"
+			);
+	}
+
+	if (wsf_real_scroll_value == NULL) {
+		if (wsf_debug && !wsf_logged_missing_scroll) {
+			wsf_debug_log("scroll_value symbol missing; returning 0");
+			wsf_logged_missing_scroll = true;
+		}
+		return 0.0;
+	}
+
+	value = wsf_real_scroll_value(event, axis);
+	factor = wsf_scroll_factor_for_axis(axis);
+	if (!wsf_should_scale_scroll_value(event, factor)) {
+		wsf_trace_scroll_event(
+			"scroll_value",
+			event,
+			axis,
+			value,
+			factor,
+			false,
+			value,
+			&wsf_trace_scroll_logs
+		);
+		return value;
+	}
+
+	wsf_trace_scroll_event(
+		"scroll_value",
+		event,
+		axis,
+		value,
+		factor,
+		true,
+		value * factor,
+		&wsf_trace_scroll_logs
+	);
+	return value * factor;
+}
+
+WSF_EXPORT double libinput_event_pointer_get_scroll_value_v120(
+	struct libinput_event_pointer *event,
+	wsf_axis_t axis
+) {
+	double value = 0.0;
+	double factor = 0.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_scroll_value_v120 == NULL) {
+		wsf_real_scroll_value_v120 =
+			(wsf_scroll_value_fn) wsf_load_symbol(
+				"libinput_event_pointer_get_scroll_value_v120"
+			);
+	}
+
+	if (wsf_real_scroll_value_v120 == NULL) {
+		if (wsf_debug && !wsf_logged_missing_scroll_v120) {
+			wsf_debug_log("scroll_value_v120 symbol missing; returning 0");
+			wsf_logged_missing_scroll_v120 = true;
+		}
+		return 0.0;
+	}
+
+	value = wsf_real_scroll_value_v120(event, axis);
+	factor = wsf_scroll_factor_for_axis(axis);
+	if (!wsf_should_scale_scroll(event, factor)) {
+		wsf_trace_scroll_event(
+			"scroll_value_v120",
+			event,
+			axis,
+			value,
+			factor,
+			false,
+			value,
+			&wsf_trace_v120_logs
+		);
+		return value;
+	}
+
+	wsf_trace_scroll_event(
+		"scroll_value_v120",
+		event,
+		axis,
+		value,
+		factor,
+		true,
+		value * factor,
+		&wsf_trace_v120_logs
+	);
+	return value * factor;
+}
+
+WSF_EXPORT double libinput_event_gesture_get_scale(struct libinput_event_gesture *event) {
+	double scale = 1.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_gesture_scale == NULL) {
+		wsf_real_gesture_scale =
+			(wsf_gesture_value_fn) wsf_load_symbol(
+				"libinput_event_gesture_get_scale"
+			);
+	}
+
+	if (wsf_real_gesture_scale == NULL) {
+		if (wsf_debug && !wsf_logged_missing_gesture_scale) {
+			wsf_debug_log("gesture scale symbol missing; returning 1.0");
+			wsf_logged_missing_gesture_scale = true;
+		}
+		return 1.0;
+	}
+
+	scale = wsf_real_gesture_scale(event);
+	if (!wsf_gesture_active || wsf_pinch_zoom_factor == 1.0) {
+		return scale;
+	}
+
+	return 1.0 + (scale - 1.0) * wsf_pinch_zoom_factor;
+}
+
+WSF_EXPORT double libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event) {
+	double delta = 0.0;
+
+	wsf_ensure_init();
+	wsf_reload_factors_if_needed();
+
+	if (wsf_real_gesture_angle_delta == NULL) {
+		wsf_real_gesture_angle_delta =
+			(wsf_gesture_value_fn) wsf_load_symbol(
+				"libinput_event_gesture_get_angle_delta"
+			);
+	}
+
+	if (wsf_real_gesture_angle_delta == NULL) {
+		if (wsf_debug && !wsf_logged_missing_gesture_angle) {
+			wsf_debug_log("gesture angle symbol missing; returning 0");
+			wsf_logged_missing_gesture_angle = true;
+		}
+		return 0.0;
+	}
+
+	delta = wsf_real_gesture_angle_delta(event);
+	if (!wsf_gesture_active || wsf_pinch_rotate_factor == 1.0) {
+		return delta;
+	}
+
+	return delta * wsf_pinch_rotate_factor;
+}

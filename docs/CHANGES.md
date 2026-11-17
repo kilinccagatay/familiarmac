@@ -24,8 +24,8 @@ This inventory covers project behavior, not every typo or intermediate experimen
 | Keyboard | keyd physical Apple keyboard match excluding touchpad; Cmd-style copy/paste/quit, terminal-specific shortcuts, Ctrl+C interrupt preserved, function key setting | `config/apple.conf`, `config/app.conf`, `scripts/system.sh` |
 | Screenshots | Cmd+Shift+3/4 and clipboard variants, Shell screenshot UI, popup/modal-aware capture, freeze-before-area-selection, HiDPI crop, async file writes | `capture.js`, `scripts/screenshot-clipboard.sh`, keyboard profile |
 | Workspaces/gestures | Dynamic horizontal workspaces, opt-in gesture profile, pinned upstream gesture customization; input settings no longer reset by default | desktop installer, gesture vendor |
-| Scroll distance | Optional finger-only 0.50 libinput value multiplier, both axes; wheel/continuous motion unaffected | `native/scroll-scale.c`, `scripts/install-scroll-speed.sh` |
-| Scroll animation | Optional smooth-scrolling launch flag for installed Chromium-based apps | `scripts/install-smooth-scrolling.py` |
+| Scroll distance | Pinned WSF 1.0.4 + Touchpad Speed Control 5 at 0.25; remove verified legacy files only | `scripts/install-wsf.py`, `scripts/install-scroll-speed.sh` |
+| Scroll animation | Responsive Firefox preferences and migrated Chromium launch flags; physical ChatGPT check pending | `scripts/install-smooth-scrolling.py` |
 | Display brightness | Optional gmux down key reaches hardware zero; native GNOME up key remains available to restore light; no daemon/polling | `scripts/brightness.py`, `scripts/install-brightness.py` |
 | Boot | Local vector logo rasterized at multiple native sizes; bottom progress bar; boot-only drawing, black shutdown, prompt handling retained | `config/macbook.script`, `assets/boot`, `scripts/render-boot-assets.py` |
 | Login | Big upper clock/date, lower avatar/password, keyboard-clearance layout, small session icon, no bottom logo; exact-source/hash guard | `config/gdm.css`, `scripts/build-login-layout.py`, GDM wrapper/installers |

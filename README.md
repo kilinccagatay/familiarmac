@@ -150,7 +150,7 @@ No automatic logout or reboot. Full installation changes keyboard mapping, syste
 To add optional application integrations on a supported fresh install:
 
 ```bash
-./install.sh --full --brave --brightness
+./install.sh --full --scroll --brave --brightness
 ```
 
 Do not run a downloaded script through `curl | sudo bash`. Clone, inspect the plan, keep your backups and use the supported baseline. This installation path has preflight/unit/integration tests; a clean-OS end-to-end install has **not yet been independently verified**.
@@ -159,7 +159,7 @@ Do not run a downloaded script through `curl | sudo bash`. Clone, inspect the pl
 
 On the reference MacBook, Wayland Scroll Factor **1.0.4** with Touchpad Speed Control **5** is active at **0.25** on both scroll axes; pinch factors remain **1.0**. Finder stops when the fingers stop. In an isolated Firefox test, disabling smooth scrolling removed the trailing movement while fingers remained on the touchpad. That preference is saved for the normal Firefox profile’s next launch. ChatGPT’s smooth-scrolling disable flag is staged for its next launch and **not yet physically verified**. This is not a claim of identical macOS momentum.
 
-The WSF setup is currently a manually validated experiment, **not installed by `--scroll`**. That switch still selects the older fixed 50% scaler; `--smooth` enables the older animation flag and should not be combined with the responsive-scrolling experiment. See [configuration, verification and rollback](docs/TOUCHPAD.md). Wi-Fi, boot and GPU settings were not changed for these tests.
+`--scroll` now installs pinned WSF + Touchpad Speed Control and the responsive application settings. Our old fixed scaler is removed, not layered underneath WSF. The legacy `--smooth` option now installs only the responsive app settings (it no longer enables animation). See [configuration, verification and rollback](docs/TOUCHPAD.md). Wi-Fi, boot and GPU settings are unchanged by this option.
 
 ## Reinstall and undo
 

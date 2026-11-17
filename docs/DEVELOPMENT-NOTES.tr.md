@@ -296,3 +296,7 @@ Dock göstergeleri artık yalnızca doğrudan `dashtodockContainer` altını tar
 Kısa aktif kullanım örneklemi GNOME Shell için tek CPU çekirdeğinin yaklaşık %10.85'ini gösterdi; bu bir boşta ölçüm veya önce/sonra karşılaştırması değildir. Görsel efektlerin GPU maliyetinin sıfır olduğu ya da tüm yavaşlamaların giderildiği sonucuna varılamaz. Pointer/tap/gesture/scroll tercihleri değiştirilmedi.
 
 GTK4 başlık çubuklarında ortak yatay boşluk azaltıldı (`config/headerbar-spacing.css`); Settings yeniden açılıp başlığın tam göründüğü ekran görüntüsüyle doğrulandı. Kontrol simgeleri ve yazı boyutu korunur. Parmakla kaydırma katsayısı 0.70'ten 0.50'ye indirildi (önceki ayara göre yaklaşık %29 az mesafe); yeni oturumda yüklenir. Önceki kitaplığın çalışan Shell'e yüklenmiş olduğu `/proc` eşlemeleriyle kontrol edildi. Fare tekerleği, imleç hızı ve gesture ayarları değiştirilmedi.
+
+### 2026-11-17: Kaydırma yönteminin değiştirilmesi
+
+Yukarıdaki özel scroll-scale ve enable-smooth-scrolling notları tarihsel kayıttır; artık kurulum yöntemi değildir. Özel ölçekleyicinin kaynak/test yolu kaldırıldı. `--scroll` WSF 1.0.4 ve Touchpad Speed Control 5 kurar; `--smooth` artık yumuşatmayı kapatan uygulama ayarlarıdır. Güncel ayrıntılar: [TOUCHPAD.md](TOUCHPAD.md).

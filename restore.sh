@@ -7,9 +7,9 @@ state="${XDG_STATE_HOME:-$HOME/.local/state}/macbook-zorin"
 if [[ -f "$HOME/.config/systemd/user/familiarmac-app-integrations.service" ]]; then python3 scripts/install-app-integrations.py --restore; fi
 if [[ -f "$state/trash-drop.json" ]]; then python3 scripts/install-trash-drop.py --restore; fi
 if [[ -f "$state/brightness.json" ]]; then python3 scripts/install-brightness.py --restore; fi
-if [[ -f "$state/smooth-scrolling.json" ]]; then python3 scripts/install-smooth-scrolling.py --restore; fi
+if [[ -f "$state/responsive-scrolling.json" ]]; then python3 scripts/install-smooth-scrolling.py --restore; fi
 if [[ -f "$state/brave-launcher.json" ]]; then python3 scripts/install-brave-global-menu.py --restore; fi
-if [[ -f "$HOME/.config/systemd/user/org.gnome.Shell@wayland.service.d/90-macbook-scroll.conf" ]]; then bash scripts/install-scroll-speed.sh --restore; fi
+if [[ -f "$state/wsf.json" ]]; then bash scripts/install-scroll-speed.sh --restore; fi
 if [[ -f "$state/rounded-corners.json" ]]; then python3 scripts/install-rounded-corners.py --restore; fi
 if [[ -f "$state/dock-icons.json" ]]; then python3 scripts/install-dock-icons.py --restore; fi
 if [[ -f "$state/desktop.json" ]]; then python3 scripts/desktop.py restore; fi

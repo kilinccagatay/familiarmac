@@ -208,5 +208,90 @@
     "path": "assets/boot/bar-track.png",
     "sha256": "ec30bc7c87f74fc4d8a11fdec2c8273f40599320a9552dd4500a35c9107fd80a",
     "bytes": 139
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/CONTRIBUTING.md",
+    "sha256": "32735f9e33744788ecb1322b09a9a6c769a885b25d6dd896604fc6cbc07e7246",
+    "bytes": 5119
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/LICENSE",
+    "sha256": "73819c63ae8ff49a68e4c214a47c15695c3fc395820b6b8612a726318de8f003",
+    "bytes": 35089
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/README.md",
+    "sha256": "da04da9ff5b03f4386ea8535cb83b440890f161406376b2d3bb97feff90279af",
+    "bytes": 9419
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/extension.js",
+    "sha256": "1311e27b29a43ecc96ad063273d2a29cef30f95244d1ce4c5d200133ce8bb08a",
+    "bytes": 23084
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/metadata.json",
+    "sha256": "f5845d62a9d174bbf8963d887bd0f34a6eb902fad4717fd6e16fb3ceb237632e",
+    "bytes": 514
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/prefs.js",
+    "sha256": "03de4dff40c2cd35d3815cffae9d0515ec918d041f3d72298227d9e23bbde177",
+    "bytes": 56237
+  },
+  {
+    "path": "vendor/touchpad-speed-control-v5/schemas/org.gnome.shell.extensions.touchpad-speed-control.gschema.xml",
+    "sha256": "e6e4fda486ff2927fa5b58ef28ea86b1f9745b3043c50eeaff9841b11368e1ec",
+    "bytes": 2663
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/LICENSE",
+    "sha256": "d6961cee76b6f4d8beafe0f65bf4321c160de12d775ebebb85f98a417c9d047e",
+    "bytes": 1070
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/README.md",
+    "sha256": "283877be1c99710a57f152f11282c516b61a2d85a63a863a716544518d49cee2",
+    "bytes": 7191
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/meson.build",
+    "sha256": "90199a1b2a45ced4c8ee3fe135c5ae8ac22e6a233db351ded68fb713abb276a9",
+    "bytes": 1671
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/scripts/check-libinput-abi.sh",
+    "sha256": "aa88c21a6f53ee49077e1e5ec2c90bf6708a454b5f9143053592aa7a516d205c",
+    "bytes": 3298
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/src/wsf_config.c",
+    "sha256": "231fd128de3e65be04f9760fc2d219bde3aaf2cef019bb77f1635ed47e0a738d",
+    "bytes": 13724
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/src/wsf_config.h",
+    "sha256": "8302b5ea16f422a6bf08a55012552c2f009e3cab6b8ac8344da4a85c22197986",
+    "bytes": 1138
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/src/wsf_preload.c",
+    "sha256": "bb49ddd5d473fed9d28bc917ce30664e5b82d5d80f87cb4da04d325efdd68434",
+    "bytes": 31574
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/src/wsf_proc.c",
+    "sha256": "1507c360a291c35d79297c46218bdbb31667809df3537ea351d0dba74aca02c1",
+    "bytes": 5254
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/src/wsf_proc.h",
+    "sha256": "52af85f469142ef528f59207b63d33911072b5cd10bd78f041229c8d3d769abf",
+    "bytes": 653
+  },
+  {
+    "path": "vendor/wayland-scroll-factor-1.0.4/tools/wsf.c",
+    "sha256": "34a76d9e1bd656665c60db28dc3ee5d63a65feeae2bd8072966b40695218543d",
+    "bytes": 70008
   }
 ]

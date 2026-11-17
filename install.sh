@@ -10,9 +10,9 @@ Usage: ./install.sh [--check | --desktop | --full] [options]
   --desktop        GNOME user profile + extensions + window rounding
   --full           Above + WhiteSur, keyd, boot, GDM (MacBookPro10,1 only)
   --input-preset   Opt into initial reference touchpad/gesture preferences
-  --scroll         Finger scroll distance 50% (experimental Shell preload)
+  --scroll         Pinned WSF 25% touchpad scaling + responsive app scrolling
   --brightness     Allow gmux brightness-down to reach true zero (native up retained)
-  --smooth         Smooth-scroll launch flags for installed Chromium apps
+  --smooth         Responsive app scrolling only (legacy option name; disables smoothing)
   --brave          Brave X11 launcher for exported global menus
   --chatgpt        Version-guarded native frame/menu patches (requires --full)
   --wifi           BCM4360 driver repair (requires --full; network may disconnect)
@@ -51,7 +51,7 @@ run python3 scripts/install-trash-drop.py
 if [[ $brightness == 1 ]]; then run python3 scripts/install-brightness.py; fi
 if [[ $scroll == 1 ]]; then run bash scripts/install-scroll-speed.sh; fi
 if [[ $brave == 1 ]]; then run python3 scripts/install-brave-global-menu.py; fi
-if [[ $smooth == 1 ]]; then run python3 scripts/install-smooth-scrolling.py; fi
+if [[ $smooth == 1 || $scroll == 1 ]]; then run python3 scripts/install-smooth-scrolling.py; fi
 if [[ $chatgpt == 1 ]]; then
   run sudo bash scripts/chatgpt-native-frame.sh
   run sudo bash scripts/chatgpt-global-menu.sh

@@ -13,7 +13,9 @@ FamiliarMac-authored integration code is GPL-3.0-or-later. Third-party files rem
 | [Magic Lamp](https://github.com/hermes83/compiz-alike-magic-lamp-effect) | EGO version 25 | GPL-3.0, zip `LICENSE` | Unmodified extension, 400ms profile |
 | [Devicon Apple SVG](https://github.com/devicons/devicon/blob/master/icons/apple/apple-original.svg) | local vendored SVG; content identified by manifest hash | MIT, `assets/DEVICON-LICENSE` | White variant and multiple raster sizes derived locally; icon marks retain trademark restrictions |
 | [GNOME Shell](https://gitlab.gnome.org/GNOME/gnome-shell) | installed distro GNOME 46 source | GNOME's original GPL terms | Login builder extracts local `loginDialog.js`, guards exact replacements and library hash; no authentication replacement |
-| [libinput](https://gitlab.freedesktop.org/libinput/libinput) | ABI reference 1.25.0 | MIT upstream; not bundled | Small original scroll-value interposer; no libinput code copy or device setter |
+| [Wayland Scroll Factor](https://github.com/daniel-g-carrasco/wayland-scroll-factor) | 1.0.4, `883c700502f5975a6078763b7cc889096f6644ae` | MIT, `vendor/wayland-scroll-factor-1.0.4/LICENSE` | Unmodified CLI/library sources and ABI checker; local build/install integration, no GUI |
+| [Touchpad Speed Control](https://github.com/ritesh-777/touchpad-speed-control) | EGO version 5 | GPL-3.0, `vendor/touchpad-speed-control-v5/LICENSE` | Unmodified source; schemas compiled at installation |
+| [libinput](https://gitlab.freedesktop.org/libinput/libinput) | ABI reference 1.25.0 | MIT upstream; not bundled | ABI checked for upstream WSF; former custom scaler removed |
 | [Plymouth](https://gitlab.freedesktop.org/plymouth/plymouth) | distro package | upstream license; not bundled | Original script theme, boot progress and prompt callbacks |
 | Distro packages: GTK, GDM, Dbusmenu, Broadcom STA | configured Zorin repositories | respective package copyright/license files | Installed via package manager, not redistributed in this repository |
 

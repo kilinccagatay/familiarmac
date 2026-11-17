@@ -14,21 +14,22 @@ GNOME 46 / Wayland on the reference MacBook. This is touchpad finger scrolling, 
 
 Reducing the factor to 0.21 did not address the reported problem: it was delayed trailing movement, not excessive distance. Restored 0.25. These tests do not prove identical macOS momentum or universal behavior across applications. No Wi-Fi, GPU, boot or authentication configuration was changed.
 
-## Installation boundary
+## Automatic installation
 
-WSF and the extension are presently a manual experiment, not vendored or installed by FamiliarMac. Follow their upstream build/install instructions, inspect licenses, and use the versions above to reproduce this test. `install.sh --scroll` still installs the legacy fixed 50% preload. `--smooth` enables Chromium animation. Do not run those legacy options over this setup.
-
-Disable the legacy `90-macbook-scroll.conf` user Shell drop-in before activating WSF, retaining a backup. Keep only one scroll preload. The reference system's `/usr/local/libexec/macbook-gdm-shell` wrapper caused WSF to remove itself from the environment before reaching GNOME Shell. A user-only `95-wsf.conf` drop-in under `~/.config/systemd/user/org.gnome.Shell@wayland.service.d/` bypassed that wrapper:
-
-```ini
-[Service]
-ExecStart=
-ExecStart=/usr/bin/env LD_PRELOAD=/ABSOLUTE/HOME/.local/lib/wayland-scroll-factor/libwsf_preload.so /usr/bin/gnome-shell
+```bash
+./install.sh --desktop --scroll --dry-run
+./install.sh --desktop --scroll
 ```
 
-Replace `/ABSOLUTE/HOME` with the real home path. This is specific to the inspected user service: inspect existing ExecStart and other preload requirements before adapting it. Do not change the system/GDM service. Reload user units and log out/in normally after saving work; never restart Shell underneath an active Wayland session.
+The scroll component builds the pinned vendored WSF CLI/library with GCC, checks source hashes and the six exported libinput symbols, installs the pinned GNOME extension, and sets the global factors to 0.25. Dependencies: GNOME 46 Wayland, Python3/GObject, GCC, binutils/readelf, glib-compile-schemas and a user systemd session. No network download or sudo is needed by this component. Existing unrelated preloads and unrecognized Shell launch commands are refused.
 
-Verify `wsf status`: enabled, library mapped, runtime reload active. Configure both `global-factor` and `h-global-factor` in schema `org.gnome.shell.extensions.touchpad-speed-control` to 0.25, then `wsf set --scroll-vertical 0.25 --scroll-horizontal 0.25`. Keep `app-factors` and `h-app-factors` empty unless intentionally tuning an app; the extension can overwrite CLI-only changes when focus changes.
+Only our hash-recognized `~/.local/lib/macbook-zorin/scroll-scale.so` and exact historical `90-macbook-scroll.conf` are removed. Unknown/edited files stop installation. The old source and build/test path have been removed from this repository; no system libinput, Mutter, kernel or touchpad driver files are removed. Restore does not resurrect the old scaler.
+
+The installer uses a user-only `95-wsf.conf` to inject WSF immediately before `/usr/bin/gnome-shell`, bypassing our known user-session wrapper which otherwise clears the preload too early. GDM's system service is unchanged. Save work and log out/in manually for first activation; the installer never restarts Shell. On the reference machine WSF was already loaded, so migration did not require interrupting the session.
+
+`wsf status` must report library mapped and runtime reload active. The installer also sets extension global factors and clears per-app overrides on first installation. Subsequent installs retain tuning and refuse changed managed files rather than silently overwriting them. The CLI alone is insufficient for tuning while the extension is active: update its vertical/horizontal global factors too.
+
+`--scroll` includes responsive app settings. `--smooth` remains a backwards-compatible name for just those settings, and no longer enables animation. Native/Flatpak Firefox profiles are discovered via profiles.ini; the installer preserves existing user.js content. ChatGPT gets the disable flag, and previously managed Brave launchers migrate away from our old enable flag. Other applications are not blindly rewritten. Profiles created after this installation require rerunning this optional installer; this is not a background watcher.
 
 ## Browser response and testing
 
@@ -38,6 +39,15 @@ Compare the same slow finger movement, stop while maintaining contact, then sepa
 
 ## Rollback
 
-Reference backups are in `~/.local/state/familiarmac/scroll-migration-20261117` and `~/.local/state/familiarmac/scroll-response-20261117`; these local files are not published. Inspect differences before restoring, preserving later edits.
+```bash
+python3 scripts/install-smooth-scrolling.py --restore
+bash scripts/install-scroll-speed.sh --restore
+```
 
-To undo WSF, use `wsf disable`, disable Touchpad Speed Control, remove only its user `95-wsf.conf`, restore the previously backed-up legacy drop-in if wanted, reload user units and log out/in. Do not restore both preload layers. To undo the browser experiment, restore the backed-up launcher/user.js and remove or restore `general.smoothScroll` in Firefox about:config as well: removing user.js alone does not reset a preference already saved to prefs.js. Fully reopen each affected app. FamiliarMac's general restore script does not yet manage this manual experiment.
+These components are also included in `restore.sh`. Managed originals and installed hashes/content are recorded in `~/.local/state/macbook-zorin/wsf.json` and `responsive-scrolling.json`; local state is not published. Edited managed files cause restoration to stop for manual inspection. WSF restore removes its preload/drop-in, restores saved files/settings, and never restores the removed legacy scaler. Log out/in manually after removing a loaded preload.
+
+After restoring Firefox user.js, also reset/restore `general.smoothScroll` in about:config if Firefox already consumed the setting: removing user.js does not reset a preference persisted in prefs.js. Fully reopen affected apps. Existing pre-migration backups in `~/.local/state/familiarmac` are retained for inspection, not automatically replayed.
+
+## Verification scope
+
+The new installer was run on the existing reference system, followed by a repeat installation. Source checks, ABI checks, pure configuration/legacy protection tests and the repository test suite passed. This is not yet a clean-machine end-to-end test. Firefox's isolated-profile physical result is confirmed; ChatGPT and the normal Firefox profile still require their next-launch physical checks.

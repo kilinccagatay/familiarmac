@@ -33,8 +33,8 @@ Do not disable an existing third-party keyd setup to bypass the installer guard.
 | `--full` | Full supported hardware profile including keyboard, theme, boot/login and desktop | Reboot manually |
 | `--input-preset` | Opt into initial reference natural scroll, click/tap and gesture preferences. Previously recorded input preferences are not repeatedly reset. | Session/device dependent |
 | `--brightness` | gmux brightness-down reaches hardware zero; native brightness-up remains unchanged. Custom down shortcut applies to the unlocked user session. | Immediately / session keybinding refresh |
-| `--scroll` | Experimental user-Shell libinput preload; finger scroll distance 50%, wheel/pointer untouched | Reopen session |
-| `--smooth` | Add smooth-scroll flag only to installed Brave/ChatGPT launchers | Fully reopen those apps |
+| `--scroll` | Pinned WSF 1.0.4 + Touchpad Speed Control 5, 25% both axes; responsive app settings; remove only verified old FamiliarMac scaler | Reopen session |
+| `--smooth` | Legacy option name: responsive Firefox/ChatGPT settings; migrate prior managed Chromium launch flags | Fully reopen those apps |
 | `--brave` | Launch Brave using X11 to obtain its exported global menu | Fully reopen Brave |
 | `--chatgpt` | Native frame + actual Electron menu bridge + duplicate renderer menu removal; requires `--full`, installed app and matching source | Fully reopen app |
 | `--wifi` | BCM4360-specific DKMS driver repair; requires `--full`. Can disconnect networking. It is not needed if Wi-Fi already works. | Driver reload/reboot |
@@ -42,7 +42,7 @@ Do not disable an existing third-party keyd setup to bypass the installer guard.
 Examples:
 
 ```bash
-./install.sh --full --brave --brightness
+./install.sh --full --scroll --brave --brightness
 ./install.sh --desktop --dry-run
 ```
 
@@ -128,6 +128,6 @@ to review installed apps one at a time after installation. The default command
 only lists applications; `--run` explicitly starts an interactive visual review.
 No applications are launched automatically by `install.sh`.
 
-### Responsive touchpad experiment
+### Responsive touchpad setup
 
-The `--scroll` and `--smooth` switches above are legacy options, not the newer WSF experiment. Do not layer both preload libraries or re-enable smoothing over the tested responsive setup. See [TOUCHPAD.md](TOUCHPAD.md) for the exact validation status and manual configuration.
+`--scroll` installs the new pinned WSF method on GNOME 46 Wayland. It does not change distro packages, Wi-Fi, GPU or boot settings. `--smooth` is retained as an app-settings-only option; it no longer enables smooth scrolling. See [TOUCHPAD.md](TOUCHPAD.md) for validation status, prerequisites and rollback. Clean-OS installation remains unverified; local install and repeat-install passed.
