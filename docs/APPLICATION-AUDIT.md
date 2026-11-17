@@ -393,3 +393,56 @@ GLib KeyFile `has_key()` call interrupting construction. The reader now uses
 `get_keys()` and contains malformed optional autostart files. The user confirmed
 App Store positioning is fixed. A real GJS/GLib test supplements Node tests,
 which previously stubbed autostart and missed the API error.
+
+### 2026-11-17 — real first-launch / deferred-profile test
+
+Installed previously absent `com.visualstudio.code` (Flathub 1.145.3). No account
+was connected and no user document was edited. The package watcher created
+`window.titleBarStyle: native` before the first successful launch. A screenshot
+confirmed the dark native frame and left-side traffic-light buttons.
+
+The live test exposed a process-detection defect: resolving `/proc/PID/exe` with
+`strict=True` follows `/app/...` in the host namespace and fails for Flatpak.
+Both lifecycle and editor detection now read the symlink target without resolving
+it. A regression test uses an executable target absent from the host and checks
+both executable detection and Flatpak application identity.
+
+For a controlled deferred-settings trial, backed up only this newly installed
+application's settings file and adapter record, then launched it with that setting
+absent. While Code was open, the real timer reported `waiting-for-exit` and left
+the file absent. After stopping the empty test instance with `flatpak kill`, the
+normal timer created the native-frame setting in 8 seconds, without a manual
+adapter invocation. Relaunch screenshot confirmed the traffic-light native frame.
+This verifies retry after process termination; an ordinary UI Quit was not tested.
+The first TERM attempt did not fully stop the instance and correctly remained
+deferred. The full test suite passed after the namespace fix.
+
+Remaining limitation: Code's File/Edit/etc. menus remain inside its window;
+the top panel shows only the app name and Window fallback. This run verifies
+window-frame adaptation and lifecycle deferral, **not** complete global-menu or
+shortcut integration. Code remains installed for follow-up testing. Other
+applications' profiles, Wi-Fi, boot and GPU settings were not manually modified.
+
+### 2026-11-17 — Electron menus, follow-up
+
+VS Code native X11 export produced real menu headings and shortcut properties.
+Permanent capability-based Flatpak configuration installed (also detects Logseq).
+Two shared panel issues fixed: empty lazy menus could not open, and GJS
+`send_about_to_show` requires two arguments. Open nested menus now survive lazy
+layout replacement. Unit tests and a real GJS ABI test pass. User-reported
+non-opening dropdowns have **not yet been visually reverified** after loading the
+new panel code; normal logout/login and live File-menu activation are pending.
+
+### VS Code lazy-menu follow-up
+
+The normal launcher now supplies the Electron X11 flag as well as the Flatpak socket policy. The user opened File and its exported dropdown was visually confirmed. Shortcut labels were still absent. A shared ItemsPropertiesUpdated subscription now schedules a coalesced refresh after libdbusmenu consumes accelerator/enabled-state changes, with cancellation on backend disposal. The full test suite passes; the new property-refresh code is installed but requires a new Shell session and visual verification before shortcut rendering can be marked verified. VS Code was left open.
+
+### VS Code new-window latency
+
+User confirmed menus and accelerators appeared, but only after a visible Loading delay in a new window. An independent client against the second live VS Code window received top-level headings at 9 ms and all eight top-level menu contents at 25 ms when AboutToShow was sent proactively. This measures D-Bus transport/preparation, not Shell interaction latency or a cold app start. Added generic top-level prefetch and an eight-entry window-specific live-client cache; tests cover one-shot preparation, distinct windows, unregistration, bounded retention and destruction. Full existing suite plus the new cache test passed. Installed for the next Shell session; actual new-window and focus-switch interaction remains to be visually verified.
+
+### VS Code verification completed
+
+After the lazy-menu and cache changes, the user explicitly confirmed the new-window
+menu/shortcut delay was fixed. This supersedes the pending VS Code interaction
+checks above; it does not claim visual verification for every Electron application.

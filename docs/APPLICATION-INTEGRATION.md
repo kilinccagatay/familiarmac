@@ -202,3 +202,83 @@ See the [window-control coverage matrix](WINDOW-CONTROL-COVERAGE.md) for native 
 Snap desktop installation/update events are also watched. Supported native-frame
 preferences and shared GTK control assets are handled by `snap-appearance.py`;
 see the [coverage limitations](WINDOW-CONTROL-COVERAGE.md#snap--flutter-bluebubbles).
+
+
+### First-launch and deferred profile settings
+
+`familiarmac-app-lifecycle.timer` checks known profile metadata every 15 seconds,
+without launching apps or repeating the full toolkit scan. It covers the existing
+VS Code frame adapter, Snap theme assets and BlueBubbles's supported native-frame
+setting, Chromium Flatpak profiles, and Firefox Flatpak's managed `user.js` block.
+New profiles and Snap revision links are discovered on subsequent checks.
+Running applications are deferred; changed files must be observed stable before
+retry. Browser launch wrappers still prepare profiles before normal launches.
+A newly created Snap profile may need its first exit and next launch (allow about
+15–35 seconds after exit). Open windows are never restarted automatically.
+
+The package dispatcher and lifecycle timer share a per-user lock. One failing
+profile does not block others. Unchanged profiles cause no adapter writes;
+errors are retried, while explicit user changes remain protected by each adapter.
+This is configuration verification, not a visual or shortcut test, and unsupported
+custom title bars remain unsupported. Status contains no profile contents:
+
+```sh
+systemctl --user status familiarmac-app-lifecycle.timer
+cat ~/.local/state/familiarmac/app-lifecycle.json
+```
+
+Installation enables the timer on fresh systems and updates. Restore stops both
+watchers before restoring settings. No Wi-Fi, boot, GPU, or fan-service settings
+are involved.
+
+
+Real validation on 2026-11-17: a fresh VS Code Flatpak install received its native
+frame automatically. In a controlled missing-setting trial, the timer kept the
+open app untouched and applied the setting 8 seconds after the test process was
+stopped. Relaunch appearance was verified; ordinary UI Quit and Code global menus
+remain separate checks. See [application audit](APPLICATION-AUDIT.md).
+
+### Electron native menu export (2026-11-17)
+
+The Flatpak toolkit scanner detects an Electron payload (`resources/app.asar` or
+`resources/app/package.json` alongside Chromium assets), an executable containing
+its D-Bus menu exporter, and a bundled `libdbusmenu-glib`. Matching packages use
+X11 plus the registrar permission through the existing backed-up Flatpak override
+path. No application-ID allowlist, application binary patch, or new global
+shortcut binding is used. Explicit unmanaged backend choices are retained.
+Current installed matches are VS Code and Logseq; detection is not proof of a
+working menu in every application. Custom web-rendered menus still need app support.
+
+The panel handles advertised but initially empty D-Bus submenus with an inert
+loading row, allowing AboutToShow to run. Its GJS call passes the required null
+callback arguments. Layout updates preserve the open submenu path without
+repeated AboutToShow calls. Shortcut properties continue through the existing
+shared hint formatter and native activation path.
+
+VS Code's X11 test exported File/Edit/Selection/View/Go/Run/Terminal/Help and
+actual Ctrl+N, Ctrl+O, Ctrl+S accelerators. Top-level labels were visually verified.
+The user reported that dropdowns did not open with the old panel code. Fixes are
+installed and regression tests pass, but dropdown/hint/action verification with
+the newly loaded panel remains pending a session restart. Do not mark that step
+visually verified yet. Upstream exporter:
+https://github.com/electron/electron/blob/main/shell/browser/ui/views/global_menu_bar_x11.cc
+
+
+Launch correction: X11 socket permission alone is insufficient for Electron
+builds that default to Wayland. The scanner now creates a guarded user desktop
+launcher with `--ozone-platform=x11` on each app Exec/action, preserving Flatpak
+file-forwarding markers. This is prepared before restricting sockets. A vendor
+launcher with an explicit backend choice, or an edited user launcher, is retained
+and reported for review. The earlier Logseq override was rolled back because its
+vendor Wayland action must remain usable. Its menus are not claimed verified.
+
+D-BusMenu property-only updates (including late accelerators and enabled state) also refresh the exported menu. Refreshes are coalesced at idle and cancelled when switching backends; this is shared across exporters, with no app-name matching or extra keyboard grabs.
+
+### Lazy menu responsiveness
+
+Advertised empty top-level D-Bus menus are prepared with AboutToShow as soon as their tree arrives, once per menu item; nested dynamic menus still load on demand. Up to eight inactive live clients are retained by unique service and object path, with no cross-window action reuse or persistent action snapshots. Window unregistration and registrar restart invalidate cached clients. Layout and property bursts share an idle refresh.
+
+Follow-up: the user confirmed VS Code's new-window menu and shortcut loading issue
+was fixed after the shared changes. Earlier pending VS Code checks above describe
+the chronological investigation, not the final status. Other Electron exporters
+still require their own live verification.

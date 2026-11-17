@@ -94,7 +94,9 @@ for verified results, unsupported cases and troubleshooting.
 
 The shared GTK header rules preserve traffic-light sizes and give controls and
 search fields balanced vertical space. They are installed for native GTK apps
-and supported Flatpaks, including through the installation/update watcher.
+and supported Flatpaks, including through the installation/update watcher. A lightweight
+lifecycle timer also discovers first-launch profiles and retries supported deferred
+settings after application exit; it never closes applications automatically.
 GTK menus use actual application/window actions; partial exports can be completed
 with recognized exported commands. Shortcut hints come from exported metadata or
 application-owned keymaps and explicit GtkBuilder action/accelerator pairs.
@@ -193,3 +195,24 @@ missing shared GTK control assets. BlueBubbles has a supported native-frame
 adapter; custom Flutter controls are not universally themeable. See
 [window-control coverage](docs/WINDOW-CONTROL-COVERAGE.md#snap--flutter-bluebubbles)
 for restart requirements and current limits.
+
+
+### Installing on another older Mac
+
+Use the supported **Zorin 18.x / GNOME 46 / x86_64 Wayland** baseline:
+
+```bash
+./install.sh --check
+./install.sh --prepare-desktop --dry-run
+./install.sh --prepare-desktop
+./install.sh --desktop --dry-run
+./install.sh --desktop
+```
+
+Preparation installs dependencies and shared WhiteSur assets. Desktop mode applies the user theme, menus and application integration. Neither step installs our NVIDIA/Nouveau repairs, changes GRUB/kernel/initramfs, repairs Wi-Fi, or replaces GDM. `--full` remains a separate, explicit **MacBookPro10,1-only** boot/login/keyboard profile; GPU repairs are not included even there.
+
+About selects one of fourteen original transparent SVG category illustrations: MacBook Pro/laptop, MacBook Air, white MacBook, all-in-one, tower, cylindrical Mac Pro, white iMac, white-top Mac mini, mini computer, 12-inch Retina MacBook, Retina Air, 2016–2020 Intel MacBook Pro, 2019 Mac Pro tower and generic rack. Model family and chassis type select the image; it is not an exact-model photograph or a compatibility claim. See [portability and boundaries](docs/PORTABILITY.md) and the [category gallery](docs/HARDWARE-CATALOG.md).
+
+![Fourteen hardware illustration categories](docs/screenshots/hardware-categories.png)
+
+The original A1398 MacBook Pro artwork is preserved. Rack selection uses chassis information; artwork selection does not enable hardware-specific repairs.

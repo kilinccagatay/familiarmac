@@ -50,9 +50,11 @@ Snap's desktop launcher links the user's GTK CSS without copying its relative
 only to existing profiles whose CSS contains the shared controls marker. It
 preserves unowned assets and tracks owned assets for updates/restoration.
 The application watcher now includes `/var/lib/snapd/desktop/applications`.
-Profiles not yet created and preferences deferred because an app is running need
-a later integration pass (`app-integrations.py --force`) after first exit; this
-is not a claim that every custom Snap title bar is supported automatically.
+The lifecycle timer discovers profiles created on first launch and retries deferred
+preferences after the app exits. A stable profile is checked automatically within
+approximately 15–35 seconds. The first Snap window can still use its original
+frame; the next launch receives the prepared preference. This does not imply
+that every custom Snap title bar is supported.
 
 Source checked against installed release:
 [BlueBubbles settings, v2.1.6+desktop.96](https://github.com/BlueBubblesApp/bluebubbles-app/blob/v2.1.6%2Bdesktop.96/lib/database/global/settings.dart).
@@ -61,6 +63,6 @@ Snap GTK3 frames also need the selected host theme itself. The adapter mirrors
 that theme's GTK3 files into each existing Snap profile's `.themes` directory,
 retaining the standard Snap theme link for rollback. Owned copies are refreshed;
 user-modified copies are preserved. No `GTK_THEME` or forced dark-color override
-is set. Newly selected custom themes require another integration pass if they
-are not already available in the sandbox. BlueBubbles 2.1.6.0 was visually
+is set. The lifecycle timer also notices a changed GTK theme name and prepares its
+Snap copy after the application exits. BlueBubbles 2.1.6.0 was visually
 verified with the dark WhiteSur frame and left-side traffic-light controls.

@@ -132,3 +132,25 @@ uygulamaları tamamen kapatıp yeniden aç. Bazı uygulamalar son pencere kapans
 arka planda kalır. Kurulum otomatik çıkış veya yeniden başlatma yapmaz.
 [Kurulum/geri alma](INSTALL.md), [teknik akış](APPLICATION-INTEGRATION.md) ve
 [kalan eksikler](APPLICATION-AUDIT.md) ayrıntıları içerir.
+
+
+### Başka bir eski Mac'e kurulum ve cihaz çizimleri
+
+Zorin 18.x / GNOME 46 / x86_64 Wayland için önce `./install.sh --check`,
+ardından `./install.sh --prepare-desktop` ve `./install.sh --desktop` kullanılır.
+Her iki kurulum adımı önce `--dry-run` ile incelenebilir. Bu yol NVIDIA/Nouveau,
+Wi-Fi, GRUB, kernel, initramfs ve GDM ayarlarını değiştirmez. `--full` ayrı ve
+yalnızca MacBookPro10,1 için açıkça seçilen bir profildir.
+
+Hakkında ekranında 14 özgün çizimden biri hedef bilgisayarın model ailesi ve kasa
+türüne göre otomatik seçilir. A1398 çizimi aynen korunur. Rack kasa bilgisi yoksa
+MacPro7,1 için kule kullanılır; model kimliği tek başına rack ayrımı yapamaz.
+
+![14 cihaz çizimi](screenshots/hardware-categories.png)
+
+[Çizim galerisi ve model eşlemeleri](HARDWARE-CATALOG.md) · [Kurulum sınırları](PORTABILITY.md)
+
+Desteklenen uygulamalarda ilk açılışta oluşan profiller ve uygulama kapanışına
+ertelenen ayarlar artık yaşam döngüsü zamanlayıcısıyla tekrar kontrol edilir.
+Açık uygulamalar otomatik kapatılmaz. Electron menülerinde geç gelen kısayollar
+güncellenir; pencereye özel canlı menü önbelleği yeni pencere geçişlerini hızlandırır.

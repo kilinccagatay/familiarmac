@@ -80,3 +80,6 @@ read-only and retains explicit user overrides; no GIMP source or default key tab
 is copied into the repository.
 
 Evolution native menu profile: [upstream shell settings schema](https://github.com/GNOME/evolution/blob/master/data/org.gnome.evolution.shell.gschema.xml.in) documents `menubar-visible` and `menubar-visible-sub`. The integration uses these existing settings; no Evolution source code is copied.
+
+### Hardware category illustrations
+The original A1398 vector drawing and the thirteen additional category SVGs are project-authored artwork. They use shared metallic colours and geometric mountain scenery. No generated raster pictures or Apple product-photo collection is bundled in the installed category set. See [the category gallery](docs/HARDWARE-CATALOG.md).

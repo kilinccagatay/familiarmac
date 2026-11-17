@@ -13,6 +13,10 @@ Install Git from the distro if needed (`sudo apt install git`), clone this repos
 
 `--check` reports OS, Shell version, session, model and missing tools. It does not alter settings. `--dry-run` prints the planned commands; it does not execute package managers, installers, or preference writes. It is a plan, not proof of machine compatibility; actual installs run strict preflight and checksum validation.
 
+## Desktop-only installation on other Intel Macs
+
+Run `./install.sh --prepare-desktop` from the supported desktop session to install dependencies, shared WhiteSur theme/icon assets and wallpaper, then `./install.sh --desktop`. Both support `--dry-run`. Preparation may request sudo for packages/assets; it does not install keyd, GPU/Wi-Fi repairs, GDM overlays or boot changes. No serial number is needed for the About image. See [portability](PORTABILITY.md).
+
 ## Fresh installation
 
 ```bash
@@ -29,7 +33,7 @@ Do not disable an existing third-party keyd setup to bypass the installer guard.
 
 | Option | Effect | Activation |
 |---|---|---|
-| `--desktop` | Reapply user profile/extensions and rounding. Requires WhiteSur from an earlier full setup. Changes desktop shortcuts/theme/dock, not boot or GDM. | Reopen session |
+| `--desktop` | Reapply user profile/extensions and rounding. Requires `--prepare-desktop` or an earlier full setup. Changes desktop shortcuts/theme/dock, not boot or GDM. | Reopen session |
 | `--full` | Full supported hardware profile including keyboard, theme, boot/login and desktop | Reboot manually |
 | `--input-preset` | Opt into initial reference natural scroll, click/tap and gesture preferences. Previously recorded input preferences are not repeatedly reset. | Session/device dependent |
 | `--brightness` | gmux brightness-down reaches hardware zero; native brightness-up remains unchanged. Custom down shortcut applies to the unlocked user session. | Immediately / session keybinding refresh |
