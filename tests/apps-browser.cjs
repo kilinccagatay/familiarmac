@@ -3,18 +3,19 @@ function load(file,context,expose){const code=fs.readFileSync(__dirname+'/../'+f
 let favorites=['brave.desktop','org.gnome.Nautilus.desktop','org.familiarmac.Apps.desktop'],writes=0,callback;
 let pointerY=200,removed=null,later;
 const ui={};
-const order=load('extensions/macbook-menu@local/dockOrder.js',{Main:{uiGroup:ui,overview:{visible:false}},St:{ThemeContext:{get_for_stage:()=>({scale_factor:2})}},Meta:{LaterType:{BEFORE_REDRAW:0}},DND:{DragMotionResult:{MOVE_DROP:2,CONTINUE:3}},AppFavorites:{getAppFavorites:()=>({removeFavorite:id=>removed=id})},global:{stage:{},get_pointer:()=>[10,pointerY],compositor:{get_laters:()=>({add(t,fn){later=fn;}})}},Gio:{Settings:class {connect(n,fn){callback=fn;return 1;}disconnect(){}get_strv(){return favorites;}set_strv(k,v){favorites=v;writes++;callback?.();}}}},'finderFirst,DockOrder');
-const controller=new order.DockOrder();assert.deepEqual(Array.from(favorites),['org.gnome.Nautilus.desktop','brave.desktop','org.familiarmac.Apps.desktop']);assert.equal(writes,1);
+const order=load('extensions/macbook-menu@local/dockOrder.js',{Clutter:{EVENT_PROPAGATE:false,AnimationMode:{EASE_OUT_QUAD:1}},Main:{uiGroup:ui,overview:{visible:false}},St:{ThemeContext:{get_for_stage:()=>({scale_factor:2})}},Meta:{LaterType:{BEFORE_REDRAW:0}},DND:{addDragMonitor(){},removeDragMonitor(){},DragMotionResult:{MOVE_DROP:2,CONTINUE:3,NO_DROP:0}},AppFavorites:{getAppFavorites:()=>({removeFavorite:id=>removed=id})},global:{settings:{is_writable:()=>true},stage:{},get_pointer:()=>[10,pointerY],compositor:{get_laters:()=>({add(t,fn){later=fn;}})}},Gio:{Settings:class {connect(n,fn){callback=fn;return 1;}disconnect(){}get_strv(){return favorites;}set_strv(k,v){favorites=v;writes++;callback?.();}}}},'finderFirst,DockOrder,insertionSlot,isFixedApp,DockGapMotion');
+const controller=new order.DockOrder();assert.deepEqual(Array.from(favorites),['org.gnome.Nautilus.desktop','org.familiarmac.Apps.desktop','brave.desktop']);assert.equal(writes,1);
 favorites=['org.gnome.Nautilus.desktop','org.familiarmac.Apps.desktop','brave.desktop'];callback();assert.equal(writes,1);
-favorites=['brave.desktop'];callback();assert.deepEqual(Array.from(favorites),['org.gnome.Nautilus.desktop','brave.desktop']);
-let started=0,released=0;const drag={startDrag(){started++;},fakeRelease(){released++;}};const original=drag.startDrag;
+favorites=['brave.desktop'];callback();assert.deepEqual(Array.from(favorites),['org.gnome.Nautilus.desktop','org.familiarmac.Apps.desktop','brave.desktop']);
+let started=0,released=0;const drag={startDrag(){started++;},fakeRelease(){released++;},_maybeStartDrag(){this.startDrag();if(!this._dragActor)throw Error('missing drag actor');}};const original=drag.startDrag;const originalMaybe=drag._maybeStartDrag;
 const icon={app:{get_id:()=> 'org.gnome.Nautilus.desktop'},_draggable:drag,get_parent:()=>({}),connect:()=>1,disconnect(){}};
 controller.track(icon);drag.startDrag();assert.equal(started,0);assert.equal(released,1);
-const movable={...icon,app:{get_id:()=> 'brave.desktop'},_draggable:{startDrag(){}},get_transformed_position:()=>[10,500]};
+assert.equal(drag._maybeStartDrag({}),false);assert.equal(started,0);assert.equal(released,2);
+const movable={...icon,app:{get_id:()=> 'brave.desktop'},_draggable:{startDrag(){},connect:()=>1,disconnect(){}},get_transformed_position:()=>[10,500]};
 controller.track(movable);assert.equal(controller.canUnpin(movable),true);
 assert.equal(ui._delegate.acceptDrop(movable),true);assert.equal(removed,null);later();assert.equal(removed,'brave.desktop');
 pointerY=450;assert.equal(controller.canUnpin(movable),false);assert.equal(controller.canUnpin(icon),false);
-controller.destroy();assert.equal(ui._delegate,undefined);assert.equal(drag.startDrag,original);
+controller.destroy();assert.equal(ui._delegate,undefined);assert.equal(drag.startDrag,original);assert.equal(drag._maybeStartDrag,originalMaybe);
 const browser=load('extensions/macbook-menu@local/appsBrowser.js',{GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}}},'matchesApp,installedApps,suggestedApps,COLUMNS');
 const app={get_name:()=> 'Browser',get_description:()=> 'Web browsing',get_app_info:()=>({get_keywords:()=>['internet'],get_categories:()=> 'Network;WebBrowser;'})};
 assert.equal(browser.matchesApp(app,'internet','Network'),true);assert.equal(browser.matchesApp(app,'Browser','Office'),false);assert.equal(browser.matchesApp(app,'  WEB  ',''),true);
@@ -81,3 +82,64 @@ for(const row of dialog._rows.slice(1)) {
 dialog._list=false;dialog._render();
 assert.deepEqual(Array.from(dialog._rows,row=>row.length),[5,5,1]);
 console.log('Apps mixed view: suggestions retain grid, list content fills left, grid toggle preserved PASS');
+
+assert(order.isFixedApp('org.familiarmac.Apps.desktop'));
+assert.equal(order.insertionSlot([20,70,130,190],0,4),2);
+assert.equal(order.insertionSlot([20,70,130,190],150,4),3);
+assert.equal(order.insertionSlot([20,70,130,190,240],999,4),4);
+// Compact source removal and a real, transparent, full-width destination gap.
+const appFor=id=>({get_id:()=>id,is_window_backed:()=>false});
+let favs=['finder','apps','a','b'].map(appFor),committed=null;
+order.AppFavorites.getAppFavorites=()=>({getFavorites:()=>favs,isFavorite:id=>favs.some(a=>a.get_id()===id),moveFavoriteToPos:(id,pos)=>committed=[id,pos]});
+order.Dash={Dash:{getAppFromSource:s=>s.app},DashItemContainer:class {
+ constructor(){this.visible=true;}
+ setChild(child){this.child=child;}
+ show(){}
+ get_transformed_position(){return [240,0];}
+ get_transformed_size(){return [60,40];}
+}};
+order.St.Bin=class {set_size(w,h){this.width=w;this.height=h;}};
+const childFor=(app,left)=>({visible:true,width:60,child:{_delegate:{app},translation_x:0,remove_transition(){}},connect:()=>1,disconnect(){},get_transformed_position:()=>[left,0],get_transformed_size:()=>[60,40]});
+const children=favs.map((a,i)=>childFor(a,100+i*60));
+children[2].visible=false;
+const box={width:180,get_children:()=>[...children],add_child:c=>children.push(c),set_child_at_index(c,i){children.splice(children.indexOf(c),1);children.splice(i,0,c);},get_transformed_position:()=>[100,0],get_transformed_size:()=>[180,40],connect:()=>1,disconnect(){}};
+const native=()=>{throw Error('native index calculation must not include hidden source');};
+const nativeDrop=()=>false;
+const dash={_box:box,_isHorizontal:true,iconSize:40,handleDragOver:native,acceptDrop:nativeDrop};box._delegate=dash;
+const tracker=new order.DockOrder();tracker.trackDash(box);
+const source={app:favs[2]};tracker.icons.set(source,{dragSize:{width:60,height:50}});
+dash.handleDragOver(source,null,400,0,0);
+assert.equal(dash._dragPlaceholder.child.width,60);assert.equal(dash._dragPlaceholder.child.height,50);
+assert.equal(dash._fmDrop.pos,3);assert.equal(committed,null);
+assert(dash.acceptDrop(source));assert.equal(committed,null);later();assert.deepEqual(committed,['a',3]);
+tracker.icons.delete(source);tracker.destroy();assert.equal(dash.handleDragOver,native);assert.equal(dash.acceptDrop,nativeDrop);
+// A real draggable completes actor construction before collapsing its source.
+const life=new order.DockOrder();let endHandlers={},sourceHidden=false;
+const container={width:60,height:50,visible:true,get_transformed_position:()=>[100,500],hide(){sourceHidden=true;this.visible=false;},show(){sourceHidden=false;this.visible=true;}};
+const d={startDrag(){assert(!sourceHidden);this._dragActor={};},connect(n,f){endHandlers[n]=f;return n;},disconnect(n){delete endHandlers[n];}};
+const sourceIcon={app:appFor('brave.desktop'),_draggable:d,get_parent:()=>container,connect:()=>1,disconnect(){}};
+life.track(sourceIcon);d.startDrag();assert(sourceHidden);assert.equal(life.icons.get(sourceIcon).dragSize.width,60);
+order.St.Label=class {set_position(){} show(){this.visible=true;}hide(){this.visible=false;}destroy(){}};
+order.Shell={util_set_hidden_from_pick(){}};ui.add_child=()=>{};pointerY=200;
+assert.equal(life.delegate.handleDragOver(sourceIcon),2);assert.equal(life.removeLabel.visible,true);
+life.removeMonitor.dragMotion();assert.equal(life.removeLabel.visible,false);
+assert.equal(life.canUnpin({...sourceIcon,app:appFor('org.familiarmac.Apps.desktop')}),false);
+
+endHandlers['drag-cancelled']();assert(!sourceHidden);d.startDrag();endHandlers['drag-end']();assert(!sourceHidden);
+life.destroy();assert.equal(Object.keys(endHandlers).length,0);
+
+// Real layout moves immediately; only the visual child eases from old to new.
+let active=true,animations=true,animation=null,signalId=0;
+const handlers=new Map();
+const content={_delegate:{app:{}},translation_x:0,remove_transition(){},ease(options){animation=options;}};
+const moving={x:100,child:content,connect(name,fn){handlers.set(++signalId,{name,fn});return signalId;},disconnect(id){handlers.delete(id);}};
+const motion=new order.DockGapMotion(()=>active,()=>animations);
+motion.watch([moving]);motion.watch([moving]);assert.equal(handlers.size,2);
+const allocated=()=>[...handlers.values()].find(h=>h.name==='notify::allocation').fn();
+moving.x=160;allocated();assert.equal(content.translation_x,-60);assert.equal(animation.translation_x,0);assert.equal(animation.duration,160);
+// Reverse before the first animation finishes: continue from current visual x.
+content.translation_x=-20;moving.x=100;allocated();assert.equal(content.translation_x,40);
+animations=false;moving.x=160;allocated();assert.equal(content.translation_x,0);
+active=false;moving.x=200;allocated();assert.equal(content.translation_x,0);
+motion.destroy();assert.equal(handlers.size,0);assert.equal(content.translation_x,0);
+console.log('Dock gap motion: neighbors slide, reversal continuous, reduced motion and teardown PASS');

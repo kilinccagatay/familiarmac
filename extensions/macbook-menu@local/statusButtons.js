@@ -2,6 +2,7 @@ import {BatteryIcon} from './batteryIcon.js';
 import {PanelOrder} from './panelOrder.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import St from 'gi://St';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -70,22 +71,42 @@ export class StatusButtons {
             let wirelessIcon = null;
             const wireless = key === '_network' ? indicator._wirelessToggle : null;
             const bindings = [];
-            if (wireless) {
-                // Wi-Fi status remains Wi-Fi when Ethernet owns the default route.
+            const networkBindings = [];
+            if (key === '_network') {
+                const ethernetIcon = new Gio.FileIcon({file:Gio.File.new_for_path(`${this.owner.path}/ethernet-symbolic.svg`)});
+                // Follow the native primary-route icon; retain Wi-Fi access in the menu.
                 indicator.hide();
                 wirelessIcon = new St.Icon({style_class: 'system-status-icon'});
                 content.add_child(wirelessIcon);
                 const updateWifi = () => {
-                    wirelessIcon.icon_name = wireless.icon_name;
-                    wirelessIcon.visible = wireless.visible;
-                    indicator.visible = !wireless.visible;
-                    button.visible = Boolean(wireless.visible || indicator.visible);
+                    const primary = indicator._primaryIndicator;
+                    const name = primary?.visible ? primary.icon_name : wireless?.icon_name;
+                    // Keep native disconnected/acquiring/error symbols intact.
+                    if (name === 'network-wired-symbolic') {
+                        wirelessIcon.add_style_class_name('fm-ethernet-icon');
+                        wirelessIcon.gicon = ethernetIcon;
+                    } else {
+                        wirelessIcon.remove_style_class_name('fm-ethernet-icon');
+                        wirelessIcon.icon_name = name ?? 'network-offline-symbolic';
+                    }
+                    wirelessIcon.visible = Boolean(primary?.visible || wireless?.visible);
+                    indicator.hide();
+                    button.visible = wirelessIcon.visible;
                 };
-                bindings.push(wireless.connect('notify::icon-name', updateWifi),
+                if (wireless) bindings.push(wireless.connect('notify::icon-name', updateWifi),
                     wireless.connect('notify::visible', updateWifi));
+                if (indicator._primaryIndicator) {
+                    for (const name of ['notify::icon-name', 'notify::visible'])
+                        networkBindings.push([indicator._primaryIndicator, indicator._primaryIndicator.connect(name, updateWifi)]);
+                }
                 updateWifi();
             }
             const sync = () => {
+                if (wirelessIcon) {
+                    button.visible = wirelessIcon.visible;
+                    if (indicator.visible) indicator.hide();
+                    return;
+                }
                 if (batteryIcon) {
                     button.visible = batteryIcon.state.present;
                     if (indicator.visible) indicator.hide();
@@ -105,7 +126,7 @@ export class StatusButtons {
             });
             const position = Main.panel._rightBox.get_children().indexOf(this.panel.container);
             Main.panel.addToStatusArea(`familiarmac-status-${key}`, button, Math.max(0, position), 'right');
-            this.buttons.push({indicator, index, button, signal, wireless, bindings, wirelessIcon, batteryIcon});
+            this.buttons.push({indicator, index, button, signal, wireless, bindings, networkBindings, wirelessIcon, batteryIcon});
         }
         this.panelOrder = new PanelOrder();
     }
@@ -202,9 +223,10 @@ export class StatusButtons {
         if (this.panel.menu.close === this.closeWrapper) this.panel.menu.close = this.originalClose;
         this.restore();
         const box = this.panel._indicators;
-        for (const {indicator, index, button, signal, wireless, bindings, batteryIcon} of this.buttons.reverse()) {
+        for (const {indicator, index, button, signal, wireless, bindings, networkBindings, wirelessIcon, batteryIcon} of this.buttons.reverse()) {
+            for (const [actor, id] of networkBindings) actor.disconnect(id);
             for (const id of bindings) wireless.disconnect(id);
-            if (wireless) indicator.show();
+            if (wirelessIcon) indicator.show();
             indicator.disconnect(signal);
             if (batteryIcon) {
                 indicator.visible = batteryIcon.state.present;

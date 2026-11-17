@@ -60,7 +60,9 @@ for (const state of [0,1]) {
  assert.equal(JSON.stringify(launched),JSON.stringify(['/home/test/.local/bin/familiarmac-settings','system','about']));
 }
 context.Gio.DesktopAppInfo.new=()=>({launch(){launched='genie-prefs';}});
-icon._menu._rebuildMenu();icon._menu.items.find(i=>i.label==='Dock & Window Effects…').action();assert.equal(launched,'genie-prefs');
+icon._menu._rebuildMenu();icon._menu.items.find(i=>i.label==='Dock & Window…').action();assert.equal(launched,'genie-prefs');
+context.settingsPanels=()=>[{name:'About',args:['system','about']},{name:'Görünüm',args:['background']},{name:'Apps',args:['applications']}];
+icon._menu._rebuildMenu();assert.deepEqual(icon._menu.items.slice(0,4).map(i=>i.label),['About','Görünüm','Dock & Window…','Apps']);
 controller.destroy();assert.equal(icon._menu._rebuildMenu,original);assert.equal(controller.icons.size,0);
 console.log('Dock menu: stopped/running actions, Focus-independent flyout cleanup, Finder protection and restoration PASS');
 

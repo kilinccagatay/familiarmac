@@ -86,7 +86,7 @@ export function autostartEnabled(key) {
 
 export function dockMenuState(app, backgroundRunning) {
     return {running: app.state !== Shell.AppState.STOPPED || backgroundRunning,
-        fixed: app.get_id() === 'org.gnome.Nautilus.desktop'};
+        fixed: ['org.gnome.Nautilus.desktop', 'org.familiarmac.Apps.desktop'].includes(app.get_id())};
 }
 
 // Per-icon hooks, installed before the dock calls popup(). No global prototype
@@ -177,10 +177,17 @@ export class DockMenus {
         const isSettings = app.get_id() === 'org.gnome.Settings.desktop';
         if (isSettings) {
             const panels = settingsPanels();
-            for (const panel of panels)
-                menu.addAction(panel.name, () => Util.spawn([settingsCommand(), ...panel.args]));
             const effects = Gio.DesktopAppInfo.new('familiarmac-genie-preferences.desktop');
-            if (effects) menu.addAction('Dock & Window Effects…', () => effects.launch([], null));
+            const entries = panels.map(panel => ({name: panel.name,
+                activate: () => Util.spawn([settingsCommand(), ...panel.args])}));
+            if (effects) {
+                // Match panel identity, not its translated display name.
+                const appearance = panels.findIndex(panel => ['background', 'appearance'].includes(panel.args[0]));
+                const alphabetical = entries.findIndex(entry => entry.name.localeCompare('Dock & Window') > 0);
+                const index = appearance >= 0 ? appearance + 1 : alphabetical >= 0 ? alphabetical : entries.length;
+                entries.splice(index, 0, {name: 'Dock & Window…', activate: () => effects.launch([], null)});
+            }
+            for (const entry of entries) menu.addAction(entry.name, entry.activate);
             if (panels.length || effects) separator();
         }
         if (running && !isSettings) {

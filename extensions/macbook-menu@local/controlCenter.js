@@ -14,6 +14,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 // No polling, duplicated settings service, or unsupported Apple-only controls.
 export class ControlCenter {
     constructor(path) {
+        this.path = path;
         this.panel = Main.panel.statusArea.quickSettings;
         if (!this.panel?._indicators || !this.panel.menu?.box) return;
         this.panel.add_style_class_name('familiarmac-status');

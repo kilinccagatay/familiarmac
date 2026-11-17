@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="24" viewBox="0 0 28 24">
+  <!-- Filled outlines preserve the approved rounded stroke geometry while
+       allowing GNOME symbolic recoloring to apply equally to brackets and dots. -->
+  <g fill="#bebebe">
+    <path d="M7.99846 6.66564 4.44222 12 7.99846 17.33436 A1.2 1.2 0 0 1 6.00154 18.66564 L2.00154 12.66564 A1.2 1.2 0 0 1 2.00154 11.33436 L6.00154 5.33436 A1.2 1.2 0 0 1 7.99846 6.66564Z"/>
+    <path transform="translate(28 0) scale(-1 1)" d="M7.99846 6.66564 4.44222 12 7.99846 17.33436 A1.2 1.2 0 0 1 6.00154 18.66564 L2.00154 12.66564 A1.2 1.2 0 0 1 2.00154 11.33436 L6.00154 5.33436 A1.2 1.2 0 0 1 7.99846 6.66564Z"/>
+    <circle cx="10" cy="12" r="1.2"/>
+    <circle cx="14" cy="12" r="1.2"/>
+    <circle cx="18" cy="12" r="1.2"/>
+  </g>
+</svg>
