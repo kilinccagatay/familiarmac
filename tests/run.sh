@@ -54,3 +54,14 @@ python3 tests/application-shortcuts.py
 python3 tests/toolkit-detection.py
 
 python3 tests/flatpak-gtk3-menu.py
+
+python3 tests/native-menu-integrations.py
+
+python3 tests/seahorse-layout.py
+
+"$NODE" tests/gtk-action-fallback.cjs
+
+"$NODE" tests/application-shortcuts.cjs
+
+python3 tests/portal-owners.py
+"$NODE" tests/portal-owners.cjs

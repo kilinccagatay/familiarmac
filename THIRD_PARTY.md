@@ -70,3 +70,11 @@ system library is copied, and no binary is added to this repository. See the
 [upstream module documentation](https://github.com/rilian-la-te/vala-panel-appmenu/blob/master/subprojects/appmenu-gtk-module/README.md).
 Electron accelerator metadata follows [Electron MenuItem](https://www.electronjs.org/docs/latest/api/menu-item);
 role defaults come from Electron, not a label-based shortcut database.
+
+GIMP shortcut-file interpretation follows its own
+[`shortcuts-rc.c` serializer](https://github.com/GNOME/gimp/blob/master/app/menus/shortcuts-rc.c):
+default accelerators are written as commented action records. The local reader is
+read-only and retains explicit user overrides; no GIMP source or default key table
+is copied into the repository.
+
+Evolution native menu profile: [upstream shell settings schema](https://github.com/GNOME/evolution/blob/master/data/org.gnome.evolution.shell.gschema.xml.in) documents `menubar-visible` and `menubar-visible-sub`. The integration uses these existing settings; no Evolution source code is copied.

@@ -1,0 +1,45 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+let source=fs.readFileSync('overrides/appmenu/realMenuManager.js','utf8').replace(/^import .*;$/gm,'').replace('export class RealMenuManager','class RealMenuManager');
+source+='\nglobalThis.Manager=RealMenuManager;';
+const calls=[],subs=new Map();let id=0;
+const session={signal_subscribe(...args){subs.set(++id,args);return id;},signal_unsubscribe(i){subs.delete(i);},
+ async call(bus,path,iface,method,params,type,flags){calls.push({bus,path,method,flags});
+ if(method==='DescribeAll')return {deepUnpack:()=>[path.endsWith('/window/7')?{open:[true,'',[]],find:[true,'',[]]}:{custom:[true,'',[]],preferences:[true,'',[]],quit:[true,'',[]]}]};return null;}};
+const Gio={_promisify(){},DBusConnection:{prototype:{}},DBus:{session},DBusSignalFlags:{NONE:0},DBusCallFlags:{NO_AUTO_START:1,NONE:0},dbus_is_name:()=>true};
+const GLib={getenv:()=>'',Variant:class{constructor(...args){this.args=args;}static is_object_path(){return true;}},source_remove(){}};
+class ApplicationShortcuts{lookup(){return '';}destroy(){}}
+const ctx={Gio,GLib,ApplicationShortcuts,Logger:{debug(){},error(){}},_:x=>x,imports:{gi:{versions:{},Dbusmenu:{}}}};
+vm.runInNewContext(source,ctx);
+(async()=>{
+ const m=new ctx.Manager(null,()=>{});
+ const w={get_gtk_unique_bus_name:()=>':1.42',get_gtk_application_object_path:()=>'/actual/app',get_gtk_window_object_path:()=>'/actual/app/window/7'};
+ m._currentWindow=w;m._requestGeneration=9;m._backendType='gtk-menu';m._gtkMenu={build:()=>null,destroy(){}};
+ await m._requestGtkActions({get_id:()=> 'Different.desktop'},'',9,null);
+ assert(calls.every(c=>c.bus===':1.42'&&c.flags===1));
+ const tree=m.buildCurrentMenuModel();
+ assert(tree.appMenuChildren.some(i=>i.label==='Settings'));
+ assert(tree.topLevelMenus.find(i=>i.label==='More').children.some(i=>i.label==='Custom'),'unclassified command dropped');
+ const file=tree.topLevelMenus.find(i=>i.label==='File');assert(file.children.some(i=>i.label==='Open…'));
+ assert(tree.topLevelMenus.find(i=>i.label==='Edit').children.some(i=>i.label==='Find…'));
+ await file.children[0].activate();assert.equal(calls.at(-1).path,'/actual/app/window/7');
+ const oldContext=m._actionContext;
+ await m._requestGtkActions({get_id:()=> 'Different.desktop'},'',9,null);
+ assert.equal(m._actionContext,oldContext,'state refresh invalidated open menu');
+ const beforeActivation=calls.length;await file.children[0].activate();
+ assert.equal(calls.length,beforeActivation+1,'open menu stopped activating after refresh');
+ const native={topLevelMenus:[{label:'Native'}]};m._gtkMenu.build=()=>native;assert.equal(m.buildCurrentMenuModel(),native);
+ const partial={topLevelMenus:[{label:'File',children:[{label:'Native Open',actionId:'win.open',shortcut:'native'}]}]};
+ m._gtkMenu.build=()=>partial;
+ const completed=m.buildCurrentMenuModel();
+ assert.equal(completed.topLevelMenus[0].children.length,1,'duplicated native action');
+ assert.equal(completed.topLevelMenus[0].children[0].shortcut,'native');
+ assert(completed.topLevelMenus.find(i=>i.label==='Edit').children.some(i=>i.actionId==='win.find'));
+ assert(!completed.topLevelMenus.some(i=>i.label==='More'),'internal/unknown action appended');
+ assert.equal(partial.topLevelMenus.length,1,'mutated native tree');
+ const count=calls.length;m._actionContext=null;await file.children[0].activate();assert.equal(calls.length,count,'stale action activated');
+ m._backendType='dbusmenu';m._actionContext=null;
+ await m._requestGtkActions({get_id:()=> 'Different.desktop'},'',9,null);assert.equal(m._actionContext,null,'dbusmenu replaced');
+ m._backendType=null;m._currentWindow={};await m._requestGtkActions(null,'',8,null);assert.equal(m._actionContext,null,'stale result accepted');
+ m.destroy();assert.equal(subs.size,0);
+ console.log('GTK empty-menu fallback, exact window routing, native priority, no autostart, stale actions and cleanup PASS');
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -28,5 +28,21 @@
     "id": "io.github.ungoogled_software.ungoogled_chromium",
     "kind": "flatpak",
     "adapter": "chromium-integrations.py"
+  },
+  {
+    "id": "org.gnome.Evolution",
+    "kind": "native",
+    "adapter": "native-menu-integrations.py",
+    "settings": {
+      "org.gnome.evolution.shell": {
+        "menubar-visible": "true",
+        "menubar-visible-sub": "true"
+      }
+    }
+  },
+  {
+    "id": "org.gnome.seahorse.Application",
+    "kind": "native",
+    "adapter": "seahorse-layout.py"
   }
 ]

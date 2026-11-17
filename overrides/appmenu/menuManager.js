@@ -1,4 +1,5 @@
-import {hasWindowMenu} from './menuRoles.js';
+import {PortalOwners} from './portalOwners.js';
+import {hasWindowMenu, panelAppName, menuWindowIdentity, isApplicationWindowType} from './menuRoles.js';
 import {itemShortcut} from './shortcutHints.js';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
@@ -366,6 +367,7 @@ export class MenuManager {
 
         // Auto-detected distro icon (computed once, used as fallback)
         this._distroIcon = DEFAULT_ICON;
+        this._portalOwners = new PortalOwners(() => this.updateMenuForWindow(global.display.get_focus_window(), true));
         this._realMenuManager = new RealMenuManager(this._settings, () => {
             this.updateMenuForWindow(global.display.get_focus_window(), true);
         });
@@ -529,8 +531,10 @@ export class MenuManager {
             // DING uses a normal Gjs window for the desktop on Wayland.
             const desktopWindow = /^(gjs|gjs-console|desktop-icons|ding)$/i.test(window.get_wm_class() || '')
                 && /desktop|ding|@!0,0;bdhf/i.test(window.get_title() || '');
-            if (windowType === 0 && !desktopWindow) {
-                detectedApp = this._windowTracker.get_window_app(window);
+            if (isApplicationWindowType(windowType) && !desktopWindow) {
+                detectedApp = menuWindowIdentity(window, this._windowTracker);
+                if (!window.get_transient_for?.())
+                    detectedApp = this._portalOwners.appFor(window, this._appSystem) ?? detectedApp;
 
                 // Fast-path: skip blacklist entirely if list is empty
                 const blacklistLower = this._blacklist;
@@ -613,6 +617,7 @@ export class MenuManager {
                 menuSource,
             };
 
+        appName = panelAppName(appName, detectedApp?.get_id?.());
         const fallbackAppChildren = isAppFocused
             ? buildAppMenu(appName, detectedApp, window)
             : buildFallbackAppMenu();
@@ -782,6 +787,7 @@ export class MenuManager {
         this.clear();
         this._virtualDevice?.run_dispose();
         this._virtualDevice = null;
+        this._portalOwners?.destroy();
         this._realMenuManager?.destroy();
         this._realMenuManager = null;
     }

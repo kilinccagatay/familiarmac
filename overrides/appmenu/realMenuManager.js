@@ -1,3 +1,4 @@
+import {ApplicationShortcuts} from './applicationShortcuts.js';
 import {dbusMenuShortcut} from './exportedShortcuts.js';
 import { GtkMenuModel } from './gtkMenuModel.js';
 import Gio from 'gi://Gio';
@@ -27,6 +28,8 @@ const KNOWN_LABELS = new Map([
     // App menu
     ['about', 'About'],
     ['preferences', 'Settings'],
+    ['show-preferences', 'Settings'],
+    ['show-help-overlay', 'Keyboard Shortcuts'],
     ['options', 'Settings'],
     ['quit', 'Quit'],
     ['exit', 'Quit'],
@@ -147,19 +150,21 @@ const KNOWN_LABELS = new Map([
 
 // ── action category matchers ─────────────────────────────────────────────
 function _categoryForAction(name) {
-    const n = name.toLowerCase();
+    const n = name.toLowerCase().replace(/_/g, '-');
 
     // App menu actions — exclude help/about (those go to Help menu)
-    if (/^(preferences|options|quit|exit|close$|make-default|show-diagnostics|diagnostics)$/.test(n))
+    if (/^(preferences|show-preferences|options|quit|exit)$/.test(n))
         return 'app';
 
     // File actions — prefix-based
-    if (/^(new-|clone-|tepl-|open|save|print|export|import|revert|send-|share|close-tab|close-window|close-all|page-setup|show-file|search-settings|properties)/.test(n))
+    if (/^(close$|new$|new-|clone-|tepl-|open|save|print|export|import|revert|send-|share|close-tab|close-window|close-all|page-setup|show-file|search-settings|properties)/.test(n))
         return 'file';
 
     // Edit actions
     if (/^(undo|redo|cut|copy|paste|delete|select-all|deselect|find|replace|go-to|clear-history|remove-recent|insert-)/.test(n))
         return 'edit';
+
+    if (n === 'show-help-overlay') return 'help';
 
     // View actions
     if (/^(zoom-|fullscreen|toggle-fullscreen|reload|refresh|show-|sort-|filter|style-scheme)/.test(n))
@@ -216,7 +221,7 @@ function _unpackGtkActionDetails(details) {
         return {
             enabled: Boolean(details[0]),
             parameterType: String(details[1] ?? ''),
-            state: details[2],
+            state: details[2]?.[0] ?? null,
         };
     }
 
@@ -308,7 +313,7 @@ async function _probeGtkActions(busName, objectPath, cancellable) {
         const result = await Gio.DBus.session.call(
             busName, objectPath,
             GTK_ACTIONS_INTERFACE, 'DescribeAll',
-            null, null, Gio.DBusCallFlags.NONE, 2000, cancellable
+            null, null, Gio.DBusCallFlags.NO_AUTO_START, 2000, cancellable
         );
         const [descriptions] = result.deepUnpack();
         if (!descriptions || Object.keys(descriptions).length === 0)
@@ -414,6 +419,13 @@ export class RealMenuManager {
     }
 
     _cancelRequest() {
+        for (const id of this._actionSignals ?? []) Gio.DBus.session.signal_unsubscribe(id);
+        this._actionSignals = [];
+        if (this._actionRefresh) GLib.source_remove(this._actionRefresh);
+        this._actionRefresh = 0;
+        this._actionShortcuts?.destroy();
+        this._actionShortcuts = null;
+        this._actionContext = null;
         for (const [window, id] of this._gtkWindowSignals ?? []) window.disconnect(id);
         this._gtkWindowSignals = [];
         this._requestGeneration++;
@@ -437,7 +449,7 @@ export class RealMenuManager {
         this._setBackend(null, null);
 
         if (typeof window.connect === 'function') {
-            for (const name of ['gtk-menubar-object-path', 'gtk-unique-bus-name'])
+            for (const name of ['gtk-menubar-object-path', 'gtk-unique-bus-name', 'gtk-application-object-path', 'gtk-window-object-path'])
                 this._gtkWindowSignals.push([window, window.connect(`notify::${name}`,
                     () => this._startLookup(window, detectedApp, wmClass))]);
         }
@@ -454,9 +466,8 @@ export class RealMenuManager {
                 appPath: window.get_gtk_application_object_path?.(),
                 windowPath: window.get_gtk_window_object_path?.()});
             this._emitChanged();
-        } else {
-            this._requestGtkActions(detectedApp, wmClass, generation, cancellable);
         }
+        this._requestGtkActions(detectedApp, wmClass, generation, cancellable);
     }
 
     async _requestRegistration(window, generation, cancellable) {
@@ -490,32 +501,42 @@ export class RealMenuManager {
     }
 
     async _requestGtkActions(detectedApp, wmClass, generation, cancellable) {
+        const window = this._currentWindow;
+        const probe = this._actionProbeGeneration = (this._actionProbeGeneration ?? 0) + 1;
         const appId = detectedApp?.get_id?.() ?? wmClass;
-        const busName = _desktopIdToBusName(appId);
-        const objectPath = _busNameToObjectPath(busName);
-        if (!busName || !objectPath)
-            return;
-
-        const actions = await _probeGtkActions(busName, objectPath, cancellable);
-        if (!actions || !this._isCurrentRequest(generation, this._currentWindow))
-            return;
-        if (this._backendType === 'dbusmenu')
-            return;
-
-        const context = { busName, objectPath, appId };
-        this._setBackend('gtk-actions', context);
-        this._cachedActions = actions;
-
-        // Never guess window/1: it can target a different document.
-        const windowPath = this._currentWindow?.get_gtk_window_object_path?.();
-        const winActions = windowPath
-            ? await _probeGtkActions(busName, windowPath, cancellable) : null;
-        if (!this._isCurrentRequest(generation, this._currentWindow))
-            return;
-        if (this._backendType === 'dbusmenu')
-            return;
-
-        this._cachedWinActions = winActions;
+        // Prefer Mutter's actual address: desktop IDs need not equal D-Bus names.
+        const busName = window?.get_gtk_unique_bus_name?.() || _desktopIdToBusName(appId);
+        const objectPath = window?.get_gtk_application_object_path?.() || _busNameToObjectPath(_desktopIdToBusName(appId));
+        const windowPath = window?.get_gtk_window_object_path?.();
+        if (!busName || (!objectPath && !windowPath)) return;
+        const [actions, winActions] = await Promise.all([
+            objectPath ? _probeGtkActions(busName, objectPath, cancellable) : null,
+            windowPath ? _probeGtkActions(busName, windowPath, cancellable) : null,
+        ]);
+        if (!this._isCurrentRequest(generation, window) || probe !== this._actionProbeGeneration || this._backendType === 'dbusmenu') return;
+        // Preserve callbacks in an already open menu when only enabled/state data
+        // changes. Ownership changes still invalidate them in _cancelRequest.
+        const previous = this._actionContext;
+        if (!previous || previous.busName !== busName || previous.objectPath !== objectPath ||
+            previous.windowPath !== windowPath || previous.generation !== generation)
+            this._actionContext = {busName, objectPath, windowPath, appId, generation};
+        this._cachedActions = (actions ?? []).map(a => ({...a, prefix: 'app'}));
+        this._cachedWinActions = (winActions ?? []).map(a => ({...a, prefix: 'win'}));
+        if (!this._backendType) this._setBackend('gtk-actions', this._actionContext);
+        if (!this._actionShortcuts)
+            this._actionShortcuts = new ApplicationShortcuts(appId, () => this._emitChanged());
+        if (!this._actionSignals?.length) {
+            this._actionSignals = [...new Set([objectPath, windowPath].filter(Boolean))].map(path =>
+                Gio.DBus.session.signal_subscribe(busName, GTK_ACTIONS_INTERFACE, 'Changed', path,
+                    null, Gio.DBusSignalFlags.NONE, () => {
+                        if (this._actionRefresh || !this._isCurrentRequest(generation, window)) return;
+                        this._actionRefresh = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            this._actionRefresh = 0;
+                            this._requestGtkActions(detectedApp, wmClass, generation, cancellable);
+                            return GLib.SOURCE_REMOVE;
+                        });
+                    }));
+        }
         this._emitChanged();
     }
 
@@ -523,10 +544,41 @@ export class RealMenuManager {
         if (this._backendType === 'dbusmenu')
             return this._buildDbusMenuModel(appName);
         if (this._backendType === 'gtk-menu')
-            return this._gtkMenu?.build(this._currentKey) ?? null;
+            return this._completeGtkMenu(this._gtkMenu?.build(this._currentKey));
         if (this._backendType === 'gtk-actions')
             return this._buildGtkActionMenuModel();
         return null;
+    }
+
+    _completeGtkMenu(native) {
+        if (!native) return this._buildGtkActionMenuModel();
+        // Only augment trees with exact action identities. Older/native models
+        // without this metadata retain their original behavior.
+        const seen = new Set();
+        const visit = items => { for (const item of items ?? []) {
+            if (item.actionId) seen.add(item.actionId);
+            visit(item.children);
+        }};
+        visit(native.appMenuChildren); visit(native.topLevelMenus);
+        if (!seen.size) return native;
+        const fallback = this._buildGtkActionMenuModel();
+        if (!fallback) return native;
+        // Limit additions to recognized public commands, never internal dispatch
+        // actions or parameterized operations with an invented target.
+        const missing = items => (items ?? []).filter(item => item.actionId &&
+            !seen.has(item.actionId) && KNOWN_LABELS.has(item.actionId.slice(item.actionId.indexOf('.') + 1)));
+        const result = {...native, topLevelMenus: [...native.topLevelMenus]};
+        const appItems = missing(fallback.appMenuChildren);
+        if (appItems.length) result.appMenuChildren = [...(native.appMenuChildren ?? []), ...appItems];
+        for (const menu of fallback.topLevelMenus) {
+            const children = missing(menu.children);
+            if (!children.length) continue;
+            const index = result.topLevelMenus.findIndex(item => item.label === menu.label);
+            if (index < 0) result.topLevelMenus.push({...menu, children});
+            else result.topLevelMenus[index] = {...result.topLevelMenus[index],
+                children: [...result.topLevelMenus[index].children, ...children]};
+        }
+        return result;
     }
 
     // ── dbusmenu (registrar) backend ──────────────────────────────────
@@ -573,10 +625,10 @@ export class RealMenuManager {
     // ── GTK actions backend ───────────────────────────────────────────
 
     _buildGtkActionMenuModel() {
-        if (!this._currentGtkContext)
+        if (!this._actionContext)
             return null;
 
-        const actions = this._cachedActions ?? [];
+        const actions = [...(this._cachedActions ?? []), ...(this._cachedWinActions ?? [])];
         if (actions.length === 0)
             return null;
 
@@ -609,19 +661,9 @@ export class RealMenuManager {
         const helpItems = build(buckets.help);
         const otherItems = build(buckets.other);
 
-        // Assemble app menu children: app-category items + any unrecognised + per-window actions
+        // The macOS-style application menu promotes only app-level roles.
+        // Keep other real commands in their own menu so none are discarded.
         const appChildren = [...appItems];
-        if (otherItems.length > 0) {
-            if (appChildren.length > 0)
-                appChildren.push({ type: 'separator' });
-            appChildren.push(...otherItems);
-        }
-        // Add per-window actions (e.g. "Read Only" tab toggle in Ptyxis)
-        if (this._cachedWinActions && this._cachedWinActions.length > 0) {
-            if (appChildren.length > 0)
-                appChildren.push({ type: 'separator' });
-            appChildren.push(...this._buildGtkActionItems(this._cachedWinActions));
-        }
 
         // Assemble top-level menus
         const topLevelMenus = [];
@@ -630,6 +672,7 @@ export class RealMenuManager {
         if (viewItems.length > 0) topLevelMenus.push({ label: 'View', children: viewItems });
         if (formatItems.length > 0) topLevelMenus.push({ label: 'Format', children: formatItems });
         if (toolsItems.length > 0) topLevelMenus.push({ label: 'Tools', children: toolsItems });
+        if (otherItems.length > 0) topLevelMenus.push({ label: _('More'), children: otherItems });
         if (helpItems.length > 0) topLevelMenus.push({ label: 'Help', children: helpItems });
 
         if (appChildren.length === 0 && topLevelMenus.length === 0)
@@ -720,19 +763,20 @@ export class RealMenuManager {
             return null;
 
         const ornament = _gtkActionOrnament(action);
+        const context = this._actionContext;
 
         return {
             label: _labelForAction(action.name),
+            actionId: `${action.prefix}.${action.name}`,
             sensitive: action.enabled,
             ornament,
-            activate: () => this._activateGtkAction(action.name, action.objectPath),
+            shortcut: this._actionShortcuts?.lookup(`${action.prefix}.${action.name}`, null) ?? '',
+            activate: () => this._activateGtkAction(action.name, action.objectPath, context),
         };
     }
 
-    async _activateGtkAction(name, objectPath = null) {
-        if (!this._currentGtkContext)
-            return;
-        const context = this._currentGtkContext;
+    async _activateGtkAction(name, objectPath = null, context = this._actionContext) {
+        if (!context || context !== this._actionContext) return;
         try {
             await Gio.DBus.session.call(
                 context.busName,
@@ -741,7 +785,7 @@ export class RealMenuManager {
                 'Activate',
                 new GLib.Variant('(sava{sv})', [name, [], {}]),
                 null,
-                Gio.DBusCallFlags.NONE,
+                Gio.DBusCallFlags.NO_AUTO_START,
                 5000,
                 null,
             );

@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+let source=fs.readFileSync('overrides/appmenu/applicationShortcuts.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
+source+='\nglobalThis.Reader=ApplicationShortcuts;';
+const c={Gio:{Action:{name_is_valid:()=>false}}};vm.runInNewContext(source,c);
+const r=new c.Reader('',()=>{});r.values={'win.save_as':'<Primary><Shift>s','win.save':'<Primary>s'};
+assert.equal(r.lookup('win.save_as',null),'<Primary><Shift>s');
+assert.equal(r.lookup('win.save',null),'<Primary>s');
+assert.equal(r.lookup('win.unknown',null),'');
+assert.equal(r.lookup('win.save_as',{}),'');
+assert.equal(r.lookup(undefined,null),'');
+console.log('Shortcut lookup: exact underscore wire IDs, no guessing or invalid target conversion PASS');

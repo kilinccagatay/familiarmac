@@ -159,3 +159,9 @@ the selected GPU, or desktop-wide rendering.
 
 The remaining application audit is paused pending graphics stability work.
 Do not interpret this mitigation as confirmation that the session crash is fixed.
+
+2026-11-16 23:57:29 CET: during the NewsFlash first-launch check, Nouveau logged
+`RT_HEIGHT_OVERRUN` traps attributed to `gst-plugin-scan[50546]`. No session exit
+was observed during this audit. This is additional evidence of an unresolved
+GStreamer/Nouveau path, not proof that the menu extension caused the GPU fault.
+No driver, kernel, Wi-Fi, initramfs or boot settings were changed.

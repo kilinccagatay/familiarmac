@@ -104,3 +104,31 @@ kullanmaya devam eder. Electron uygulamalarında gerçek kısayollar üst menüy
 Bu, her Linux uygulaması için destek garantisi değildir. Açık uygulamayı normal
 şekilde yeniden başlatmak gerekebilir. [Teknik akış](APPLICATION-INTEGRATION.md) ve
 [uygulama denetimi](APPLICATION-AUDIT.md) doğrulananları ve kalan eksikleri açıklar.
+
+
+## Menü ve ortak tema güncellemelerini uygulama
+
+Ortak GTK başlık kuralları pencere düğmelerinin boyutunu korur; düğmeler ve arama
+alanları için dengeli üst-alt boşluk sağlar. Yerel GTK uygulamalarına ve desteklenen
+Flatpak uygulamalarına kurulur; kurulum/güncelleme izleyicisi de aynı kaynakları kullanır.
+Kısmi menüler yalnızca gerçekten dışa aktarılan, tanınan komutlarla tamamlanır.
+Kısayollar uygulamanın gerçek menü verisi, tuş haritası veya açık GtkBuilder
+eylem/kısayol tanımlarından okunur. Dosya seçicinin sahibi doğrulanabiliyorsa panelde
+isteği yapan uygulamanın adı korunur. Dışa aktarılmayan GTK4 komutları hâlâ kapsam dışıdır.
+
+Mevcut kurulumda, depo klasöründe normal masaüstü kullanıcınla çalıştır:
+
+```bash
+git pull --ff-only
+bash install.sh --check
+bash install.sh --desktop --dry-run
+bash install.sh --desktop
+```
+
+Bu işlem masaüstü profilini yeniden uygular; menü eklentilerini ve ortak tema
+uyarlayıcılarını kurar. İsteğe bağlı Wi-Fi ve açılış kurulumu seçilmez.
+Yeni Shell kodu için çalışmalarını kaydedip oturumu kapatıp aç; GTK teması için
+uygulamaları tamamen kapatıp yeniden aç. Bazı uygulamalar son pencere kapansa da
+arka planda kalır. Kurulum otomatik çıkış veya yeniden başlatma yapmaz.
+[Kurulum/geri alma](INSTALL.md), [teknik akış](APPLICATION-INTEGRATION.md) ve
+[kalan eksikler](APPLICATION-AUDIT.md) ayrıntıları içerir.

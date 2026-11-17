@@ -1,4 +1,4 @@
-# Uygulama denetimi — 16 Kasım 2026
+# Uygulama denetimi — 17 Kasım 2026
 
 Bu dosya README'deki kronolojik notların yerine güncel tamamlanma durumunu özetler. Kurulu dosya ve birim testi, fiziksel kullanım doğrulaması anlamına gelmez.
 
@@ -49,6 +49,58 @@ Opt-in `--brightness`: internal gmux down key can reach true zero. Real hardware
 - Audacity: ortak GTK3 Flatpak modülü ile normal açılışta üst menü, yerel menünün gizlenmesi ve kısayol işaretleri görsel olarak doğrulandı.
 - Krita/Scribus/FreeCAD: ana ekranlar tek tek incelendi. Windows/Window tekrarının ortak düzeltmesi hazır; yeni oturumda görsel kontrol bekliyor.
 - Kurulum/güncelleme izleyicisi etkin; geçici launcher olayıyla otomatik çalışması doğrulandı. Bu test yeni indirilen her uygulamanın uyarlanacağını garanti etmez.
-- Ardour istisnası ve HomeBank'in yeniden görsel kontrolü açık kalıyor. GPU çökmesinin kök nedeni çözülmüş sayılmıyor; Mixxx geçici yazılım çizimi ayrı ve opt-in.
+- HomeBank ortak GTK3 düzeltmesiyle yeniden açılarak menü/kısayol aktarımı doğrulandı. Ardour istisnası açık kalıyor. GPU çökmesinin kök nedeni çözülmüş sayılmıyor; Mixxx geçici yazılım çizimi ayrı ve opt-in.
 
 Ayrıntılar: [otomasyon](docs/APPLICATION-INTEGRATION.md), [uygulama denetimi](docs/APPLICATION-AUDIT.md), [GPU tanılama](docs/GPU-DIAGNOSTICS.md).
+
+### Latest sequential application checks
+
+Evolution native menu export is repaired through an audited, reversible catalog profile (X11 launcher plus its own menubar settings); File rows and shortcut hints verified. Shotwell empty-library menus and hints verified. HandBrake still duplicates its local menu and has no File shortcut hints; further GTK4 integration work is required. No Wi-Fi, boot, kernel or GPU configuration changed during these checks.
+
+
+2026-11-17 — Shared menu completion installed (next normal login): actual GTK
+app/window addresses, empty-GMenu action fallback, state refresh, transient dialog
+identity, and shared read-only GtkAccelMap shortcut hints. Live backend checks
+passed for Mousepad, Rhythmbox and Apostrophe; native GMenu/D-BusMenu priority and
+lifecycle tests passed. Existing Shell was not restarted; visual panel verification
+is pending login. Apps without exported or supported saved accelerator metadata
+still have no inferred hints. Wi-Fi/boot/graphics settings unchanged.
+
+2026-11-17 post-login visual check: Mousepad hints and chooser identity, Rhythmbox Settings/dialog identity, Apostrophe Open/Save/Find, and VLC/Inkscape native menu regressions verified. VLC Flatpak chooser still identifies as Portal; transient-owner priority follow-up installed, awaiting visual validation after normal login. Apostrophe hints remain unavailable without supported metadata.
+
+2026-11-17 Apostrophe hints: shared conservative Python/GTK startup reader and
+underscore action-ID lookup installed; live action/shortcut model and regression
+suite pass. No keys assigned. Pending next normal-login visual check together
+with VLC portal ownership.
+
+2026-11-17 second login: Apostrophe hints visually verified. VLC Portal identity
+remains unresolved: backend FileChooser.OpenFile carries org.videolan.VLC but
+parent_window=x11:0. Actual request metadata is available; transient-parent-only
+resolution is insufficient. No persistent D-Bus monitor or Qt/graphics change.
+
+2026-11-17 generic Portal ownership bridge installed and running. Actual request
+app ID + backend PID + chooser title resolve orphan dialogs without changing Qt,
+Flatpak or graphics. Live bridge/client and full regression checks pass. Next
+normal login required for final panel display verification.
+
+2026-11-17 Portal ownership visual verification PASSED after root-cause fix:
+Meta reported the GNOME Shell PID for the portal's inherited Wayland socket,
+while D-Bus reported the backend PID. Added a generic guarded compositor-socket
+match: exact backend executable/window class and title, unique window/request.
+No VLC-specific mapping or last-focused-app fallback. Loaded the installed
+resolver into the running owner instance without restarting Shell. The open VLC
+chooser visibly showed “VLC media player”; cancelling cleared GetState to [],
+and native Media menu/shortcut hints were visually verified afterward. Full
+regression suite passed. Wi-Fi, graphics, boot and sandbox settings untouched.
+
+
+## 17 Kasım — son yayın kapsamı
+
+Ortak GTK menü tamamlama, eylem durum güncellemelerinde tıklama bağlantısını koruma,
+GtkBuilder kaynaklarından gerçek kısayol okuma ve doğrulanan portal sahipliği
+kuruldu. Text Editor New Window → ⌘N ve Clocks kısayol penceresi ekranda doğrulandı.
+GTK4 başlıkları 32px içerik minimumu + eşit 4px üst/alt boşluk kullanır; Calendar
+ve Maps son hâli ekranda kontrol edildi. Bağlı grid başlıkları da dengeli boşluk alır.
+Yerel ve Flatpak kurulum/geri alma testleri geçti. Tüm uygulamalar tam destekli
+sayılmıyor: dışa aktarılmayan GTK4 belge komutları, bazı eksik kısayollar, HandBrake
+menü tekrarı ve Ardour istisnası sürüyor. Mixxx/GPU sorunu çözülmüş sayılmıyor.

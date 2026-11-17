@@ -68,7 +68,7 @@ export class GtkMenuModel {
             if (state && target) ornament = state.equal(target) ? 'dot' : null;
             else if (state?.get_type_string() === 'b') ornament = state.get_boolean() ? 'check' : null;
             const shortcut = gmenuShortcut(get) || this._shortcuts.lookup(full, target);
-            items.push({label, shortcut, sensitive: Boolean(group?.has_action(name) && group.get_action_enabled(name)),
+            items.push({label, shortcut, actionId: full, sensitive: Boolean(group?.has_action(name) && group.get_action_enabled(name)),
                 ornament, activate: () => {
                     if (group?.has_action(name) && group.get_action_enabled(name)) group.activate_action(name, target);
                 }});

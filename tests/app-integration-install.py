@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory() as tmp:
     with patch('pathlib.Path.home', return_value=home), patch('subprocess.run', side_effect=run), patch('sys.argv', ['installer']):
         runpy.run_path(str(ROOT/'scripts/install-app-integrations.py'))
         dest = home/'.local/lib/familiarmac'
-        for name in ('app-integrations.py', 'toolkit-integrations.py', 'chromium-integrations.py', 'flatpak-appearance.py'):
+        for name in ('app-integrations.py', 'toolkit-integrations.py', 'chromium-integrations.py', 'flatpak-appearance.py', 'portal-owners.py'):
             assert (dest/name).read_bytes() == (ROOT/'scripts'/name).read_bytes()
         assert (dest/'appearance-config/fixed-traffic-lights.css').is_file()
         assert len(list((dest/'appearance-config/familiarmac-controls').glob('*.svg'))) == 4
@@ -29,5 +29,7 @@ with tempfile.TemporaryDirectory() as tmp:
         try: runpy.run_path(str(ROOT/'scripts/install-app-integrations.py'))
         except SystemExit: pass
     assert calls[0][:4] == ['systemctl', '--user', 'disable', '--now'], calls
-    assert 'chromium-integrations.py' in calls[1][1]
+    assert 'familiarmac-app-integrations.path' in calls[0]
+    assert 'familiarmac-portal-owners.service' in calls[1]
+    assert 'chromium-integrations.py' in calls[2][1]
 print('Fresh-home installation, repeat installation and watcher-first restore PASS')

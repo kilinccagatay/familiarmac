@@ -4,6 +4,9 @@ This inventory covers project behavior, not every typo or intermediate experimen
 
 | Area | Changes | Source / entry point |
 |---|---|---|
+| Shared GTK action completion | Preserve callbacks during state refresh; add recognized missing exported actions by exact ID without replacing native menus | `overrides/appmenu/realMenuManager.js`, `gtkMenuModel.js` |
+| Actual shortcut readers | GtkAccelMap, explicit GtkBuilder action/accelerator pairs and guarded Python GTK bindings; user overrides preserved | `scripts/application-shortcuts.py` |
+| File chooser ownership | Authenticated portal metadata with guarded compositor-socket matching; no selected file paths recorded | `scripts/portal-owners.py`, `overrides/appmenu/portalOwners.js` |
 | Shared header layout | GTK3 control centers match GTK4 (22 logical px); font-relative title reservation for GTK4 split-view headers; native and Flatpak installation | `config/fixed-traffic-lights.css`, `config/headerbar-spacing.css` |
 | Window controls | Left close/minimize/maximize; traffic-light colors; compact GTK4 header spacing so titles fit | `scripts/desktop.py`, `config/traffic-lights.css`, `config/headerbar-spacing.css` |
 | Desktop theme | Pinned WhiteSur dark GTK/Shell/icons, wallpaper, shared dialog contrast/buttons | `scripts/visual-system.sh`, `config/shell-refinements.css` |

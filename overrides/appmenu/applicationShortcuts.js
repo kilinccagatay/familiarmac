@@ -9,7 +9,7 @@ export class ApplicationShortcuts {
         this._changed = changed;
         this._appId = appId;
         this._monitors = [];
-        if (['org.inkscape.Inkscape.desktop', 'inkscape.desktop'].includes(appId)) this._load();
+        if (appId) this._load();
     }
     _load() {
         this._cancellable?.cancel();
@@ -48,6 +48,7 @@ export class ApplicationShortcuts {
         });
     }
     lookup(action, target) {
+        if (!target && /^(app|win)\.[A-Za-z0-9_.-]+$/.test(action ?? '')) return this.values[action] ?? '';
         if (!action || !Gio.Action.name_is_valid(action)) return '';
         return this.values[Gio.Action.print_detailed_name(action, target)] ?? '';
     }

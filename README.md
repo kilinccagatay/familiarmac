@@ -90,6 +90,34 @@ for every Linux app**. Open applications may need a normal restart. See the
 [application audit](docs/APPLICATION-AUDIT.md) and [automation details](docs/APPLICATION-INTEGRATION.md)
 for verified results, unsupported cases and troubleshooting.
 
+## Updating menus and shared themes
+
+The shared GTK header rules preserve traffic-light sizes and give controls and
+search fields balanced vertical space. They are installed for native GTK apps
+and supported Flatpaks, including through the installation/update watcher.
+GTK menus use actual application/window actions; partial exports can be completed
+with recognized exported commands. Shortcut hints come from exported metadata or
+application-owned keymaps and explicit GtkBuilder action/accelerator pairs.
+Portal file choosers retain their requesting application's identity when ownership
+can be verified. These changes do not make unexported GTK4 widget actions available.
+
+For an existing installation, run from your checkout as your desktop user:
+
+```bash
+git pull --ff-only
+bash install.sh --check
+bash install.sh --desktop --dry-run
+bash install.sh --desktop
+```
+
+This reapplies the desktop profile and installs the menu extensions and shared
+appearance adapters. It does not select the opt-in Wi-Fi or boot installation.
+Save work before signing out and back in to load new Shell code. Fully quit and
+reopen apps to load new GTK CSS; some apps keep a background process after their
+last window closes. There is no automatic logout or reboot. See
+[installation and rollback](docs/INSTALL.md), [integration details](docs/APPLICATION-INTEGRATION.md)
+and the [audit's remaining limitations](docs/APPLICATION-AUDIT.md).
+
 ## Compatibility
 
 | Component | Current supported baseline |

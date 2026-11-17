@@ -28,7 +28,11 @@ windowcontrols button.close,
 windowcontrols button.minimize,
 windowcontrols button.maximize { margin: 0; padding: 0; min-width: 16px; }
 windowcontrols button image { min-width: 14px; min-height: 14px; -gtk-icon-size: 14px; margin: 0; padding: 0; }
-/* Compact the GTK4 header consistently; retain centered titles and hit targets. */
-headerbar { min-height: 32px; padding-top: 0; padding-bottom: 0; }
-headerbar > windowhandle > box { min-height: 32px; padding-top: 0; padding-bottom: 0; }
-headerbar button { min-height: 24px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+/* Single-line headers share a 40px baseline (32px content + 4px gutters).
+ * Natural multi-line titles may grow; do not force a fixed widget height. */
+headerbar { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
+headerbar > windowhandle > box { min-height: 28px; padding-top: 0; padding-bottom: 0; }
+headerbar button { min-height: 24px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+headerbar entry, headerbar searchentry { min-height: 24px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+/* Linked grids used as a header title keep a gutter around their shorter row. */
+headerbar grid.linked { margin-top: 4px; margin-bottom: 4px; }

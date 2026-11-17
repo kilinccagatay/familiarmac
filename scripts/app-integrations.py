@@ -23,7 +23,7 @@ def fingerprint(entries):
         if marker.exists():
             digest.update(str(marker).encode())
             digest.update(str(marker.stat().st_mtime_ns).encode())
-    for name in ('app-integrations.py', 'toolkit-integrations.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py'):
+    for name in ('app-integrations.py', 'toolkit-integrations.py', 'firefox-global-menu.py', 'install-brave-global-menu.py','chromium-integrations.py','flatpak-appearance.py','flatpak-gtk3-menu.py','application-shortcuts.py','native-menu-integrations.py','seahorse-layout.py'):
         digest.update((BASE/name).read_bytes())
     config = BASE/'appearance-config'
     if not config.exists(): config = BASE.parent/'config'
