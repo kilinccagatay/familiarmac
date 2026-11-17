@@ -7,6 +7,7 @@ import Shell from 'gi://Shell';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 
@@ -19,11 +20,51 @@ export function flyoutPosition(parent, rowY, size, work, scale = 1) {
         y: Math.max(work.y, Math.min(rowY - 5 * scale, work.y + work.height - size.height))};
 }
 
+// Hit-test transformed coordinates: a nested modal grab can route the event to
+// the flyout even when the pointer is physically over a different parent row.
+export function pointerInside(actor, x, y) {
+    const [ax, ay] = actor.get_transformed_position();
+    const [width, height] = actor.get_transformed_size();
+    return x >= ax && x < ax + width && y >= ay && y < ay + height;
+}
+
+export function pointerReturnsToParent(parent, source, flyout, x, y) {
+    const inside = actor => pointerInside(actor, x, y);
+    // The flyout has visual priority in the intentional overlap region.
+    return inside(parent) && !inside(source) && !inside(flyout);
+}
+
+// Modal release may not emit a new enter/hover notification for the parent.
+// Restore the actual pointer row, rather than only clearing the old source.
+export function selectParentPointerRow(menu, x, y) {
+    if (!pointerInside(menu.actor, x, y)) return;
+    const items = menu._getMenuItems();
+    const target = items.find(item => item.mapped && item.reactive && item.can_focus &&
+        pointerInside(item, x, y));
+    for (const item of items) {
+        if (item !== target && item.active) item.active = false;
+    }
+    if (target) target.active = true;
+}
+
 // Keep native grabs, but treat the parent and its flyout as one dismissal group.
 export class DockFlyoutManager extends PopupMenu.PopupMenuManager {
     constructor(icon, parent) { super(icon); this.parentMenu = parent; }
     _onCapturedEvent(actor, event) {
         const type = event.type();
+        if (this.activeMenu && (type === Clutter.EventType.MOTION || type === Clutter.EventType.ENTER)) {
+            const [x, y] = event.get_coords();
+            if (pointerReturnsToParent(this.parentMenu.actor,
+                this.activeMenu.sourceActor, this.activeMenu.actor, x, y)) {
+                const source = this.activeMenu.sourceActor;
+                this.activeMenu.close(BoxPointer.PopupAnimation.NONE);
+                // popModal restores focus to the source; discard that stale
+                // pointer selection after the nested grab has been released.
+                source.active = false;
+                this.pointerReturned?.();
+                return Clutter.EVENT_PROPAGATE;
+            }
+        }
         const outside = (type === Clutter.EventType.BUTTON_PRESS || type === Clutter.EventType.TOUCH_BEGIN)
             && !actor.contains(global.stage.get_event_actor(event))
             && !this.parentMenu.actor.contains(global.stage.get_event_actor(event));
@@ -35,6 +76,12 @@ export class DockFlyoutManager extends PopupMenu.PopupMenuManager {
         }
         return super._onCapturedEvent(actor, event);
     }
+}
+
+export function autostartEnabled(key) {
+    const [keys] = key.get_keys('Desktop Entry');
+    return !(keys.includes('Hidden') && key.get_boolean('Desktop Entry', 'Hidden')) &&
+        (!keys.includes('X-GNOME-Autostart-enabled') || key.get_boolean('Desktop Entry', 'X-GNOME-Autostart-enabled'));
 }
 
 export function dockMenuState(app, backgroundRunning) {
@@ -77,10 +124,15 @@ export class DockMenus {
         let enabled = false;
         for (const candidate of files) {
             if (!GLib.file_test(candidate, GLib.FileTest.EXISTS)) continue;
-            const key = new GLib.KeyFile(); key.load_from_file(candidate, GLib.KeyFileFlags.NONE);
-            enabled = !(key.has_key('Desktop Entry', 'Hidden') && key.get_boolean('Desktop Entry', 'Hidden'));
-            if (key.has_key('Desktop Entry', 'X-GNOME-Autostart-enabled'))
-                enabled &&= key.get_boolean('Desktop Entry', 'X-GNOME-Autostart-enabled');
+            try {
+                const key = new GLib.KeyFile();
+                key.load_from_file(candidate, GLib.KeyFileFlags.NONE);
+                enabled = autostartEnabled(key);
+            } catch (error) {
+                // A malformed optional autostart file must not abort menu.popup()
+                // before the dock has anchored and positioned the parent menu.
+                logError(error, 'Cannot read Dock autostart state');
+            }
             break;
         }
         return {path, enabled};
@@ -95,6 +147,13 @@ export class DockMenus {
         key.save_to_file(path);
     }
     clearFlyout(record) {
+        if (record.manager) record.manager.pointerReturned = null;
+        if (record.hoverCheck) {
+            GLib.source_remove(record.hoverCheck); record.hoverCheck = 0;
+        }
+        if (record.parentPointer) {
+            record.menu.actor.disconnect(record.parentPointer); record.parentPointer = 0;
+        }
         if (!record.flyout) return;
         record.flyout.close();
         record.manager.removeMenu(record.flyout);
@@ -186,7 +245,36 @@ export class DockMenus {
             menu.close();
         });
         options.activate = () => flyout.open();
-        options.connect('notify::hover', () => { if (options.hover && menu.isOpen) flyout.open(); });
+        const checkPointer = () => {
+            if (!menu.isOpen || !options.mapped) return;
+            const [x, y] = global.get_pointer();
+            if (!pointerInside(options, x, y)) options.active = false;
+            if (flyout.isOpen) return;
+            selectParentPointerRow(menu, x, y);
+            if (pointerInside(menu.actor, x, y) && pointerInside(options, x, y))
+                flyout.open();
+        };
+        const queuePointerCheck = () => {
+            if (record.hoverCheck) return;
+            record.hoverCheck = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                record.hoverCheck = 0;
+                checkPointer();
+                return GLib.SOURCE_REMOVE;
+            });
+        };
+        record.manager.pointerReturned = queuePointerCheck;
+        options.connect('notify::hover', () => { if (options.hover) queuePointerCheck(); });
+        // Hover notifications alone can remain stale after releasing a modal grab.
+        // Every pointer check runs after event dispatch; modal-release leave/focus
+        // events must finish before selecting the new row. Allocation also checks so
+        // a row moved beneath a stationary pointer can open without a click.
+        record.parentPointer = menu.actor.connect('captured-event', (_actor, event) => {
+            if ([Clutter.EventType.MOTION, Clutter.EventType.ENTER,
+                Clutter.EventType.SCROLL].includes(event.type()))
+                queuePointerCheck();
+            return Clutter.EVENT_PROPAGATE;
+        });
+        options.connect('notify::allocation', queuePointerCheck);
         // The options flyout has its own nested native modal grab, released by
         // its manager; parent closure always releases it too.
         if (!record.closeSignal) record.closeSignal = menu.connect('open-state-changed', (_menu, open) => { if (!open) record.flyout?.close(); });

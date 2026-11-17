@@ -376,3 +376,20 @@ Lifecycle gaps found by inspection:
 BlueBubbles Snap 2.1.6.0 was visually checked after its native-frame option,
 missing SVG assets and missing WhiteSur GTK3 theme were supplied: controls are on
 the left and the title bar is dark. This does not certify all Snap applications.
+
+### Dock cascading menu fixes — 2026-11-17
+
+The user confirmed the final pointer transition now works: Options opens without
+clicking, returning to another parent row closes the flyout and highlights that
+row without needing to exit and re-enter its bounds. Parent pointer selection is
+coalesced after event dispatch so late modal-release focus/leave events cannot
+clear it. Only native `.selected` paints blue; stale hover/focus does not paint a
+second row. The open ancestor stays gray. Scroll/layout changes under a stationary
+pointer are checked; pending callbacks and handlers are removed during rebuild.
+Keyboard behavior, overlap, and single Escape/outside-click dismissal remain.
+
+App Store's partial popup at the screen origin was caused by an unsupported
+GLib KeyFile `has_key()` call interrupting construction. The reader now uses
+`get_keys()` and contains malformed optional autostart files. The user confirmed
+App Store positioning is fixed. A real GJS/GLib test supplements Node tests,
+which previously stubbed autostart and missed the API error.

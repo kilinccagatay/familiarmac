@@ -70,3 +70,5 @@ python3 tests/portal-owners.py
 "$NODE" tests/portal-owners.cjs
 
 python3 tests/snap-appearance.py
+
+gjs tests/dock-autostart.js

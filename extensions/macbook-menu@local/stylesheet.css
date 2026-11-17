@@ -530,17 +530,39 @@
 .fm-dock-menu .popup-menu-arrow { icon-size: 12px; }
 .fm-system-dark .fm-dock-menu .popup-menu-content { background-color: rgba(38,38,42,0.96); color: #f2f2f4; border: 1px solid rgba(255,255,255,0.18); }
 .fm-system-light .fm-dock-menu .popup-menu-content { background-color: rgba(240,240,244,0.96); color: #242428; border: 1px solid rgba(0,0,0,0.16); }
-.fm-dock-menu .popup-menu-item:focus, .fm-dock-menu .popup-menu-item:hover { background-color: #0868e9; color: white; }
+/* PopupBaseMenuItem.active owns selection for pointer AND keyboard navigation.
+ * A nested grab can leave :hover/:focus behind on its source; those pseudo
+ * classes must not independently paint a second selected row. */
+.fm-dock-menu .popup-menu-item:hover,
+.fm-dock-menu .popup-menu-item:focus,
+.fm-dock-menu .popup-menu-item:active { background-color: transparent; box-shadow: none; }
+.fm-system-dark .fm-dock-menu .popup-menu-item:hover,
+.fm-system-dark .fm-dock-menu .popup-menu-item:focus { color: #f2f2f4; }
+.fm-system-light .fm-dock-menu .popup-menu-item:hover,
+.fm-system-light .fm-dock-menu .popup-menu-item:focus { color: #242428; }
+.fm-dock-menu .popup-menu-item.selected,
+.fm-system-dark .fm-dock-menu .popup-menu-item.selected,
+.fm-system-dark .fm-dock-menu .popup-menu-item.selected:hover,
+.fm-system-dark .fm-dock-menu .popup-menu-item.selected:focus,
+.fm-system-light .fm-dock-menu .popup-menu-item.selected,
+.fm-system-light .fm-dock-menu .popup-menu-item.selected:hover,
+.fm-system-light .fm-dock-menu .popup-menu-item.selected:focus { background-color: #0868e9; color: white; }
 
 /* A cascading options menu shares the parent edge, without a pointing tail. */
 .fm-dock-flyout { -arrow-rise: 0; -arrow-base: 0; -boxpointer-gap: 0; }
 
 /* Keep the ancestor marked while focus/pointer is in its child menu. */
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open.selected,
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open.selected:hover,
+.fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open.selected:focus,
 .fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open,
 .fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open:hover,
 .fm-system-dark .fm-dock-menu .popup-menu-item.fm-submenu-open:focus {
   background-color: rgba(255,255,255,0.14); color: #f2f2f4;
 }
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open.selected,
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open.selected:hover,
+.fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open.selected:focus,
 .fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open,
 .fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open:hover,
 .fm-system-light .fm-dock-menu .popup-menu-item.fm-submenu-open:focus {
