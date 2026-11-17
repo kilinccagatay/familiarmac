@@ -159,9 +159,24 @@ export default class MacBookMenu extends Extension {
             const item = new PopupMenu.PopupImageMenuItem(text, icon);
             item.connect('activate', () => Util.spawn(args));
             menu.addMenuItem(item);
+            return item;
         };
         const settingsWrapper = GLib.build_filenamev([GLib.get_home_dir(), '.local/bin/familiarmac-settings']);
-        addApp(label('About This Mac', 'Bu Mac Hakkında'), 'computer-laptop-symbolic', [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center', 'system', 'about']);
+        const deviceIcon = () => {
+            // Preserve the existing laptop icon; use device-specific silhouettes elsewhere.
+            try {
+                const [, bytes] = GLib.file_get_contents(GLib.build_filenamev([
+                    GLib.get_home_dir(), '.local/share/familiarmac/about/device.json',
+                ]));
+                if (JSON.parse(new TextDecoder().decode(bytes)).menuIconName === 'computer-laptop-symbolic')
+                    return 'computer-laptop-symbolic';
+            } catch (_) { /* No managed About metadata yet. */ }
+            const file = Gio.File.new_for_path(GLib.build_filenamev([
+                GLib.get_home_dir(), '.local/share/familiarmac/about/device-symbolic.svg',
+            ]));
+            return file.query_exists(null) ? new Gio.FileIcon({file}) : 'computer-symbolic';
+        };
+        const aboutItem = addApp(label('About This Mac', 'Bu Mac Hakkında'), deviceIcon(), [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center', 'system', 'about']);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         addApp(label('System Settings…', 'Sistem Ayarları…'), 'preferences-system-symbolic', [GLib.file_test(settingsWrapper, GLib.FileTest.IS_EXECUTABLE) ? settingsWrapper : 'gnome-control-center']);
         addApp(label('App Store', 'Uygulama Mağazası'), 'org.gnome.Software-symbolic', ['gnome-software']);
@@ -212,7 +227,10 @@ export default class MacBookMenu extends Extension {
                 item.setSensitive(actions[capability]);
         });
         menu.connect('open-state-changed', (_menu, open) => {
-            if (open) actions.forceUpdate();
+            if (open) {
+                actions.forceUpdate();
+                aboutItem.setIcon(deviceIcon());
+            }
         });
         Main.panel.addToStatusArea(this.uuid, this._button, 0, 'left');
     }

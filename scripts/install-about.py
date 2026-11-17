@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """User-scoped, binary-version-guarded About illustration; no package file edits."""
 import hashlib, json, pathlib, shlex, shutil, subprocess, sys, xml.etree.ElementTree as ET
-from hardware_identity import read_identity, select_device, asset_path
+from hardware_identity import read_identity, select_device, asset_path, menu_icon_path
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 home=pathlib.Path.home()
 base=home/'.local/share/familiarmac/about'
@@ -20,6 +20,8 @@ binary=pathlib.Path('/usr/bin/gnome-control-center')
 resource='/org/gnome/control-center/system/about/cc-about-page.ui'
 if not binary.exists(): raise SystemExit(0)
 selection=select_device(read_identity())
+# Retain the established theme icon on laptops, including the reference A1398.
+selection['menuIconName']='computer-laptop-symbolic' if menu_icon_path(selection).name=='laptop-symbolic.svg' else None
 image=asset_path(selection)
 xml=subprocess.check_output(['gresource','extract',str(binary),resource])
 tree=ET.fromstring(xml)
@@ -28,6 +30,7 @@ if logo is None or logo.get('class')!='GtkPicture': raise SystemExit('Unsupporte
 base.mkdir(parents=True,exist_ok=True)
 device=base/('device'+image.suffix)
 shutil.copy2(image,device)
+shutil.copy2(menu_icon_path(selection),base/'device-symbolic.svg')
 (base/'device.json').write_text(json.dumps(selection,indent=2)+'\n')
 # Keep the native bound object alive for setup_os_logo and dark-mode callbacks.
 ET.SubElement(logo,'property',name='visible').text='False'

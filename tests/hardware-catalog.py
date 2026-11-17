@@ -43,6 +43,25 @@ assert m.select_device({'model':'MacPro7,1','vendor':'Apple Inc.','chassis':'7'}
 # Apple Silicon is not classified as the newly added Intel generations.
 assert m.select_device({'model':'MacBookPro17,1','vendor':'Apple Inc.'},c)['category']!='pro-2016'
 assert m.select_device({'model':'MacBookAir10,1','vendor':'Apple Inc.'},c)['category']!='air-retina'
+for category in c:
+    selection=dict(c[category],category=category)
+    icon=m.menu_icon_path(selection)
+    ET.parse(icon)
+    assert icon.is_relative_to(ROOT/'assets/hardware/menu')
+assert m.menu_icon_path({'category':'laptop'}).name=='laptop-symbolic.svg'
+assert m.menu_icon_path({'category':'all-in-one'}).name=='desktop-symbolic.svg'
+assert m.menu_icon_path({'category':'white-top-mini'}).name=='mini-symbolic.svg'
+assert m.menu_icon_path({'category':'rack'}).name=='rack-symbolic.svg'
+# Resolve real identities through both selection layers, including tower/rack distinction.
+for model, chassis, icon in [
+    ('MacBookPro10,1','9','laptop'), ('MacBookAir7,2','9','laptop'),
+    ('iMac14,2','13','desktop'), ('Macmini6,2','35','mini'),
+    ('MacPro5,1','7','tower'), ('MacPro6,1','7','cylinder'),
+    ('MacPro7,1','7','tower-2019'), ('MacPro7,1','23','rack'),
+    ('Xserve3,1','23','rack'),
+]:
+    selected=m.select_device({'model':model,'vendor':'Apple Inc.','chassis':chassis},c)
+    assert m.menu_icon_path(selected).name == f'{icon}-symbolic.svg'
 for row in c.values():
     assert row['asset'].endswith('.svg')
     ET.parse(m.asset_path(row))
@@ -63,6 +82,10 @@ with tempfile.TemporaryDirectory() as d:
     subprocess.run(['python3',str(ROOT/'scripts/install-about.py')],env=env,check=True)
     base=home/'.local/share/familiarmac/about'
     if base.exists():
+        assert (base/'device-symbolic.svg').is_file()
+        saved=json.loads((base/'device.json').read_text())
+        expected='computer-laptop-symbolic' if m.menu_icon_path(saved).name=='laptop-symbolic.svg' else None
+        assert saved['menuIconName']==expected
         tree=ET.parse(base/'cc-about-page.ui')
         assert tree.find('.//object[@id="os_logo"]') is not None
         assert tree.find('.//object[@id="hardware_model_row"]') is not None

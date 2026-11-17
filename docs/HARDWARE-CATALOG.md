@@ -75,3 +75,26 @@ The 2019 Mac Pro tower and rack share MacPro7,1. When firmware omits reliable ra
 These are presentation mappings only; no new architecture, driver, or boot support is installed. Apple Silicon generations are not added to these Intel mappings.
 
 References: [Apple Mac Pro identifiers](https://support.apple.com/en-gb/102887) and [dmidecode chassis types](https://github.com/mirror/dmidecode/blob/master/dmidecode.c).
+
+## About menu symbol
+
+The compact About menu icon uses the same offline device selection as the large
+illustration. Existing laptop theme icons are retained, including the reference
+A1398. Other form factors use original symbolic SVGs (iMac, mini, classic tower,
+2019 tower, cylinder and rack); they are not copied SF Symbols. Large artwork is
+unchanged. The panel source loads on the next login; its menu reads installed
+About metadata when opened.
+
+| Device family | About menu symbol |
+| --- | --- |
+| MacBook, MacBook Air, MacBook Pro, other laptops | Existing laptop theme symbol |
+| iMac / all-in-one | iMac silhouette |
+| Mac mini, including white-top generations | Mini silhouette |
+| Classic Mac Pro / other towers | Classic tower side profile |
+| Mac Pro 2013 (`MacPro6,1`) | Cylinder |
+| Mac Pro 2019 (`MacPro7,1`) | 2019 tower |
+| Xserve / chassis type 23, including rack Mac Pro | Rack |
+
+Selection is recalculated during installation from the target computer’s model,
+vendor and chassis type. It does not carry over the author’s computer identity
+or enable any GPU, Wi-Fi or boot configuration.

@@ -51,6 +51,16 @@ def select_device(identity, catalog=None):
     # Illustration describes the form factor, never an exact model/year claim.
     return dict(catalog[category],model=model,category=category,match='category')
 
+def menu_icon_path(selection):
+    category=selection['category']
+    if category in ('laptop','macbook-air','white-macbook','macbook-retina','air-retina','pro-2016'):
+        kind='laptop'
+    elif category in ('all-in-one','white-imac'):kind='desktop'
+    elif category in ('mini','white-top-mini'):kind='mini'
+    elif category in ('cylinder','rack','tower-2019'):kind=category
+    else:kind='tower'
+    return ROOT/'assets/hardware/menu'/f'{kind}-symbolic.svg'
+
 def asset_path(selection, root=ROOT/'assets/hardware'):
     path=(root/selection['asset']).resolve()
     if not path.is_relative_to(root.resolve()):raise ValueError('Asset outside catalog')
