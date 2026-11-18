@@ -1,3 +1,5 @@
+import {FullscreenControls} from './fullscreenControls.js';
+import {MissionControl} from './missionControl.js';
 import {DockBounce} from './dockBounce.js';
 import {StartupCompletion} from './startupCompletion.js';
 import {DockRefresh} from './dockRefresh.js';
@@ -64,6 +66,8 @@ export default class MacBookMenu extends Extension {
         this._startupCompletion = new StartupCompletion();
         this._dockMagnification = new DockMagnification();
         this._dockBounce = new DockBounce(this._dockMagnification);
+        this._missionControl = new MissionControl();
+        this._fullscreenControls = new FullscreenControls();
         this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
@@ -285,6 +289,10 @@ export default class MacBookMenu extends Extension {
         this._downloadsStack = null;
         this._appsBrowser?.destroy();
         this._appsBrowser = null;
+        this._fullscreenControls?.destroy();
+        this._fullscreenControls = null;
+        this._missionControl?.destroy();
+        this._missionControl = null;
         this._dockBounce?.destroy();
         this._dockBounce = null;
         this._dockMagnification?.destroy();

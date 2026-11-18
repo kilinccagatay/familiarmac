@@ -720,3 +720,17 @@
 .fm-system-light .fm-dock-pointed .popup-menu-content {
   background-color: transparent; border-color: transparent; box-shadow: none;
 }
+
+/* Mission Control controls are independent of thumbnail allocation. */
+.fm-space-button { background-color: rgba(60,60,65,0.94); color: white; border-radius: 999px; padding: 6px; }
+.fm-space-button:hover, .fm-space-button:focus { background-color: #007aff; }
+#panel:overview #panelRight .panel-button.clock-display .clock { padding: 0 7px !important; margin: 0 !important; min-height: 20px; }
+
+.fm-space-label { color: white; font-size: 10pt; text-shadow: 0 1px 2px rgba(0,0,0,.8); }
+
+.fm-space-close { padding: 4px; }
+
+.fm-space-add-preview, .fm-space-add-preview:hover, .fm-space-add-preview:focus {
+  border-width: 0; border-color: transparent; border-radius: 0; background-color: transparent;
+  background-image: none; box-shadow: none; padding: 0;
+}
