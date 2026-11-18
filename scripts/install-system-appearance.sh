@@ -43,6 +43,10 @@ if [[ ${1:-} == --restore ]]; then restore; exit; fi
 for tool in node python3 gresource glib-compile-resources update-initramfs update-alternatives; do command -v "$tool" >/dev/null; done
 [[ -f /usr/share/themes/MacBook-WhiteSur-Dark/gnome-shell/gnome-shell.css && -f /usr/local/share/macbook-zorin/wallpaper.png ]] || { echo 'Run --prepare-desktop first.'; exit 1; }
 [[ -x /usr/share/gdm/generate-config ]] || { echo 'Unsupported GDM installation.'; exit 1; }
+# Validate packaged helpers before changing any managed system files.
+for helper in scripts/install-login-layout.sh scripts/build-login-layout.py scripts/gdm-shell-wrapper.sh scripts/refine-visuals.sh; do
+  [[ -f "$helper" ]] || { echo "Incomplete package: missing $helper" >&2; exit 1; }
+done
 # Validate the exact upstream login source before changing system files.
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 python3 scripts/build-login-layout.py "$tmp/layout"

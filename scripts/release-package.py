@@ -15,7 +15,7 @@ MANUAL = {'nve7-video-firmware.json','system.sh','visual-system.sh','wifi.sh','i
  'install-lean-initramfs.sh','install-firmware-timeout.sh','install-early-logo.sh',
  'install-grub-static-logo.sh','select-installed-kernel.sh','install-boot-trace.sh',
  'install-broadcom-return-sites.sh','install-broadcom-dkms-guard.sh',
- 'install-boot.sh','install-brightness.py','mixxx-software-workaround.sh','install-login-layout.sh'}
+ 'install-boot.sh','install-brightness.py','mixxx-software-workaround.sh'}
 def build(output):
     version=(ROOT/'VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+',version): raise ValueError('Invalid VERSION')
