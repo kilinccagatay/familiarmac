@@ -1,5 +1,6 @@
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {readProcessIdentity} from './processTracker.js';
 
 // Preserve normal dock behavior. Only handle a click with no surviving windows.
@@ -59,6 +60,9 @@ export class DockLaunch {
         const original = icon._activate;
         const controller = this;
         const wrapper = function (event) {
+            // Leave overview for launch/focus, but preserve it for context menus.
+            if ((event.button === 1 || event.button === 2) && Main.overview.visible)
+                Main.overview.hide();
             if (event.button !== 1 || event.modifiers || controller.windows(this.app).length)
                 return original.call(this, event);
             controller.request(this.app);
@@ -71,6 +75,7 @@ export class DockLaunch {
         this.icons.set(icon, {original, wrapper, signal});
     }
     request(app) {
+        if (Main.overview.visible) Main.overview.hide();
         const id = app.get_id();
         // Apps is a Shell dialog, not a window-producing process. Each click
         // must reach its toggle instead of waiting for a nonexistent window.

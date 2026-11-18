@@ -1,7 +1,8 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const code=fs.readFileSync(__dirname+'/../extensions/macbook-menu@local/dockLaunch.js','utf8').replace(/^import .*;\n/gm,'').replace('export class','class');
 let now=0,next=0;const timers=new Map(),processes=new Map();
-const context={console:{warn(){}},GLib:{get_monotonic_time:()=>now,timeout_add:(p,t,fn)=>{timers.set(++next,fn);return next;},source_remove:id=>timers.delete(id),SOURCE_CONTINUE:true,SOURCE_REMOVE:false},Shell:{AppState:{STOPPED:0,STARTING:2}},global:{window_manager:{connect:()=>1,disconnect(){}}}};
+const overview={visible:false,hide(){this.visible=false;this.hides++;},hides:0};
+const context={Main:{overview},console:{warn(){}},GLib:{get_monotonic_time:()=>now,timeout_add:(p,t,fn)=>{timers.set(++next,fn);return next;},source_remove:id=>timers.delete(id),SOURCE_CONTINUE:true,SOURCE_REMOVE:false},Shell:{AppState:{STOPPED:0,STARTING:2}},global:{window_manager:{connect:()=>1,disconnect(){}}}};
 vm.runInNewContext(code+'\nglobalThis.DockLaunch=DockLaunch;',context);
 const tick=()=>{for(const [id,fn] of [...timers])if(!fn())timers.delete(id);};
 function app(id,pid){return {id,pid,state:1,windows:[],count:0,activated:0,callbacks:new Map(),get_id(){return this.id;},get_windows(){return this.windows;},get_pids(){return [this.pid];},connect(s,fn){this.callbacks.set(s,fn);return s;},disconnect(s){this.callbacks.delete(s);},can_open_new_window:()=>true,open_new_window(){this.count++;},activate(){this.activated++;}};}
@@ -32,3 +33,14 @@ assert.equal(toggles,8);assert.equal(internal.pending.size,0);
 assert.equal(apps.count,0);assert.equal(timers.size,0);
 internal.destroy();
 console.log('Apps launcher: every click reaches Shell toggle, no window wait or process launch PASS');
+
+const overviewDock=new context.DockLaunch(()=>null);
+const running=app('running.desktop',600);running.windows=[{is_override_redirect:()=>false}];
+let forwarded=0;
+const icon={app:running,_activate(){assert.equal(overview.visible,false);forwarded++;},connect:()=>1,disconnect(){}};
+overviewDock.track(icon);overview.visible=true;icon._activate({button:1,modifiers:0});assert.equal(forwarded,1);
+overview.visible=true;const fresh=app('fresh.desktop',601);overviewDock.request(fresh);assert.equal(overview.visible,false);assert.equal(fresh.count,1);
+// Right click must not dismiss overview.
+const menuIcon={app:running,_activate(){assert.equal(overview.visible,true);},connect:()=>1,disconnect(){}};
+overviewDock.track(menuIcon);overview.visible=true;menuIcon._activate({button:3,modifiers:0});
+overviewDock.destroy();console.log('Overview exits for fresh launch and running-app activation; context menus preserve overview PASS');
