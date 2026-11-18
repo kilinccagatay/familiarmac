@@ -1,4 +1,5 @@
 import Gio from 'gi://Gio';
+import {anchorMagnifiedMenu} from './dockMenus.js';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -60,6 +61,9 @@ export class DownloadsStack {
             const manager=new PopupMenu.PopupMenuManager(button);manager.addMenu(menu);
             const options=new PopupMenu.PopupMenu(button,0.5,St.Side.BOTTOM);
             options.actor.add_style_class_name('familiarmac-stack-options');Main.uiGroup.add_child(options.actor);options.actor.hide();manager.addMenu(options);
+            anchorMagnifiedMenu(menu, button, false);
+            anchorMagnifiedMenu(options, button);
+            button._fmDockMenuOpen = () => menu.isOpen || options.isOpen;
             item={button,image,container,menu,options,manager,trash};
             // Dock parents can destroy our sibling before the Trash icon itself.
             item.containerSignal=container.connect('destroy',()=>{item.container=null;});

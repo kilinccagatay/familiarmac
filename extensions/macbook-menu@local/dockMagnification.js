@@ -120,10 +120,21 @@ export class DockMagnification {
         const dt = this.lastFrame ? Math.min(50, (now - this.lastFrame) / 1000) : 16;
         this.lastFrame = now;
         const blend = 1 - Math.exp(-dt / 48);
-        this.resetBackgrounds();
         const [px,py,mods] = global.get_pointer();
-        const blocked = Main.overview.visible || Main.modalCount > 0 || (mods & Clutter.ModifierType.BUTTON1_MASK)
-            || [...this.items.keys()].some(icon => icon._menu?.isOpen || icon._draggable?._dragActor);
+        const icons = [...this.items.keys()];
+        const dragging = icons.some(icon => icon._draggable?._dragActor);
+        const menuOwner = icons.find(icon => icon._menu?.isOpen || icon._fmDockMenuOpen?.());
+        // A Dock popup owns a modal grab. Preserve the whole wave, divider and
+        // background while browsing it; pointer movement in the menu is not a
+        // new Dock hover. Resume from this exact geometry after it closes.
+        if (menuOwner && menuOwner.mapped && !Main.overview.visible && !dragging
+            && this.dockReveal(this.dockFor(menuOwner)).allowed) {
+            for (const icon of icons) icon.get_parent?.()?.hideLabel?.();
+            return;
+        }
+        this.resetBackgrounds();
+        const blocked = Main.overview.visible || Main.modalCount > 0
+            || (mods & Clutter.ModifierType.BUTTON1_MASK) || dragging;
         const maximum = this.settings.get_double('dock-magnification-scale');
         const rows=[];
         for(const [icon,item] of this.items){

@@ -118,3 +118,23 @@ assert([...renderer.items.values()][0].scale>=previousScale);
 pointer=[120,0,0];renderer.update();
 assert([...renderer.items.values()][0].scale<previousScale,'leaving the lane relaxes wave');
 console.log('Stable vertical lane: above/below icon, entire reveal, exit PASS');
+
+// Right-click popups hold a modal grab but must retain existing magnification.
+dockOwner.dockState=2;pointer=[120,150,0];renderer.update();
+const menuIcon=[...renderer.items.keys()][0];menuIcon._menu={isOpen:true};
+live.Main.modalCount=1;
+const held=[...renderer.items].map(([icon,item])=>[item.clone,item.scale,icon.translation_x]);
+const heldBackground=background.scale[0];pointer=[600,10,0];
+for(let frame=0;frame<5;frame++)renderer.update();
+[...renderer.items].forEach(([icon,item],i)=>{
+ assert.equal(item.clone,held[i][0]);assert.equal(item.scale,held[i][1]);assert.equal(icon.translation_x,held[i][2]);
+});
+assert.equal(background.scale[0],heldBackground);
+menuIcon._menu.isOpen=false;live.Main.modalCount=0;renderer.update();
+assert([...renderer.items.values()][0].scale<held[0][1],'closing popup resumes easing');
+menuIcon._fmDockMenuOpen=()=>true;live.Main.modalCount=1;
+const downloadsScale=[...renderer.items.values()][0].scale;renderer.update();
+assert.equal([...renderer.items.values()][0].scale,downloadsScale,'Downloads popup also freezes wave');
+live.Main.overview.visible=true;renderer.update();
+assert([...renderer.items.values()].every(item=>!item.clone),'overview still clears overlays');
+console.log('Context menus: frozen size/position/background, close resumes, Downloads and overview PASS');

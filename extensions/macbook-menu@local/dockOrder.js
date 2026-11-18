@@ -8,21 +8,30 @@ import * as Dash from 'resource:///org/gnome/shell/ui/dash.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 
-// Shared pointer bubble for Dock names and removal feedback.
+// Shared pointer bubble for Dock names and both removal gestures.
+export function drawBubbleTip(cr, width, height) {
+    const center = width / 2;
+    cr.moveTo(0, 0);
+    cr.lineTo(width, 0);
+    cr.curveTo(width * .72, 0, center + height * .4, height, center, height);
+    cr.curveTo(center - height * .4, height, width * .28, 0, 0, 0);
+    cr.closePath();
+}
+
 export function dockBubble(text) {
     const bubble = new St.BoxLayout({vertical:true, reactive:false});
     const label = new St.Label({text, style_class:'fm-dock-remove-label', reactive:false});
-            bubble.add_child(label);
-            const tip = new St.DrawingArea({style_class:'fm-dock-remove-tip',
-                x_align:Clutter.ActorAlign.CENTER, reactive:false});
-            tip.connect('repaint', area => {
-                const [width,height] = area.get_surface_size();
-                const cr = area.get_context();
-                cr.setSourceRGBA(30/255,30/255,32/255,0.94);
-                cr.moveTo(0,0); cr.lineTo(width,0); cr.lineTo(width/2,height);
-                cr.closePath(); cr.fill(); cr.$dispose();
-            });
-            bubble.add_child(tip);
+    bubble.add_child(label);
+    const tip = new St.DrawingArea({style_class:'fm-dock-remove-tip',
+        x_align:Clutter.ActorAlign.CENTER, reactive:false});
+    tip.connect('repaint', area => {
+        const [width,height] = area.get_surface_size();
+        const cr = area.get_context();
+        cr.setSourceRGBA(30/255,30/255,32/255,0.94);
+        drawBubbleTip(cr, width, height);
+        cr.fill(); cr.$dispose();
+    });
+    bubble.add_child(tip);
     return {bubble, label};
 }
 

@@ -1,0 +1,18 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const removed=[];
+const ctx={GLib:{source_remove:id=>removed.push(id)}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/dockTooltips.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class')+';globalThis.Tips=DockTooltips;',ctx);
+const original=()=>{};
+const dash={_syncLabel:original,_showLabelTimeoutId:42,_resetHoverTimeoutId:43};
+const actor={_delegate:dash,connect:()=>1,disconnect(){},get_parent:()=>null};
+const icon={get_parent:()=>actor};
+const tips=new ctx.Tips();tips.trackDash(icon);
+assert.deepEqual(removed,[42,43]);
+let shown=0,hidden=0;
+const item={showLabel:()=>shown++,hideLabel:()=>hidden++,child:{get_hover:()=>true}};
+dash._syncLabel(item,{shouldShowTooltip:()=>true});assert.equal(shown,1,'first hover synchronous');
+dash._syncLabel(item,{shouldShowTooltip:()=>false});assert.equal(hidden,1,'menu/drag/leave guard preserved');
+dash._syncLabel(item,null);assert.equal(shown,2,'Apps hover synchronous');
+const sync=dash._syncLabel;tips.trackDash(icon);assert.equal(dash._syncLabel,sync);
+tips.destroy();assert.equal(dash._syncLabel,original);assert.equal(dash._labelShowing,false);
+console.log('Dock tooltips: immediate first hover, native visibility guards, Apps, pending timer cancellation and cleanup PASS');

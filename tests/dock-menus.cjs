@@ -14,7 +14,7 @@ let pinned=true,opened=0,quit=0,hidden=0,preview=0;
 const info={get_filename:()=>'/usr/share/applications/example.desktop',list_actions:()=>['new-private-window'],get_action_name:()=> 'New Private Window'};
 const app={state:0,get_id:()=> 'example.desktop',get_app_info:()=>info,get_windows:()=>app.state?[{is_override_redirect:()=>false,skip_taskbar:false,get_title:()=> 'Document',has_focus:()=>true,minimize:()=>hidden++}]:[],can_open_new_window:()=>true,activate:()=>opened++,request_quit:()=>quit++};
 const icon=new Item();Object.assign(icon,{app,popupMenu(){},_menu:new Menu(),_windowPreviews:()=>preview++});
-const context={BoxPointer:{PopupAnimation:{NONE:0}},Gio:{DesktopAppInfo:{new:()=>null}},GLib:{},Shell:{AppState:{STOPPED:0}},St:{Side:{LEFT:0},Icon:Item},Clutter:{ActorAlign:{END:2},EventType:{BUTTON_PRESS:1,TOUCH_BEGIN:2,KEY_PRESS:3,MOTION:4,ENTER:5},KEY_Escape:27,EVENT_STOP:1,EVENT_PROPAGATE:0},Main:{uiGroup:{add_child(){}},activateWindow(){}},global:{stage:{get_event_actor:()=>({})},settings:{is_writable:()=>true}},AppFavorites:{getAppFavorites:()=>({isFavorite:()=>pinned,removeFavorite:()=>pinned=false,addFavorite:()=>pinned=true})},PopupMenu:{PopupMenu:Menu,PopupMenuItem:Item,PopupSeparatorMenuItem:class extends Item {constructor(){super('separator')}},Ornament:{CHECK:1,NONE:0},PopupMenuManager:class{addMenu(){} removeMenu(){} _onCapturedEvent(){return 0}}}};
+const context={installDockMenuPointer:()=>()=>{},BoxPointer:{PopupAnimation:{NONE:0}},Gio:{DesktopAppInfo:{new:()=>null}},GLib:{},Shell:{AppState:{STOPPED:0}},St:{Side:{LEFT:0},Icon:Item},Clutter:{ActorAlign:{END:2},EventType:{BUTTON_PRESS:1,TOUCH_BEGIN:2,KEY_PRESS:3,MOTION:4,ENTER:5},KEY_Escape:27,EVENT_STOP:1,EVENT_PROPAGATE:0},Main:{uiGroup:{add_child(){}},activateWindow(){}},global:{stage:{get_event_actor:()=>({})},settings:{is_writable:()=>true}},AppFavorites:{getAppFavorites:()=>({isFavorite:()=>pinned,removeFavorite:()=>pinned=false,addFavorite:()=>pinned=true})},PopupMenu:{PopupMenu:Menu,PopupMenuItem:Item,PopupSeparatorMenuItem:class extends Item {constructor(){super('separator')}},Ornament:{CHECK:1,NONE:0,HIDDEN:2},PopupMenuManager:class{addMenu(){} removeMenu(){} _onCapturedEvent(){return 0}}}};
 const source=fs.readFileSync('extensions/macbook-menu@local/dockMenus.js','utf8').replace(/^import .*;$/gm,'').replaceAll('export ','');
 vm.runInNewContext(source+'\nglobalThis.Controller=DockMenus;globalThis.position=flyoutPosition;globalThis.selectRow=selectParentPointerRow;globalThis.returns=pointerReturnsToParent',context);
 const controller=new context.Controller();controller.autostart=()=>({enabled:false});controller.track(icon);
@@ -162,3 +162,25 @@ context.selectRow(selectionMenu,150,100);assert.equal(first.active,false);assert
 context.selectRow(selectionMenu,150,130);assert.equal(first.active,false);assert.equal(second.active,false);assert.equal(divider.active,false);
 first.active=true;context.selectRow(selectionMenu,50,65);assert.equal(first.active,true); // outside doesn't steal keyboard selection
 console.log('Dock parent pointer: new row activates without enter event, separators clear, outside preserves focus PASS');
+
+const anchorContext={installDockMenuPointer:()=>()=>{},St:{Side:{BOTTOM:3}}};
+vm.runInNewContext(source.slice(source.indexOf('function anchorMagnifiedMenu'),source.indexOf('function dockMenuState'))+';globalThis.anchor=anchorMagnifiedMenu;',anchorContext);
+const ptr={_arrowSide:3,_workArea:{y:0},get_parent:()=>({transform_stage_point:(x,y)=>[true,x,y]}),
+ _reposition(box){box.x1=40;box.y1=150;}};
+const anchorIcon={_fmMagnifiedBounds:[30,220,96,96],icon:{icon:{get_transformed_position:()=>[40,260]}}};
+const box={set_origin(x,y){this.x1=x;this.y1=y;}};
+const originalPosition=ptr._reposition;
+const restoreAnchor=anchorContext.anchor({_boxPointer:ptr},anchorIcon);
+ptr._reposition(box);assert.equal(box.y1,110,'raise menu by magnified height, preserving native gap');
+ptr._reposition(box);assert.equal(box.y1,110,'reallocation does not accumulate offsets');
+anchorIcon._fmMagnifiedBounds=undefined;ptr._reposition(box);assert.equal(box.y1,150,'ordinary size uses native positioning');
+anchorIcon._fmMagnifiedBounds=[0,-100,96,96];ptr._reposition(box);assert.equal(box.y1,0,'clamp at work area top');
+restoreAnchor();assert.equal(ptr._reposition,originalPosition);
+console.log('Magnified menu anchor: gap, repeat allocation, ordinary size, screen clamp and restore PASS');
+
+// Reserve a shared check column only when at least one option has a check.
+app.state=0;pinned=false;controller.autostart=()=>({enabled:false});controller.build(record);
+assert.deepEqual(record.flyout.items.map(i=>i.ornament),[2,2,2]);
+controller.autostart=()=>({enabled:true});controller.build(record);
+assert.deepEqual(record.flyout.items.map(i=>i.ornament),[0,1,0]);
+console.log('Dock Options alignment: no empty gutter without checks; shared gutter with a check PASS');

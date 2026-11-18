@@ -1,3 +1,4 @@
+import {installDockMenuPointer} from './dockMenuPointer.js';
 import {settingsPanels} from './settingsPanels.js';
 import {settingsCommand} from './settingsCommand.js';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
@@ -88,6 +89,34 @@ export function autostartEnabled(key) {
         (!keys.includes('X-GNOME-Autostart-enabled') || key.get_boolean('Desktop Entry', 'X-GNOME-Autostart-enabled'));
 }
 
+// Preserve the native menu gap and screen-edge handling, moving only by the
+// extra height of the magnified texture. This runs before allocation/painting.
+export function anchorMagnifiedMenu(menu, icon, pointed = true) {
+    const pointer = menu._boxPointer;
+    const original = pointer._reposition;
+    const reposition = function (box) {
+        original.call(this, box);
+        const bounds = icon._fmMagnifiedBounds;
+        if (!bounds || this._arrowSide !== St.Side.BOTTOM) return;
+        const texture = icon.icon?.icon ?? icon.child;
+        if (!texture) return;
+        const [x, y] = texture.get_transformed_position();
+        const rise = Math.max(0, y - bounds[1]);
+        const parent = this.get_parent();
+        const [ok, , localY] = parent.transform_stage_point(x, y);
+        const [raised, , raisedY] = parent.transform_stage_point(x, y - rise);
+        const [clamped, , top] = parent.transform_stage_point(x, this._workArea.y);
+        if (ok && raised && clamped)
+            box.set_origin(box.x1, Math.max(top, box.y1 - (localY - raisedY)));
+    };
+    pointer._reposition = reposition;
+    const restorePointer = pointed ? installDockMenuPointer(menu, icon) : null;
+    return () => {
+        restorePointer?.();
+        if (pointer._reposition === reposition) pointer._reposition = original;
+    };
+}
+
 export function dockMenuState(app, backgroundRunning) {
     return {running: app.state !== Shell.AppState.STOPPED || backgroundRunning,
         fixed: ['org.gnome.Nautilus.desktop', 'org.familiarmac.Apps.desktop'].includes(app.get_id())};
@@ -107,6 +136,7 @@ export class DockMenus {
             if (!open || !icon._menu || record.menu) return;
             const menu = icon._menu;
             record.menu = menu;
+            record.restoreAnchor = anchorMagnifiedMenu(menu, icon);
             record.menuDestroy = menu.connect('destroy', () => { this.clearFlyout(record); record.menu = null; record.closeSignal = 0; });
             record.rebuild = menu._rebuildMenu;
             record.update = menu.update;
@@ -246,15 +276,17 @@ export class DockMenus {
             if (pinned) favorites.removeFavorite(app.get_id()); else favorites.addFavorite(app.get_id());
             menu.close();
         });
-        if (running && pinned) pin.setOrnament(PopupMenu.Ornament.CHECK);
         pin.setSensitive(!fixed && global.settings.is_writable('favorite-apps'));
         const {enabled} = this.autostart(info);
+        const emptyOrnament = (running && pinned) || enabled
+            ? PopupMenu.Ornament.NONE : PopupMenu.Ornament.HIDDEN;
+        pin.setOrnament(running && pinned ? PopupMenu.Ornament.CHECK : emptyOrnament);
         const startup = flyout.addAction('Open at Login', () => {
             try { this.setAutostart(info, !enabled); } catch (error) { Main.notifyError('Open at Login', error.message); }
             menu.close();
         });
-        if (enabled) startup.setOrnament(PopupMenu.Ornament.CHECK);
-        flyout.addAction('Show in Finder', () => {
+        startup.setOrnament(enabled ? PopupMenu.Ornament.CHECK : emptyOrnament);
+        const reveal = flyout.addAction('Show in Finder', () => {
             const file = Gio.File.new_for_path(info.get_filename());
             Gio.DBus.session.call('org.freedesktop.FileManager1', '/org/freedesktop/FileManager1',
                 'org.freedesktop.FileManager1', 'ShowItems', new GLib.Variant('(ass)', [[file.get_uri()], '']),
@@ -263,6 +295,7 @@ export class DockMenus {
                 });
             menu.close();
         });
+        reveal.setOrnament(emptyOrnament);
         options.activate = () => flyout.open();
         const checkPointer = () => {
             if (!menu.isOpen || !options.mapped) return;
@@ -308,6 +341,7 @@ export class DockMenus {
     }
     dispose(record, restore) {
         this.clearFlyout(record);
+        record.restoreAnchor?.();
         if (restore && record.menu) {
             if (record.closeSignal) record.menu.disconnect(record.closeSignal);
             record.menu.disconnect(record.menuDestroy);
