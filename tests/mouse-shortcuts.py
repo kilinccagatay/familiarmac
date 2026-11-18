@@ -55,3 +55,11 @@ assert service.stream_swipe('mouse',Gesture('swipe',2,'end',-700,5));assert serv
 service.stream_swipe('mouse',Gesture('swipe',2,'begin',0,500));assert service.swipe is None
 service.peer=None;assert not service.stream_swipe('mouse',Gesture('swipe',2,'end',700,0))
 print('Continuous transport: begin/update/end, vertical exclusion and legacy client fallback PASS')
+
+service.peer=b'\0familiarmac-swipe-test';service.magic_devices={};service.magic_pointers={}
+service.stream_swipe('mouse',Gesture('swipe',2,'begin',-320,5))
+service.stream_swipe('mouse',Gesture('swipe',2,'update',-700,5))
+service.drop_magic('other');assert service.swipe is not None
+service.drop_magic('mouse');assert service.swipe is None;assert packets[-1][0]=='cancel'
+count=len(packets);service.drop_magic('mouse');assert len(packets)==count
+print('Disconnect cancels swipe before reader removal; unrelated devices and repeated cleanup safe PASS')

@@ -26,7 +26,7 @@ const controller={_switchData:null,_swipeTracker:{enabled:true},
 ctx.Main.wm._workspaceAnimation=controller;
 const packet=(phase,dx,id=1)=>({type:'workspace-swipe',phase,dx,id,natural:true});
 a.swipe(packet('begin',-300));assert.equal(controller._swipeTracker.enabled,false);
-now+=10000;a.swipe(packet('update',-900));frame();assert.ok(updates.at(-1)>1&&updates.at(-1)<1.5);for(let i=0;i<25;i++){now+=16000;frame();}assert.equal(updates.at(-1),1.5);assert.equal(ends.length,0);
+now+=10000;a.swipe(packet('update',-900));frame();assert.ok(updates.at(-1)>1&&updates.at(-1)<1.625);for(let i=0;i<25;i++){now+=16000;frame();}assert.equal(updates.at(-1),1.625);assert.equal(ends.length,0);
 now+=100000;a.swipe(packet('end',-900));assert.equal(ends.at(-1),2);assert.equal(controller._swipeTracker.enabled,true);
 a.swipe(packet('begin',300,2));now+=100000;a.swipe(packet('update',600,2));a.swipe(packet('cancel',600,2));assert.equal(ends.at(-1),1);
 a.swipe(packet('begin',300,3));a.swipe(packet('end',300,999));assert.ok(a.swipeState);a.cancelSwipe();assert.equal(ends.at(-1),1);
@@ -39,7 +39,28 @@ const overviewController={_gestureActive:false,_swipeTracker:{enabled:true},_scr
  _endTouchGesture(){this._gestureActive=false}};
 ctx.Main.overview._overview={controls:{_workspacesDisplay:overviewController}};overview=true;
 a.swipe(packet('begin',-300,5));now+=16000;a.swipe(packet('update',-900,5));frame();
-assert.ok(updates.at(-1)>1&&updates.at(-1)<1.5);
+assert.ok(updates.at(-1)>1&&updates.at(-1)<1.625);
 a.swipe(packet('end',-900,5));assert.equal(ends.at(-1),2);assert.equal(overview,true);assert.equal(overviewController._swipeTracker.enabled,true);
 a.swipe(packet('begin',300,6));overview=false;frame();assert.equal(overviewController._gestureActive,false);assert.equal(a.swipeState,null);
 console.log('Overview swipe: interactive previews, selection without dismissal and interrupted gesture cleanup PASS');
+
+// A quick short flick commits even when the release repeats the last sample.
+overview=false;
+a.swipe(packet('begin',0,7));now+=20000;a.swipe(packet('update',-120,7));now+=10000;a.swipe(packet('end',-120,7));assert.equal(ends.at(-1),2);
+a.swipe(packet('begin',0,8));now+=20000;a.swipe(packet('update',-120,8));now+=150000;a.swipe(packet('end',-120,8));assert.equal(ends.at(-1),1,'Holding a short swipe cancels momentum');
+console.log('Release velocity: repeated sample preserves flick; pause cancels momentum PASS');
+// Edge feedback moves the original desktop, without creating workspace clones.
+ctx.Clutter.AnimationMode={EASE_OUT_CUBIC:1};
+let bounce=[];
+ctx.global.window_group={translation_x:0,remove_transition(){},ease(params){bounce.push(params.translation_x);this.translation_x=params.translation_x;params.onComplete();}};
+index=0;overview=false;controller._switchData=null;
+a.swipe(packet('begin',150,20));assert.ok(a.edgeState);assert.equal(controller._switchData,null);
+now+=16000;a.swipe(packet('update',450,20));frame();
+assert(ctx.global.window_group.translation_x>0&&ctx.global.window_group.translation_x<48);
+a.swipe(packet('end',450,20));assert.equal(ctx.global.window_group.translation_x,0);assert.equal(controller._switchData,null);
+index=2;a.swipe(packet('begin',-150,21));now+=16000;a.swipe(packet('update',-450,21));frame();assert(ctx.global.window_group.translation_x<0);
+a.cancelSwipe();assert.equal(ctx.global.window_group.translation_x,0);
+index=0;a.swipe(packet('begin',150,22));now+=16000;a.swipe(packet('update',-150,22));assert.equal(a.edgeState,null);assert.ok(a.swipeState,'Reverse from edge into native workspace gesture');a.cancelSwipe();
+a.swipe(packet('begin',150,23));now+=16000;a.swipe(packet('update',400,23));frame();ctx.Main.sessionMode.isLocked=true;frame();assert.equal(ctx.global.window_group.translation_x,0);assert.equal(a.edgeState,null);ctx.Main.sessionMode.isLocked=false;
+assert(bounce.length>0);console.log('Boundary bounce: no native clones, left/right limits, restore, reversal and lock cleanup PASS');
+index=0;a.swipe(packet('begin',160,24));a.swipe(packet('update',150,24));assert.ok(a.edgeState,'Small reversal remains at edge');assert.equal(a.swipeState,null);a.cancelSwipe();

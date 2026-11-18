@@ -22,8 +22,60 @@ export class MagicMouseActions {
         if(index<0||index>=manager.n_workspaces)return;
         Main.wm.actionMoveWorkspace(manager.get_workspace_by_index(index));
     }
+    isOuterEdge(dx,natural){
+        const manager=global.workspace_manager,index=manager.get_active_workspace().index();
+        const direction=Math.sign(dx)*(natural?-1:1);
+        return (direction<0&&index===0)||(direction>0&&index===manager.n_workspaces-1);
+    }
+    beginEdge(packet){
+        const actor=global.window_group;
+        if(!actor)return false;
+        this.edgeState={id:packet.id,startDx:packet.dx,natural:packet.natural,
+            actor,origin:actor.translation_x,target:0,rendered:0,last:GLib.get_monotonic_time(),frame:GLib.get_monotonic_time()};
+        this.edgeTimeline=new Clutter.Timeline({actor:global.stage,duration:1000,repeat_count:-1});
+        this.edgeTimeline.connect('new-frame',()=>{
+            const s=this.edgeState;if(!s)return;
+            const now=GLib.get_monotonic_time();
+            if(Main.overview.visible||Main.sessionMode.isLocked||now-s.last>1500000){this.finishEdge();return;}
+            const dt=Math.min(50,Math.max(0,(now-s.frame)/1000));s.frame=now;
+            s.rendered+=(s.target-s.rendered)*(1-Math.exp(-dt/16));
+            s.actor.translation_x=s.origin+s.rendered;
+        });
+        this.edgeTimeline.start();return true;
+    }
+    finishEdge(animate=false){
+        const s=this.edgeState;if(!s)return;
+        this.edgeState=null;this.edgeTimeline?.stop();this.edgeTimeline=null;
+        this.edgeReturn=s;
+        if(animate)s.actor.ease({translation_x:s.origin,duration:180,mode:Clutter.AnimationMode.EASE_OUT_CUBIC,
+            onComplete:()=>{if(this.edgeReturn===s)this.edgeReturn=null;}});
+        else {s.actor.translation_x=s.origin;this.edgeReturn=null;}
+    }
+    clearEdgeReturn(){
+        if(!this.edgeReturn)return;
+        this.edgeReturn.actor.remove_transition('translation-x');
+        this.edgeReturn.actor.translation_x=this.edgeReturn.origin;this.edgeReturn=null;
+    }
     swipe(packet) {
         if(packet?.type!=='workspace-swipe'||!['begin','update','end','cancel'].includes(packet.phase)||!Number.isFinite(packet.dx)||Math.abs(packet.dx)>8192||!Number.isInteger(packet.id))return;
+        if(packet.phase==='begin'){
+            this.finishEdge();this.clearEdgeReturn();
+        }
+        const edge=this.edgeState;
+        if(edge&&edge.id===packet.id){
+            if(Main.sessionMode.isLocked||Main.overview.visible){this.finishEdge();return;}
+            const dx=packet.dx-edge.startDx;
+            if(packet.phase==='end'||packet.phase==='cancel'){this.finishEdge(true);return;}
+            if(Math.abs(packet.dx)>140&&!this.isOuterEdge(packet.dx,edge.natural)){
+                // Reversing toward a real neighbour resumes the native gesture.
+                this.finishEdge();
+                this.swipe({...packet,phase:'begin',dx:edge.startDx,natural:edge.natural,_edgeReversal:true});
+                this.swipe(packet);return;
+            }
+            const displacement=dx*(edge.natural?1:-1);
+            edge.target=Math.sign(displacement)*48*(1-Math.exp(-Math.abs(displacement)/500));
+            edge.last=GLib.get_monotonic_time();return;
+        }
         const overview=Main.overview.visible;
         const controller=overview?Main.overview._overview.controls._workspacesDisplay:Main.wm._workspaceAnimation;
         if(Main.sessionMode.isLocked||Main.overview.animationInProgress||!Main.sessionMode.hasWorkspaces){this.cancelSwipe();return;}
@@ -31,13 +83,14 @@ export class MagicMouseActions {
             this.cancelSwipe();
             // Never take over a touchpad gesture or an already settling switch.
             if((overview?(controller?._gestureActive||controller?._scrollAdjustment.get_transition('value')):controller?._switchData)||typeof controller?._switchWorkspaceBegin!=='function')return;
+            if(!overview&&!packet._edgeReversal&&this.isOuterEdge(packet.dx,packet.natural)&&this.beginEdge(packet))return;
             const tracker=controller._swipeTracker;
             let confirmed;
             const adapter={confirmSwipe(_distance,points,progress,cancel){confirmed={points,progress,cancel};}};
             controller._switchWorkspaceBegin(adapter,Main.layoutManager.primaryIndex);
             if(!confirmed||(!overview&&!controller._switchData))return;
             this.swipeState={id:packet.id,overview,controller,data:controller._switchData,tracker,enabled:tracker.enabled,
-                ...confirmed,startDx:packet.dx,last:GLib.get_monotonic_time(),lastProgress:confirmed.progress,rendered:confirmed.progress,frameTime:GLib.get_monotonic_time(),velocity:0};
+                ...confirmed,startDx:packet.dx,last:GLib.get_monotonic_time(),lastProgress:confirmed.progress,rendered:confirmed.progress,frameTime:GLib.get_monotonic_time(),motionTime:GLib.get_monotonic_time(),velocity:0};
             if(!overview)controller._switchData.gestureActivated=true;
             tracker.enabled=false;
             this.swipeTimeline=new Clutter.Timeline({actor:global.stage,duration:1000,repeat_count:-1});
@@ -49,7 +102,7 @@ export class MagicMouseActions {
                 const dt=Math.min(50,Math.max(0,(time-state.frameTime)/1000));state.frameTime=time;
                 // Sensor reports arrive in bursts, not at display refresh times.
                 // A short time-based filter removes jitter without a long tail.
-                state.rendered+=(state.lastProgress-state.rendered)*(1-Math.exp(-dt/35));
+                state.rendered+=(state.lastProgress-state.rendered)*(1-Math.exp(-dt/16));
                 if(Math.abs(state.lastProgress-state.rendered)<.0002)state.rendered=state.lastProgress;
                 state.controller._switchWorkspaceUpdate(state.tracker,state.rendered);
             });
@@ -63,11 +116,17 @@ export class MagicMouseActions {
         if(!s||s.id!==packet.id)return;
         if(!this.swipeValid(s)){this.finishSwipe(false);return;}
         const now=GLib.get_monotonic_time();
-        const delta=(packet.dx-s.startDx)/1200*(packet.natural?-1:1);
+        const delta=(packet.dx-s.startDx)/960*(packet.natural?-1:1);
         const low=Math.max(Math.min(...s.points),s.cancel-1),high=Math.min(Math.max(...s.points),s.cancel+1);
         const progress=Math.max(low,Math.min(high,s.cancel+delta));
-        const elapsed=(now-s.last)/1000000;
-        if(elapsed>.001)s.velocity=(progress-s.lastProgress)/elapsed;
+        // Release/heartbeat packets repeat the last displacement. They must
+        // not erase flick velocity; a real pause still cancels that momentum.
+        const elapsed=(now-s.motionTime)/1000000;
+        if(progress!==s.lastProgress&&elapsed>.001){
+            const instantaneous=(progress-s.lastProgress)/elapsed;
+            s.velocity=elapsed>.1?instantaneous:s.velocity*.35+instantaneous*.65;
+            s.motionTime=now;
+        }else if(elapsed>.1)s.velocity=0;
         s.last=now;s.lastProgress=progress;
 
         if(packet.phase==='end'||packet.phase==='cancel'){
@@ -92,7 +151,7 @@ export class MagicMouseActions {
         else if(s.overview&&s.controller._gestureActive)s.controller._endTouchGesture();
         s.tracker.enabled=s.enabled;
     }
-    cancelSwipe(){this.finishSwipe(true);}
+    cancelSwipe(){this.finishEdge();this.clearEdgeReturn();this.finishSwipe(true);}
     zoom() {
         if(Main.sessionMode.isLocked||Main.overview.visible)return false;
         const window=global.display.focus_window;

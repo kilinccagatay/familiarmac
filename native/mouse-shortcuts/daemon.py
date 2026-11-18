@@ -199,6 +199,10 @@ class Service:
         self.magic_errors={p:e for p,e in self.magic_errors.items() if p in found}
 
     def drop_magic(self,path):
+        # All disconnect paths (hidraw, evdev and discovery) must end the
+        # transport session before removing the reader. Otherwise heartbeat
+        # packets keep a half-finished Shell transition alive indefinitely.
+        if self.swipe and self.swipe[0]==path:self.cancel_swipe()
         reader=self.magic_devices.pop(path,None)
         if reader:
             for node,bridge in list(self.magic_pointers.items()):
