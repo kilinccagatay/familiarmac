@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """User-scoped, binary-version-guarded About illustration; no package file edits."""
 import hashlib, json, pathlib, shlex, shutil, subprocess, sys, xml.etree.ElementTree as ET
+import settings_launchers
 from hardware_identity import read_identity, select_device, asset_path, menu_icon_path
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 home=pathlib.Path.home()
 base=home/'.local/share/familiarmac/about'
 if '--restore' in sys.argv:
+ settings_launchers.restore(base,home)
  desktop=home/'.local/share/applications/org.gnome.Settings.desktop'
  if (base/'installed').exists():
   if (base/'desktop.before').exists(): shutil.copy2(base/'desktop.before',desktop)
@@ -50,6 +52,12 @@ wrapper.parent.mkdir(parents=True,exist_ok=True)
 dock_request=(f'if [ \"$1\" = --dock-window ]; then\n if /usr/bin/python3 {shlex.quote(str(base/"settings-applications.py"))} --activate-panel; then exit 0; fi\n export FAMILIARMAC_OPEN_DOCK=1\n shift\nfi\n' if sidebar_setup else 'if [ \"$1\" = --dock-window ]; then exec gnome-extensions prefs familiarmac-genie@local; fi\n')
 wrapper.write_text('#!/bin/sh\n'+dock_request+f'if [ "$(sha256sum /usr/bin/gnome-control-center | cut -d " " -f1)" = {shlex.quote(sha)} ]; then\n'+f' export G_RESOURCE_OVERLAYS="/org/gnome/control-center/system/about={base}${{G_RESOURCE_OVERLAYS:+:$G_RESOURCE_OVERLAYS}}"\n'+sidebar_setup+'fi\nexec /usr/bin/gnome-control-center "$@"\n')
 wrapper.chmod(0o755)
+# Keep the conventional executable basename so existing panel discovery also
+# recognizes these launchers before the Shell extension has been reloaded.
+panel_wrapper=base/'gnome-control-center'
+panel_wrapper.unlink(missing_ok=True)
+panel_wrapper.symlink_to(wrapper)
+settings_launchers.install(base,home,panel_wrapper)
 desktop=home/'.local/share/applications/org.gnome.Settings.desktop'
 desktop.parent.mkdir(parents=True,exist_ok=True)
 backup=base/'desktop.before'

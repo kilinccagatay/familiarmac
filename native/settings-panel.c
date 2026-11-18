@@ -208,7 +208,7 @@ static int attach(P window){
  gtk_scale_add_mark(size_scale,100,3,"Large");
  P zoom_scale=gtk_builder_get_object(builder,"dock_zoom_scale");
  gtk_scale_add_mark(zoom_scale,0,3,"Off");
- gtk_scale_add_mark(zoom_scale,20,3,"<span alpha='55%'>•</span>\nSmall");
+ gtk_scale_add_mark(zoom_scale,20,3,"Small");
  gtk_scale_add_mark(zoom_scale,100,3,"Large");
  s->dock_zoom=gtk_builder_get_object(builder,"dock_zoom");dock_zoom_sync(NULL,NULL,s);
  g_signal_connect_data(s->dock_zoom,"notify::value",dock_zoom_changed,s,NULL,0);
