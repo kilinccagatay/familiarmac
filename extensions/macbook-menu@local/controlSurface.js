@@ -85,7 +85,7 @@ export class ControlSurface {
     detail(key) {
         const button = this.owner.statusButtons.buttons.find(b => b.indicator === this.owner.panel[key])?.button ?? this.owner.panel;
         this.owner.statusButtons.open(key, button);
-        if (key !== '_network' && !(key === '_backlight' && this.owner.keyboard?.native)) this.owner.panel[key]?.quickSettingsItems?.find(i => i.visible && i.menu)?.menu.open();
+        if (key !== '_network' && key !== '_bluetooth' && !(key === '_backlight' && this.owner.keyboard?.native)) this.owner.panel[key]?.quickSettingsItems?.find(i => i.visible && i.menu)?.menu.open();
     }
     settings(panel) { this.owner.panel.menu.close(); Util.spawn([settingsCommand(), panel]); }
     syncMedia() {

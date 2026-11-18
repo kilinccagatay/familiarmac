@@ -13,6 +13,8 @@ export class StatusButtons {
     constructor(owner) {
         this.owner = owner;
         this.panel = owner.panel;
+        const source=Gio.SettingsSchemaSource.new_from_directory(GLib.build_filenamev([GLib.get_user_data_dir(),'gnome-shell/extensions/familiarmac-genie@local/schemas']),Gio.SettingsSchemaSource.get_default(),false);
+        this.preferences=new Gio.Settings({settings_schema:source.lookup('org.gnome.shell.extensions.familiarmac-genie',true)});
         this.buttons = [];
         this.mask = [];
         this.spans = [];
@@ -91,7 +93,7 @@ export class StatusButtons {
                     }
                     wirelessIcon.visible = Boolean(primary?.visible || wireless?.visible);
                     indicator.hide();
-                    button.visible = wirelessIcon.visible;
+                    button.visible = wirelessIcon.visible && this.preferences.get_boolean('wifi-panel-icon');
                 };
                 if (wireless) bindings.push(wireless.connect('notify::icon-name', updateWifi),
                     wireless.connect('notify::visible', updateWifi));
@@ -99,11 +101,23 @@ export class StatusButtons {
                     for (const name of ['notify::icon-name', 'notify::visible'])
                         networkBindings.push([indicator._primaryIndicator, indicator._primaryIndicator.connect(name, updateWifi)]);
                 }
+                networkBindings.push([this.preferences,this.preferences.connect('changed::wifi-panel-icon',updateWifi)]);
                 updateWifi();
             }
+            let bluetoothIcon=null;
+            if(key==='_bluetooth'){
+                bluetoothIcon=new St.Icon({style_class:'system-status-icon',icon_name:'bluetooth-active-symbolic'});content.add_child(bluetoothIcon);
+            }
             const sync = () => {
+                if(bluetoothIcon){
+                    const native=indicator.quickSettingsItems?.[0];
+                    bluetoothIcon.icon_name=native?.icon_name??'bluetooth-disabled-symbolic';
+                    bluetoothIcon.visible=!indicator.visible;
+                    button.visible=this.preferences.get_boolean('bluetooth-panel-icon');
+                    return;
+                }
                 if (wirelessIcon) {
-                    button.visible = wirelessIcon.visible;
+                    button.visible = wirelessIcon.visible && this.preferences.get_boolean('wifi-panel-icon');
                     if (indicator.visible) indicator.hide();
                     return;
                 }
@@ -115,6 +129,11 @@ export class StatusButtons {
                 button.visible = Boolean(wireless?.visible || indicator.visible);
                 if (wireless?.visible && indicator.visible) indicator.hide();
             };
+            if(bluetoothIcon){
+                networkBindings.push([this.preferences,this.preferences.connect('changed::bluetooth-panel-icon',sync)]);
+                const native=indicator.quickSettingsItems?.[0];
+                if(native)networkBindings.push([native,native.connect('notify::icon-name',sync)]);
+            }
             const signal = indicator.connect('notify::visible', sync);
             sync();
             // PanelMenu dispatches both mouse press and touch to menu.toggle.
@@ -132,6 +151,7 @@ export class StatusButtons {
     }
 
     open(key, button) {
+        if(!button?.visible||!button?.mapped)button=this.panel;
         const menu = this.panel.menu;
         const same = this.active === button && menu.isOpen;
         menu.close();
@@ -144,7 +164,8 @@ export class StatusButtons {
         const customWifi = Boolean(wireless?.visible && this.owner.wifi);
         const customSound = key === '_volumeOutput' && Boolean(this.owner.sound?.native);
         const customKeyboard = key === '_backlight' && Boolean(this.owner.keyboard?.native);
-        const selected = new Set(key === '_system' || customWifi || customSound || customKeyboard ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
+        const customBluetooth=key==='_bluetooth'&&Boolean(this.owner.bluetooth);
+        const selected = new Set(customBluetooth || key === '_system' || customWifi || customSound || customKeyboard ? [] : wireless?.visible ? [wireless] : this.panel[key]?.quickSettingsItems ?? []);
         for (const {label, item} of this.owner.labels) if (selected.has(item)) selected.add(label);
         // GNOME 46 QuickSettingsLayout computes (rows.length - 1) * spacing.
         // Hiding every child produces a negative preferred height and a fatal
@@ -178,6 +199,7 @@ export class StatusButtons {
         button.add_style_pseudo_class('active');
         menu.box.add_style_class_name('familiarmac-status-detail');
         menu.open();
+        if (customBluetooth) this.owner.bluetooth.show();
         if (customKeyboard) this.owner.keyboard.show();
         if (customSound) this.owner.sound.show();
         if (customWifi) this.owner.wifi.show();
@@ -191,6 +213,7 @@ export class StatusButtons {
         this.owner.keyboard?.hide();
         this.owner.sound?.hide();
         this.owner.wifi?.hide();
+        this.owner.bluetooth?.hide();
         for (const {item, signal, visible} of this.mask) {
             item.disconnect(signal); item.visible = visible;
         }

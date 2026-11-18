@@ -1,3 +1,4 @@
+import {BluetoothSurface} from './bluetoothSurface.js';
 import {KeyboardSurface} from './keyboardSurface.js';
 import {SoundSurface} from './soundSurface.js';
 import {WifiSurface} from './wifiSurface.js';
@@ -70,6 +71,8 @@ export class ControlCenter {
         menu.box.insert_child_at_index(this.keyboard.actor, 0);
         this.sound = new SoundSurface(this, tr);
         menu.box.insert_child_at_index(this.sound.actor, 0);
+        this.bluetooth = new BluetoothSurface(this, tr);
+        menu.box.insert_child_at_index(this.bluetooth.actor, 0);
         this.wifi = new WifiSurface(this, tr);
         menu.box.insert_child_at_index(this.wifi.actor, 0);
         this.battery = new BatterySurface(this, tr);
@@ -88,7 +91,9 @@ export class ControlCenter {
         this.sound.actor.visible = sound;
         const keyboard = this.detail === '_backlight' && Boolean(this.keyboard?.native);
         this.keyboard.actor.visible = keyboard;
-        this.panel.menu._grid.visible = Boolean(this.detail) && this.detail !== '_system' && !wifi && !sound && !keyboard;
+        const bluetooth=this.detail==='_bluetooth';
+        this.bluetooth.actor.visible=bluetooth;
+        this.panel.menu._grid.visible = Boolean(this.detail) && this.detail !== '_system' && !wifi && !sound && !keyboard && !bluetooth;
         this.battery.actor.visible = this.detail === '_system';
         if (this.detail === '_system') this.battery.sync();
         if (!this.detail) this.surface.syncMedia();
@@ -101,6 +106,7 @@ export class ControlCenter {
         this.keyboard?.destroy();
         this.sound?.destroy();
         this.wifi?.destroy();
+        this.bluetooth?.destroy();
         this.battery?.destroy();
         this.surface?.destroy();
         this.surface = null;
