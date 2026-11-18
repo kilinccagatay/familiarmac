@@ -108,8 +108,25 @@ static int escape_key(P controller,unsigned key,unsigned code,unsigned mods,P un
  gtk_window_unfullscreen(window);return 1;
 }
 #include "fullscreen-reveal.h"
+static int collapse_search(P slot){g_object_set(slot,"search-visible",0,NULL);g_object_unref(slot);return 0;}
+static int outside_search_event(P controller,P event,P unused){
+ (void)unused;
+ if(gdk_event_get_event_type(event)!=3||gdk_button_event_get_button(event)!=1)return 0;
+ P window=gtk_event_controller_get_widget(controller),toolbar=find(window,"NautilusToolbar");
+ P editor=find(toolbar,"NautilusQueryEditor");if(!editor||!gtk_widget_get_mapped(editor))return 0;
+ double x=0,y=0;if(!gdk_event_get_position(event,&x,&y))return 0;
+ P picked=gtk_widget_pick(window,x,y,0);if(!picked)return 0;
+ for(P w=picked;w&&w!=window;w=gtk_widget_get_parent(w)){
+  const char*t=g_type_name_from_instance(w);
+  if(w==editor||strstr(t,"Popover")||!strcmp(gtk_widget_get_name(w),"fm-finder-search-button"))return 0;
+ }
+ P slot=NULL;g_object_get(toolbar,"window-slot",&slot,NULL);
+ if(slot)g_idle_add(collapse_search,slot);
+ return 0; /* Preserve the clicked control's native action. */
+}
 static int window_attach(P window){
  fullscreen_attach(window);green_button_attach(window);
+ P outside=gtk_event_controller_legacy_new();gtk_event_controller_set_propagation_phase(outside,1);g_signal_connect_data(outside,"event",outside_search_event,NULL,NULL,0);gtk_widget_add_controller(window,outside);
  P toolbar=find(window,"NautilusToolbar"),header=find(toolbar,"AdwHeaderBar");
  P folder_menu=find(find(toolbar,"NautilusPathBar"),"GtkMenuButton");if(folder_menu)gtk_menu_button_set_icon_name(folder_menu,"pan-down-symbolic");
  P app=g_object_get_data(window,"fm-app-button");
