@@ -10,9 +10,9 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
-## Latest release: 1.0.3
+## Latest release: 1.1.0
 
-[Release notes](docs/releases/v1.0.3.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.0.3)
+[Release notes](docs/releases/v1.1.0.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.1.0)
 
 Customize Dock size, magnification, auto-hide and window animations from
 **Dock & Window** in Settings, where you can also configure application menus
@@ -21,6 +21,8 @@ and check for FamiliarMac updates.
 Machine-specific NVIDIA/Nouveau, Wi-Fi repairs and boot/kernel tuning remain
 outside the automatic installer. See the release notes for update instructions
 and detailed changes.
+
+Mission Control adds named desktops and fullscreen spaces. Finder gains a unified toolbar and expanding search with configurable scope. See [Finder and Spaces](docs/FINDER-AND-SPACES.md).
 
 ## Screenshots
 
