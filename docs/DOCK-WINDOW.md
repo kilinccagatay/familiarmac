@@ -89,3 +89,14 @@ The Wi-Fi heading is a non-interactive row. Only the switch is clickable/focusab
 Size uses Small–Large endpoints; the 50% stop restores the original 48-pixel icon setting. Magnification uses Off–Small–Large with a stop at Small. Hover expands neighboring icons and the background; the divider follows the section boundary and labels stay above the icons. Auto-hide uses edge entry without pressure, zero additional show delay, a 280 ms transition and 150 ms hide delay. Magnification participates in reveal but cannot activate for a hidden Dock. A monitor-anchored vertical hover lane includes the space above and below icons.
 
 Shell JavaScript changes require a new login. Open GTK applications may need restarting to pick up shared theme changes. User-specific NVIDIA, firmware, Wi-Fi and boot repairs are not part of these desktop controls.
+
+
+## Installed desktop screenshots (1.0.2)
+
+[![Dock controls](screenshots/details/dock-controls.png)](screenshots/dock-window.png)
+
+[![Version and update status](screenshots/details/dock-update.png)](screenshots/dock-window.png)
+
+![Magnified context menu](screenshots/dock-context-menu.png)
+
+Captured on the reference Mac on 18 November 2026. See the [gallery](SCREENSHOTS.md) for capture details.

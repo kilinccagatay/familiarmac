@@ -31,7 +31,17 @@ boot/kernel tuning remain outside the automatic installer.
 
 Feature close-ups cropped from the installed desktop. Click an image to open the full capture. Network and account names are redacted where needed.
 
-[![Dock](docs/screenshots/details/dock.png)](docs/screenshots/apps.png)
+[![Dock magnification and immediate name bubble](docs/screenshots/dock-magnification.png)](docs/screenshots/dock-magnification.png)
+
+**Dock & Window — 1.0.2**
+
+[![Dock size, magnification, auto-hide and Genie controls](docs/screenshots/details/dock-controls.png)](docs/screenshots/dock-window.png)
+
+[![Installed version and inline update status](docs/screenshots/details/dock-update.png)](docs/screenshots/dock-window.png)
+
+[![Context menu above a magnified Dock icon](docs/screenshots/dock-context-menu.png)](docs/screenshots/dock-context-menu.png)
+
+New captures from the installed 1.0.2 desktop on 18 November 2026; click the settings details to see the complete Settings window.
 
 | About this Mac | Applications |
 | --- | --- |

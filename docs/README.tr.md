@@ -29,7 +29,17 @@ kuruluma dahil değildir.
 
 Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmış bölümleri. Tam görüntüyü açmak için görsele tıklayabilirsin. Ağ ve hesap adları gerektiğinde gizlenmiştir.
 
-[![Dock](screenshots/details/dock.png)](screenshots/apps.png)
+[![Dock büyütmesi ve anında görünen isim balonu](screenshots/dock-magnification.png)](screenshots/dock-magnification.png)
+
+**Dock & Window — 1.0.2**
+
+[![Dock boyutu, büyütme, otomatik gizleme ve Genie ayarları](screenshots/details/dock-controls.png)](screenshots/dock-window.png)
+
+[![Kurulu sürüm ve bölüm içindeki güncelleme durumu](screenshots/details/dock-update.png)](screenshots/dock-window.png)
+
+[![Büyütülmüş Dock simgesinin üzerinde açılan sağ tık menüsü](screenshots/dock-context-menu.png)](screenshots/dock-context-menu.png)
+
+18 Kasım 2026 tarihinde kurulu 1.0.2 masaüstünden alınan yeni görüntüler. Ayar yakın planlarına tıklayarak Ayarlar penceresinin tamamını açabilirsiniz.
 
 | Bu Mac Hakkında | Uygulamalar |
 | --- | --- |

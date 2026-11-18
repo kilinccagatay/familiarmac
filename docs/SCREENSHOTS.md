@@ -4,6 +4,27 @@ Captured on 16 November 2026 on a MacBookPro10,1 (A1398), running Zorin OS 18.1 
 
 16 Kasım 2026 tarihinde Zorin OS 18.1 / GNOME Shell 46 çalışan MacBookPro10,1 (A1398) üzerinden alındı. Bunlar taslak görseller değil, kurulu masaüstünün ekran görüntüleridir. Görünüm; tema, uygulamalar ve ekran ölçeklendirmesine göre değişebilir.
 
+## Dock & Window — 18 November 2026 / 18 Kasım 2026
+
+These captures show the installed 1.0.2 desktop: size and magnification controls,
+Genie motion, application configuration and the current version/update status.
+The context menu retains magnification and sits above the icon with a rounded
+tail. Name bubbles use the same soft pointer. Captures are cropped to the Settings
+window or Dock area; private chat content and temporary capture controls are
+excluded. Dock preferences were not changed for these captures.
+
+Kurulu 1.0.2 masaüstünde boyut/büyütme, Genie, uygulama yapılandırması ve sürüm
+bilgisi gösterilir. Sağ tık menüsü büyütmeyi korur ve yuvarlatılmış işaretçisiyle
+simgenin üzerinde açılır. İsim balonu da yumuşak uç kullanır. Görüntüler Ayarlar
+penceresine veya Dock alanına kırpılmıştır; özel sohbet içeriği ve geçici çekim
+kontrolleri dahil değildir. Çekim için Dock tercihleri değiştirilmedi.
+
+![Dock & Window settings](screenshots/dock-window.png)
+
+![Dock magnification and name bubble](screenshots/dock-magnification.png)
+
+![Magnified Dock context menu](screenshots/dock-context-menu.png)
+
 ## About / Hakkında
 
 The native Settings About page retains the actual operating system and hardware details. FamiliarMac supplies the MacBook illustration on supported models.
