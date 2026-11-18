@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory() as tmp:
         names=t.getnames()
         assert not {Path(n).name for n in names}&p.MANUAL
         assert not any('/.git/' in n or '/.state/' in n for n in names)
-        for path in ('VERSION','RELEASE.json','scripts/install-login-layout.sh','scripts/build-login-layout.py','scripts/gdm-shell-wrapper.sh','scripts/refine-visuals.sh','extensions/macbook-menu@local/dockBounce.js','extensions/familiarmac-display-scale@local/extension.js','native/settings-panel.c','scripts/dock-window.ui','scripts/release-update.py'):
+        for path in ('VERSION','RELEASE.json','scripts/install-login-layout.sh','scripts/build-login-layout.py','scripts/gdm-shell-wrapper.sh','scripts/refine-visuals.sh','extensions/macbook-menu@local/dockBounce.js','extensions/familiarmac-display-scale@local/extension.js','native/settings-panel.c','scripts/dock-window.ui','scripts/release-update.py','native/settings-magic-mouse.h','native/settings-magic-demo.h','scripts/magic-mouse.ui','assets/magic-mouse/mouse.svg','assets/magic-mouse/overview.svg','extensions/macbook-menu@local/magicMouseActions.js','native/mouse-shortcuts/gesture_actions.py','extensions/macbook-menu@local/afterStartup.js','extensions/macbook-menu@local/icons/magic-mouse-symbolic.svg','vendor/familiarmac-magic-mouse/VENDORED.json','vendor/familiarmac-magic-mouse/magic_mouse_support/devices.py','vendor/familiarmac-magic-mouse/THIRD_PARTY_NOTICES.md'):
             assert any(n.endswith('/'+path) for n in names),path
         t.extractall(dest/'unpack',filter='data')
     package=next((dest/'unpack').iterdir())

@@ -20,7 +20,7 @@ if [ -n "$FAIL_ON" ]; then case "$*" in *"$FAIL_ON"*) exit 19;; esac; fi
         return result,trace.read_text().splitlines()
     result,lines=run('--all');assert result.returncode==0,result.stderr
     expected=['python3 scripts/doctor.py --require prepare','sha256sum --check vendor/SHA256SUMS',
-              'sudo bash scripts/bootstrap.sh','sudo bash scripts/install-desktop-themes.sh',
+              'sudo bash scripts/bootstrap.sh','sudo bash scripts/install-desktop-themes.sh','sudo bash scripts/install-mouse-shortcuts.sh',
               'python3 scripts/doctor.py --require desktop','python3 scripts/desktop.py',
               'python3 scripts/install-rounded-corners.py','python3 scripts/install-apps.py',
               'python3 scripts/install-about.py','python3 scripts/install-finder-search.py','python3 scripts/install-dock-icons.py',

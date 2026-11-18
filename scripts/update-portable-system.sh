@@ -9,3 +9,5 @@ bash scripts/install-desktop-themes.sh
 if [[ -f /var/lib/familiarmac/system-appearance/installed ]]; then
   bash scripts/install-system-appearance.sh
 fi
+
+bash scripts/install-mouse-shortcuts.sh

@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 """User-scoped stable release updater. No hardware repair entry points."""
 import argparse
+import configparser
+import io
 import fcntl
 import hashlib
 import json
@@ -87,6 +89,18 @@ def register(root):
         shutil.copy2(root/'scripts'/file,destination/file)
     save(STATE/'installed.json',{'version':v,'installed_at':time.time()})
 
+def preserve_preferences(before, after):
+    """Keep user preferences while retaining installed extension migrations."""
+    previous=configparser.RawConfigParser();previous.read_string(before.decode())
+    installed=configparser.RawConfigParser();installed.read_string(after.decode())
+    section='org/gnome/shell'
+    for key in ('enabled-extensions','disabled-extensions'):
+        if installed.has_option(section,key):
+            if not previous.has_section(section):previous.add_section(section)
+            previous.set(section,key,installed.get(section,key))
+    result=io.StringIO();previous.write(result,space_around_delimiters=False)
+    return result.getvalue().encode()
+
 def install(expected, progress=lambda fraction,message:None):
     version(expected)
     progress(0,'Checking release…')
@@ -118,6 +132,7 @@ def install(expected, progress=lambda fraction,message:None):
         (STATE/'preferences-before-update.ini').write_bytes(snapshot)
         save(STATE/'transaction.json',{'version':expected,'status':'installing','previous':current})
         log=STATE/'install.log'
+        restore=snapshot
         try:
             with log.open('w') as stream:
                 progress(.75,'Installing shared themes — administrator authentication may be required…')
@@ -125,11 +140,12 @@ def install(expected, progress=lambda fraction,message:None):
                 progress(.85,'Installing desktop update…')
                 env=dict(os.environ,FAMILIARMAC_UPDATING='1')
                 subprocess.run(['bash','install.sh','--desktop'],cwd=final,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
+            restore=preserve_preferences(snapshot,subprocess.check_output(['dconf','dump','/']))
         except Exception:
             save(STATE/'transaction.json',{'version':expected,'status':'failed','previous':current,'log':str(log)})
             raise RuntimeError(f'Update incomplete. Previous version retained. See {log}')
         finally:
-            subprocess.run(['dconf','load','/'],input=snapshot,check=True)
+            subprocess.run(['dconf','load','/'],input=restore,check=True)
         progress(.97,'Finishing installation…')
         register(final)
         save(STATE/'transaction.json',{'version':expected,'status':'complete','logout_required':True})

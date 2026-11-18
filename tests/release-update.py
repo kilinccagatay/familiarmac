@@ -79,3 +79,12 @@ with tempfile.TemporaryDirectory() as tmp:
         list(pool.map(lambda n:u.save(target,{'n':n}),range(150)))
     assert isinstance(u.read(target)['n'],int)
 print('Release checks, checksum rejection, archive safety, install failure/version boundaries and portable update scope PASS')
+# A successful upgrade preserves personal preferences but not retired extensions.
+before=b"[org/gnome/shell]\nenabled-extensions=['legacy']\ndisabled-extensions=['new']\nfavorite-apps=['personal.desktop']\n\n[org/gnome/desktop/interface]\nenable-animations=false\n"
+after=b"[org/gnome/shell]\nenabled-extensions=['new']\ndisabled-extensions=['legacy']\nfavorite-apps=['default.desktop']\n\n[org/gnome/desktop/interface]\nenable-animations=true\n"
+merged=u.preserve_preferences(before,after).decode()
+assert "enabled-extensions=['new']" in merged
+assert "disabled-extensions=['legacy']" in merged
+assert "favorite-apps=['personal.desktop']" in merged
+assert 'enable-animations=false' in merged
+print('Update retains extension migrations without resetting favorites or motion PASS')
