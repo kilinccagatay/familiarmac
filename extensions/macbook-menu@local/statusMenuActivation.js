@@ -17,7 +17,34 @@ export class StatusMenuActivation {
             return this.original.call(this.manager, menu);
         };
         this.manager._changeMenu = this.wrapper;
+        this.menuActors = new Map();
+        this.capture = this.manager._onCapturedEvent;
+        this.addMenu = this.manager.addMenu;
+        this.addWrapper = (menu, ...args) => {
+            const result = this.addMenu.call(this.manager, menu, ...args);
+            this.trackMenu(menu);
+            return result;
+        };
+        this.manager.addMenu = this.addWrapper;
+        for (const menu of this.manager._menus ?? []) this.trackMenu(menu);
         this.signal = global.stage.connect('captured-event', (_stage, event) => this.event(event));
+    }
+    trackMenu(menu) {
+        const actor = menu.actor;
+        if (!actor) return;
+        // A modal Clutter grab can deliver directly to this actor, bypassing
+        // stage capture. Replace only the manager's captured-event connection;
+        // menu open-state/destroy connections on the menu object remain intact.
+        actor.disconnectObject(this.manager);
+        actor.connectObject('captured-event', (source, event) => {
+            const handled = this.event(event);
+            return handled === Clutter.EVENT_STOP ? handled
+                : this.capture.call(this.manager, source, event);
+        }, this.manager);
+        if (!this.menuActors.has(actor)) {
+            const signal = actor.connect('destroy', () => this.menuActors.delete(actor));
+            this.menuActors.set(actor, signal);
+        }
     }
     event(event) {
         const active = this.manager.activeMenu;
@@ -48,6 +75,14 @@ export class StatusMenuActivation {
     destroy() {
         if (this.signal) global.stage.disconnect(this.signal);
         this.signal = 0;
+        if (this.manager.addMenu === this.addWrapper) this.manager.addMenu = this.addMenu;
+        for (const [actor, signal] of this.menuActors) {
+            actor.disconnect(signal);
+            actor.disconnectObject(this.manager);
+            if (this.manager._menus.some(menu => menu.actor === actor))
+                actor.connectObject('captured-event', this.capture.bind(this.manager), this.manager);
+        }
+        this.menuActors.clear();
         if (this.manager._changeMenu === this.wrapper)
             this.manager._changeMenu = this.original;
     }

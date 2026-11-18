@@ -33,3 +33,29 @@ manager.activeMenu.sourceActor=date.sourceActor;
 assert.equal(policy3.event(event(2)),1);assert.equal(opened,2);
 policy3.destroy();
 console.log('Status click transfer: one press closes/opens, same-button dismissal, touch, hover and reorder exclusions PASS');
+
+// Modal routing goes straight to the menu actor, never through stage capture.
+let nativeCaptures=0;
+function menuActor(){return {handler:null,connectObject(_s,f){this.handler=f;},disconnectObject(){this.handler=null;},connect(){return 9;},disconnect(){}};}
+const firstActor=menuActor();
+manager._menus=[{actor:firstActor}];
+manager._onCapturedEvent=function(){nativeCaptures++;manager.activeMenu.close();return 0;};
+manager.addMenu=function(menu){this._menus.push(menu);menu.actor.connectObject('captured-event',this._onCapturedEvent.bind(this),this);};
+const nativeAdd=manager.addMenu;
+const policy4=new ctx.Policy();
+manager.activeMenu={isOpen:true,sourceActor:date.sourceActor,close(){closed++;}};
+let before=opened;
+assert.equal(firstActor.handler(firstActor,event()),1);
+assert.equal(opened,before+1);assert.equal(nativeCaptures,0,'transfer precedes native outside-click dismissal');
+const laterActor=menuActor();manager.addMenu({actor:laterActor});
+before=opened;assert.equal(laterActor.handler(laterActor,event()),1);assert.equal(opened,before+1);
+assert.equal(laterActor.handler(laterActor,event(1,0,450)),0);assert.equal(nativeCaptures,1,'ordinary outside clicks retain native handling');
+// Removing and re-adding an actor must reconnect interception.
+manager._menus=manager._menus.filter(menu=>menu.actor!==laterActor);
+laterActor.disconnectObject(manager);manager.addMenu({actor:laterActor});
+before=opened;assert.equal(laterActor.handler(laterActor,event()),1);assert.equal(opened,before+1);
+// Removed actors must not regain a manager connection during teardown.
+manager._menus=manager._menus.filter(menu=>menu.actor!==laterActor);laterActor.disconnectObject(manager);
+policy4.destroy();assert.equal(manager.addMenu,nativeAdd);assert.equal(laterActor.handler,null);
+firstActor.handler(firstActor,event());assert.equal(nativeCaptures,2,'teardown restores native handler');
+console.log('Status modal capture: existing/new menus transfer before dismissal; outside clicks and teardown PASS');
