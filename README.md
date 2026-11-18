@@ -10,9 +10,9 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
-## Latest release: 1.1.2
+## Latest release: 1.2.0
 
-[Release notes](docs/releases/v1.1.2.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.1.2)
+[Release notes](docs/releases/v1.2.0.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.0)
 
 Customize Dock size, magnification, auto-hide and window animations from
 **Dock & Window** in Settings, where you can also configure application menus
@@ -22,7 +22,7 @@ Machine-specific NVIDIA/Nouveau, Wi-Fi repairs and boot/kernel tuning remain
 outside the automatic installer. See the release notes for update instructions
 and detailed changes.
 
-Mission Control adds named desktops and fullscreen spaces. Finder gains a unified toolbar and expanding search with configurable scope. See [Finder and Spaces](docs/FINDER-AND-SPACES.md).
+Mission Control adds named desktops, fullscreen spaces and continuous workspace swipes. Keyboard and mouse shortcuts are configurable in Dock & Window. A connected Magic Mouse gets its own Mouse settings, gesture demonstrations, page navigation and document zoom. Bluetooth has a dedicated menu with device batteries; Bluetooth and Wi-Fi icon visibility live in their respective Settings panels. [Input and gesture details](docs/MISSION-CONTROL-INPUT.md). Finder gains a unified toolbar and expanding search with configurable scope. See [Finder and Spaces](docs/FINDER-AND-SPACES.md).
 
 ## Screenshots
 

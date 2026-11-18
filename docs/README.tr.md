@@ -8,9 +8,9 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değiştirmesini istemememle başladı. macOS kullanırken bildiği günlük işlemleri Linux'ta da tanıdık bir şekilde yapabilmesini hedefledim. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
-## Son sürüm: 1.1.2
+## Son sürüm: 1.2.0
 
-[Sürüm notları](releases/v1.1.2.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.1.2)
+[Sürüm notları](releases/v1.2.0.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.0)
 
 Ayarlar’daki **Dock & Window** bölümünden Dock boyutunu, büyütmeyi, otomatik
 gizlemeyi ve pencere animasyonlarını düzenleyebilir; uygulama menülerini
@@ -20,7 +20,7 @@ Makineye özgü NVIDIA/Nouveau, Wi-Fi onarımları ve çekirdek/açılış ayarl
 otomatik kuruluma dahil değildir. Güncelleme adımları ve ayrıntılı değişiklikler
 sürüm notlarında yer alır.
 
-Mission Control, adlandırılmış masaüstlerini ve tam ekran uygulama alanlarını destekler. Finder birleşik araç çubuğu, genişleyen arama alanı ve arama kapsamı tercihi sunar. [Finder ve Spaces ayrıntıları](FINDER-AND-SPACES.md).
+Mission Control, adlandırılmış masaüstlerini, tam ekran uygulama alanlarını ve parmağı izleyen masaüstü geçişlerini destekler. Klavye ve fare kısayolları Dock & Window’dan ayarlanır. Magic Mouse bağlandığında Mouse ayarlarında hareket demoları, sayfa geçişi ve belge yakınlaştırma seçenekleri görünür. Bluetooth menüsü cihaz pillerini gösterir; Bluetooth ve Wi-Fi simgelerinin görünürlüğü kendi sistem ayarlarından yönetilir. [Hareketlerin davranışı ve sınırları](MISSION-CONTROL-INPUT.md). Finder birleşik araç çubuğu, genişleyen arama alanı ve arama kapsamı tercihi sunar. [Finder ve Spaces ayrıntıları](FINDER-AND-SPACES.md).
 
 ## Ekran görüntüleri
 
