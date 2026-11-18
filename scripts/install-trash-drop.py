@@ -20,7 +20,14 @@ def prepare(source, destination, patch):
     anchor = "        this.connectSignal(widget, 'drag-end', (w, context) => {"
     if text.count(anchor) != 1:
         raise RuntimeError('Unsupported desktop drag source version; no files changed.')
+    emulator = (source / 'emulateX11WindowType.js').read_text()
+    focus_anchor = '                    if (checkWorkspace) {'
+    if emulator.count(focus_anchor) != 1:
+        raise RuntimeError('Unsupported desktop focus source version; no files changed.')
+    emulator = emulator.replace(focus_anchor,
+        '                    if (checkWorkspace && !Main.overview.visible) {')
     shutil.copytree(source, destination)
+    (destination / 'emulateX11WindowType.js').write_text(emulator)
     (destination / 'app/desktopIconItem.js').write_text(text.replace(anchor, patch + anchor))
     metadata = json.loads((destination / 'metadata.json').read_text())
     metadata['uuid'] = UUID

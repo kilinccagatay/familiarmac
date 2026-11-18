@@ -1,5 +1,7 @@
+import {MissionControlInput} from './missionControlInput.js';
 import {FullscreenControls} from './fullscreenControls.js';
 import {MissionControl} from './missionControl.js';
+import {afterStartup} from './afterStartup.js';
 import {DockBounce} from './dockBounce.js';
 import {StartupCompletion} from './startupCompletion.js';
 import {DockRefresh} from './dockRefresh.js';
@@ -66,7 +68,10 @@ export default class MacBookMenu extends Extension {
         this._startupCompletion = new StartupCompletion();
         this._dockMagnification = new DockMagnification();
         this._dockBounce = new DockBounce(this._dockMagnification);
-        this._missionControl = new MissionControl();
+        this._cancelMissionStartup = afterStartup(Main.layoutManager, GLib, () => {
+            this._missionControl = new MissionControl();
+        });
+        this._missionControlInput = new MissionControlInput();
         this._fullscreenControls = new FullscreenControls();
         this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
@@ -89,7 +94,7 @@ export default class MacBookMenu extends Extension {
             const visit = actor => {
                 this._dockOrder.trackSeparator(actor);
                 this._dockRefresh.track(actor);
-                if (actor.has_style_class_name?.('familiarmac-downloads-button')) this._dockMagnification.track(actor);
+                if (actor.has_style_class_name?.('familiarmac-downloads-button') || actor.has_style_class_name?.('familiarmac-window-preview')) this._dockMagnification.track(actor);
                 if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
                     this._trashDrop.track(actor);
@@ -291,8 +296,12 @@ export default class MacBookMenu extends Extension {
         this._appsBrowser = null;
         this._fullscreenControls?.destroy();
         this._fullscreenControls = null;
+        this._cancelMissionStartup?.();
+        this._cancelMissionStartup = null;
         this._missionControl?.destroy();
         this._missionControl = null;
+        this._missionControlInput?.destroy();
+        this._missionControlInput = null;
         this._dockBounce?.destroy();
         this._dockBounce = null;
         this._dockMagnification?.destroy();

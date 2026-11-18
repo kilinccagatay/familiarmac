@@ -4,11 +4,11 @@ const active={},other={},a={metaWindow:active},b={metaWindow:other};
 const box={get_width:()=>1000,get_height:()=>600};
 const slots=[[0,0,480,300,a],[520,0,480,300,b]];
 const result=c.singleWindowSlot(slots,box,active);
-assert.equal(result[0][2],480);assert(result[1][2]<480);
-for(let i=0;i<slots.length;i++){const [x,y,w,h]=result[i],s=slots[i];assert(x>=s[0]&&y>=s[1]&&x+w<=s[0]+s[2]&&y+h<=s[1]+s[3]);assert(Math.abs(w/h-s[2]/s[3])<1e-10);}
-assert.equal(c.singleWindowSlot(slots,box,{}),slots,'Unknown focus must leave the layout unchanged');
+assert(result[0][2]>result[1][2]);assert(result[1][2]>480*.65);
+for(let i=0;i<slots.length;i++){const [x,y,w,h]=result[i],s=slots[i];assert(x>=0&&y>=0&&x+w<=1000&&y+h<=600);assert(Math.abs(w/h-s[2]/s[3])<1e-10);}
+assert(result[0][0]+result[0][2]<=result[1][0]);
 assert.equal(slots[1][2],480,'Never mutate native slots');
-const single=c.singleWindowSlot([[0,0,1000,600,a]],box,active)[0];assert(single[2]<=720&&single[3]<=432);assert.equal(single[4],a);
+const single=c.singleWindowSlot([[0,0,1000,600,a]],box,active)[0];assert(single[2]>=800&&single[3]<=600);assert.equal(single[4],a);
 console.log('Mission Control layout: focus emphasis, no overlaps, preserved aspect ratios and native slot immutability PASS');
 const lifecycle={global:{workspace_manager:{}},Meta:{}};
 vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/missionControl.js','utf8').replace(/^import .*;$/gm,'').replace('export class MissionControl','this.MissionControl=class MissionControl').replace(/^export /gm,''),lifecycle);
@@ -16,3 +16,17 @@ const mission=Object.create(lifecycle.MissionControl.prototype),space={};let exi
 const full={unmake_fullscreen:()=>exited++,delete:()=>assert.fail('Fullscreen space control must never close the application')};mission.spaces=new Map([[full,{space}]]);
 mission.closeSpace(space);assert.equal(exited,1);
 console.log('Fullscreen space control exits fullscreen without closing the application PASS');
+let allocated=0;
+const layout={_needsLayout:false,layout_changed:()=>allocated++};
+lifecycle.global.workspace_manager.get_active_workspace=()=>({});
+lifecycle.Meta.TabList={NORMAL_ALL:0};
+lifecycle.global.display={focus_window:active,get_tab_list:()=>[active]};
+mission.controls={_workspacesDisplay:{_workspacesViews:[{_workspaces:[{_container:{layout_manager:layout}}]}]}};
+mission.captureActiveWindow();assert.equal(layout._needsLayout,true);assert.equal(allocated,0,'Do not force child allocation before the overview parent is ready');
+console.log('Overview focus refresh waits for parent allocation PASS');
+
+const withInvalid=c.singleWindowSlot([...slots,[NaN,0,0,0,{}],[0,0,0,0,{}]],box,active);
+assert.equal(withInvalid.length,2);
+assert(withInvalid.every(s=>s.slice(0,4).every(Number.isFinite)));
+assert.equal(c.singleWindowSlot([[0,0,0,0,a]],box,active).length,0);
+console.log('Transient invalid/empty windows cannot poison other preview geometry PASS');

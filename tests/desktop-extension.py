@@ -11,13 +11,17 @@ with tempfile.TemporaryDirectory() as tmp:
     (source/'metadata.json').write_text(json.dumps({'uuid':m.SOURCE_UUID,'shell-version':['46']}))
     original="        this.connectSignal(widget, 'drag-end', (w, context) => {\n"
     (source/'app/desktopIconItem.js').write_text(original)
+    focus='                    if (checkWorkspace) {\n'
+    (source/'emulateX11WindowType.js').write_text(focus)
     target=base/m.UUID
     m.prepare(source,target,'// hook\n')
     assert json.loads((target/'metadata.json').read_text())['uuid']==m.UUID
     assert m.UUID!=m.SOURCE_UUID  # Never enter Zorin's skipped-mode-extension branch.
     assert (source/'app/desktopIconItem.js').read_text()==original
     assert (target/'app/desktopIconItem.js').read_text()=='// hook\n'+original
-    assert len(m.hashes(target))==2
+    assert len(m.hashes(target))==3
+    assert (source/'emulateX11WindowType.js').read_text()==focus
+    assert 'checkWorkspace && !Main.overview.visible' in (target/'emulateX11WindowType.js').read_text()
     (source/'app/desktopIconItem.js').write_text('unsupported')
     try: m.prepare(source,base/'invalid','// hook\n')
     except RuntimeError: pass

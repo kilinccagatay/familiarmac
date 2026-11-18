@@ -10,27 +10,36 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as SearchController from 'resource:///org/gnome/shell/ui/searchController.js';
 import * as Workspace from 'resource:///org/gnome/shell/ui/workspace.js';
+import {WORKSPACE_SPACING} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
+import * as WorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
 import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import {InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 export function singleWindowSlot(slots, box, activeWindow=null) {
-    if (slots.length !== 1) {
-        // Preserve each slot's bounds and aspect ratio: emphasis must never
-        // overlap its neighbours, even with many windows or a small monitor.
-        if(!activeWindow || !slots.some(s=>s[4]?.metaWindow===activeWindow))return slots;
-        return slots.map(([x,y,w,h,child])=>{
-            const factor=child.metaWindow===activeWindow?1:.65;
-            return [x+w*(1-factor)/2,y+h*(1-factor)/2,w*factor,h*factor,child];
-        });
-    }
-    const [x,y,w,h,child] = slots[0];
-    const scale = Math.min(1, box.get_width() * .72 / w, box.get_height() * .72 / h);
-    return [[x + w*(1-scale)/2, y + h*(1-scale)/2, w*scale, h*scale, child]];
+    // A newly mapped/destroying window may temporarily have no drawable area.
+    // Never propagate a non-finite slot into every other window's bounds.
+    slots=slots.filter(s=>s.slice(0,4).every(Number.isFinite)&&s[2]>0&&s[3]>0);
+    if(!slots.length || !Number.isFinite(box.get_width()) || !Number.isFinite(box.get_height()) || box.get_width()<=0 || box.get_height()<=0)return slots;
+    const left=Math.min(...slots.map(s=>s[0])),top=Math.min(...slots.map(s=>s[1]));
+    const width=Math.max(...slots.map(s=>s[0]+s[2]))-left;
+    const height=Math.max(...slots.map(s=>s[1]+s[3]))-top;
+    if(width<=0||height<=0)return slots;
+    // Expand the complete native arrangement uniformly, retaining its ordering
+    // and non-overlapping slots. More windows naturally receive smaller slots.
+    const scale=Math.min(box.get_width()*.94/width,box.get_height()*.88/height,1.4);
+    const x=(box.x1??0)+(box.get_width()-width*scale)/2;
+    const y=(box.y1??0)+(box.get_height()-height*scale)/2;
+    const knownFocus=slots.some(s=>s[4]?.metaWindow===activeWindow);
+    return slots.map(([sx,sy,w,h,child])=>{
+        const emphasis=slots.length>1&&knownFocus&&child.metaWindow!==activeWindow ? .8 : 1;
+        return [x+(sx-left)*scale+w*scale*(1-emphasis)/2,
+            y+(sy-top)*scale+h*scale*(1-emphasis)/2,w*scale*emphasis,h*scale*emphasis,child];
+    });
 }
 
 export class MissionControl {
     constructor() {
-        this.signals=[];this.sources=new Set();this.windows=new Map();this.spaces=new Map();this.buttons=new Map();this.labels=new Map();this.thumbBackgrounds=new Map();
+        this.signals=[];this.sources=new Set();this.windows=new Map();this.spaces=new Map();this.buttons=new Map();this.labels=new Map();this.expandedLabels=new Map();this.thumbBackgrounds=new Map();
         this.injections=new InjectionManager();
         this.injections.overrideMethod(SearchController.SearchController.prototype,'_shouldTriggerSearch',original=>function(symbol){
             if(Main.overview.visible&&!this._showAppsButton.checked)return false;
@@ -55,16 +64,34 @@ export class MissionControl {
             if(last!==wm.get_active_workspace() && !last.list_windows().some(w=>!w.is_on_all_workspaces()))
                 wm.remove_workspace(last,global.get_current_time());
         }
+        this.installWorkspaceSwipeLayout();
         this.activeWindow=global.display.focus_window;
         this.connect(global.display,'notify::focus-window',()=>{if(!Main.overview.visible&&global.display.focus_window)this.activeWindow=global.display.focus_window;});
         const controller=this;
-        this.injections.overrideMethod(Workspace.WorkspaceLayout.prototype,'_getWindowSlots',original=>function(box){return singleWindowSlot(original.call(this,box),box,controller.activeWindow);});
+        this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_getSpacing',original=>function(box,fitMode,vertical){
+            const spacing=original.call(this,box,fitMode,vertical);
+            if(!Number.isFinite(spacing)){
+                if(!this._fmInvalidSpacingLogged){this._fmInvalidSpacingLogged=true;console.warn('FamiliarMac invalid overview spacing '+JSON.stringify({box:[box.x1,box.y1,box.x2,box.y2],fitMode,vertical,scale:St.ThemeContext.get_for_stage(global.stage).scale_factor}));}
+                return 24*St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            }
+            return spacing;
+        });
+        this.injections.overrideMethod(Workspace.WorkspaceLayout.prototype,'_getWindowSlots',original=>function(box){
+            const slots=original.call(this,box);
+            if(slots.some(s=>!s.slice(0,4).every(Number.isFinite))&&!this._fmInvalidSlotsLogged){
+                this._fmInvalidSlotsLogged=true;
+                console.warn('FamiliarMac invalid native overview slots '+JSON.stringify({box:[box.x1,box.y1,box.x2,box.y2],workarea:this._workarea,slots:slots.map(s=>s.slice(0,4))}));
+            }
+            return singleWindowSlot(slots,box,controller.activeWindow);
+        });
         this.injections.overrideMethod(WorkspaceThumbnail.ThumbnailsBox.prototype,'_updateShouldShow',()=>function(){
             if(!this._shouldShow){this._shouldShow=true;this.notify('should-show');}
         });
         const controls=Main.overview._overview.controls;
         this.controls=controls;
+        this.connect(controls._workspacesDisplay._scrollAdjustment,'notify::value',()=>this.syncWorkspaceBackgrounds());
         this.hiddenBackgrounds=new Map();this.windowDecorations=new Map();
+        this.installWorkspaceBackgroundGuard();
         this.overviewActor=Main.overview._overview;
         this.overviewStyle=this.overviewActor.get_style();
         this.overviewActor.set_style(`${this.overviewStyle??''}; background-color: transparent;`);
@@ -81,6 +108,7 @@ export class MissionControl {
         this.searchBin.hide();
         this.searchVisibleSignal=this.searchBin.connect('notify::visible',()=>{if(this.searchBin.visible)this.searchBin.hide();});
         this.thumbnails=controls._thumbnailsBox;
+        this.installSpaceActivation();
         this.thumbnailStyle=this.thumbnails.get_style();
         this.thumbnails.set_style('spacing: 18px; padding: 0 0 22px;');
         this.thumbnailScale=this.thumbnails._maxThumbnailScale;
@@ -98,7 +126,7 @@ export class MissionControl {
         this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});
         this.previewHint=new St.Label({text:'Add Desktop',style_class:'fm-space-label',reactive:false});Main.layoutManager.overviewGroup.add_child(this.previewHint);this.previewHint.hide();
         Main.layoutManager.overviewGroup.set_child_above_sibling(this.plus,this.preview);
-        this.connect(Main.layoutManager,'monitors-changed',()=>{for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaperManagers=Main.layoutManager.monitors.map((_m,i)=>new Background.BackgroundManager({container:this.wallpaper,monitorIndex:i,controlPosition:true}));this.hidePreview();this.previewBackground.destroy();this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});});
+        this.connect(Main.layoutManager,'monitors-changed',()=>{this.clearWorkspaceSwipeSurfaces();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaperManagers=Main.layoutManager.monitors.map((_m,i)=>new Background.BackgroundManager({container:this.wallpaper,monitorIndex:i,controlPosition:true}));this.hidePreview();this.previewBackground.destroy();this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});});
         this.connect(Main.overview,'showing',()=>this.startUi());
         this.connect(Main.overview,'shown',()=>{this.hoverOrigin=global.get_pointer().slice(0,2);this.hoverReady=false;});
         this.connect(Main.overview,'hiding',()=>{this.leavingOverview=true;for(const entry of this.windowDecorations.values())entry.frame.hide();});
@@ -142,6 +170,17 @@ export class MissionControl {
         });
         for(const a of global.get_window_actors())this.track(a.meta_window);
         if(Main.overview.visible)this.startUi();
+    }
+    installSpaceActivation(){
+        this.injections.overrideMethod(WorkspaceThumbnail.WorkspaceThumbnail.prototype,'activate',original=>function(time){
+            if(this.state>WorkspaceThumbnail.ThumbnailState.NORMAL||this.metaWorkspace.index()<0)return;
+            original.call(this,time);
+            Main.overview.hide();
+        });
+    }
+    activateSpace(space,time){
+        if(space.index()<0||this.leavingOverview)return;
+        space.activate(time);Main.overview.hide();
     }
     changeFullscreen(w,enter){
         if(!w.get_compositor_private())return;
@@ -211,23 +250,163 @@ export class MissionControl {
         this.activeWindow=windows.includes(focus)?focus:(windows[0]??null);
         // GNOME caches slots between overview visits. Focus can change without
         // any window geometry changing, so recompute emphasis on every entry.
+        // The parent has not necessarily allocated the view yet. Let its normal
+        // overview allocation consume this flag; forcing child layout here can
+        // allocate zero-height backgrounds before the parent is ready.
         for(const view of this.controls._workspacesDisplay._workspacesViews)
             for(const ws of view._workspaces??[]){
                 const layout=ws._container?.layout_manager;
-                if(layout){layout._needsLayout=true;layout.layout_changed();}
+                if(layout)layout._needsLayout=true;
             }
     }
-    startUi(){this.captureActiveWindow();this.hoverOrigin=null;this.hoverReady=false;this.leavingOverview=false;this.controls._searchController.reset();this.spacesExpanded=false;this.lastExpanded=undefined;if(!this.panelState){this.panelState={opacity:Main.panel.opacity,reactive:Main.panel.reactive,boxes:[Main.panel._leftBox,Main.panel._centerBox,Main.panel._rightBox].map(b=>[b,b.visible])};}Main.panel.opacity=0;Main.panel.reactive=false;for(const [b] of this.panelState.boxes)b.hide();Main.messageTray._updateState();if(this.uiTimer)return;this.updateUi();this.uiTimer=GLib.timeout_add(GLib.PRIORITY_DEFAULT,33,()=>{this.updateUi();return GLib.SOURCE_CONTINUE;});}
+    startUi(){
+        const scale=St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        this.thumbnails.remove_all_transitions();this.thumbnails.opacity=0;this.thumbnails.translation_y=-16*scale;this.thumbnails.set_clip(0,0,0,0);
+        this.spaceStrip.remove_all_transitions();this.spaceStrip.height=36*scale;this.stripTargetHeight=36*scale;
+        for(const label of this.labels.values()){label.remove_all_transitions();delete label._fmTargetX;delete label._fmTargetY;}
+        this.wallpaper.show();
+        for(const view of this.controls._workspacesDisplay._workspacesViews)
+            for(const workspace of view._workspaces??[])this.hideWorkspaceBackground(workspace._background);
+        this.captureActiveWindow();this.hoverOrigin=null;this.hoverReady=false;this.leavingOverview=false;this.controls._searchController.reset();this.spacesExpanded=false;this.stripOpenPointer=global.get_pointer().slice(0,2);this.stripHoverArmed=false;this.lastExpanded=undefined;if(!this.panelState){this.panelState={opacity:Main.panel.opacity,reactive:Main.panel.reactive,boxes:[Main.panel._leftBox,Main.panel._centerBox,Main.panel._rightBox].map(b=>[b,b.visible])};}Main.panel.opacity=0;Main.panel.reactive=false;for(const [b] of this.panelState.boxes)b.hide();Main.messageTray._updateState();if(this.uiTimer)return;this.updateUi();this.uiTimer=GLib.timeout_add(GLib.PRIORITY_DEFAULT,33,()=>{this.updateUi();return GLib.SOURCE_CONTINUE;});}
+    hideWorkspaceBackground(background){
+        if(!background)return;
+        if(!this.hiddenBackgrounds.has(background)){
+            const id=background.connect('destroy',()=>this.hiddenBackgrounds.delete(background));
+            this.hiddenBackgrounds.set(background,{opacity:background.opacity,id});
+        }
+        background.opacity=0;
+    }
+    installWorkspaceBackgroundGuard(){
+        const controller=this;
+        this.injections.overrideMethod(Workspace.WorkspaceBackground.prototype,'_init',original=>function(...args){
+            original.apply(this,args);
+            // Hide before the first paint, including an empty workspace. The
+            // periodic UI refresh runs too late to prevent an opening flash.
+            controller.hideWorkspaceBackground(this);
+        });
+    }
+    installWorkspaceSwipeLayout(){
+        // Keep GNOME's gesture, adjustment, allocation and settling animation.
+        // Only replace the card spacing/scaling with screen-sized horizontal steps.
+        this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_getSpacing',original=>function(box,fitMode,vertical){
+            if(!vertical&&fitMode===0&&Main.overview.visible&&!Main.overview.animationInProgress){
+                const monitor=Main.layoutManager.monitors[this._monitorIndex];
+                const workspace=this._workspaces[0];
+                if(monitor&&workspace&&box.get_height()>0){
+                    const [,width]=workspace.get_preferred_width(box.get_height());
+                    if(Number.isFinite(width)&&width>0)return monitor.width+WORKSPACE_SPACING*St.ThemeContext.get_for_stage(global.stage).scale_factor-width;
+                }
+            }
+            return original.call(this,box,fitMode,vertical);
+        });
+        this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_updateWorkspacesState',original=>function(...args){
+            original.apply(this,args);
+            if(Main.overview.visible&&!Main.overview.animationInProgress&&this._fitModeAdjustment.value===0)
+                for(const workspace of this._workspaces)workspace.set_scale(1,1);
+        });
+    }
+    clearWorkspaceSwipeSurfaces(){
+        for(const surface of this.swipeSurfaces??[])surface.destroy();
+        this.swipeSurfaces=null;
+    }
+    workspaceSwitchInProgress(){
+        const display=this.controls._workspacesDisplay,adjustment=display._scrollAdjustment;
+        return !!display._gestureActive||!!adjustment.get_transition('value')||Math.abs(adjustment.value-Math.round(adjustment.value))>.00001;
+    }
+    syncWorkspaceBackgrounds(){
+        if(!Main.overview.visible||this.leavingOverview)return;
+        const display=this.controls._workspacesDisplay,value=display._scrollAdjustment.value;
+        if(this.workspaceSwitchInProgress())for(const entry of this.windowDecorations.values())entry.frame.hide();
+        for(const view of display._workspacesViews)
+            for(const ws of view._workspaces??[])if(this.hiddenBackgrounds?.has(ws._background))ws._background.opacity=0;
+        const moving=Math.abs(value-Math.round(value))>.00001&&!Main.overview.animationInProgress;
+        if(!moving){this.clearWorkspaceSwipeSurfaces();return;}
+        // Full monitor wallpaper surfaces follow the SAME native progress as
+        // window previews. No independent timeline, card corners or opacity fade.
+        if(!this.swipeSurfaces){
+            this.swipeSurfaces=Main.layoutManager.monitors.map(m=>{
+                const surface=new St.Widget({x:m.x,y:m.y,width:m.width,height:m.height,clip_to_allocation:true,reactive:false,style:'background-color: #181818;'});
+                surface._fmMonitor=m;
+                surface._fmPages=[0,1].map(()=>{
+                    const page=new Clutter.Actor({width:m.width,height:m.height,clip_to_allocation:true,reactive:false});
+                    page.add_child(new Clutter.Clone({source:this.wallpaper,x:-m.x,y:-m.y,reactive:false}));
+                    surface.add_child(page);return page;
+                });
+                Main.layoutManager.overviewGroup.insert_child_above(surface,this.wallpaper);
+                return surface;
+            });
+        }
+        const first=Math.floor(value);
+        for(const surface of this.swipeSurfaces){
+            const m=surface._fmMonitor;
+            const top=m.index===Main.layoutManager.primaryIndex?Math.max(0,this.spaceStrip.height):0;
+            surface.set_clip(0,top,m.width,Math.max(0,m.height-top));
+            const step=m.width+WORKSPACE_SPACING*St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            surface._fmPages.forEach((page,i)=>page.set_position((first+i-value)*step,0));
+        }
+    }
+    ensureSpaceLabels(workspace,title){
+        for(const [labels,expanded] of [[this.labels,false],[this.expandedLabels,true]]){
+            let label=labels.get(workspace);
+            if(!label){
+                label=new St.Label({style_class:'fm-space-label',reactive:true,visible:false});
+                label.connect('button-release-event',(_actor,event)=>{
+                    if(event.get_button()!==1)return Clutter.EVENT_PROPAGATE;
+                    this.activateSpace(workspace,event.get_time());return Clutter.EVENT_STOP;
+                });
+                Main.layoutManager.overviewGroup.add_child(label);labels.set(workspace,label);
+            }
+            if(label.text!==title){label.text=title;label.set_size(-1,-1);}
+            this.styleSpaceLabel(label,workspace,expanded);
+        }
+    }
+    styleSpaceLabel(label,workspace,expanded){
+        const selected=workspace===global.workspace_manager.get_active_workspace();
+        const state=expanded?'expanded':selected?'selected':'compact';
+        if(label._fmSelectionStyle===state)return;
+        label._fmSelectionStyle=state;
+        label.set_style(expanded?'':`padding: 3px 9px; border-radius: 6px; background-color: ${selected?'rgba(255,255,255,0.22)':'transparent'};`);
+        label.set_size(-1,-1);
+    }
+    updateEmptyState(){
+        if(!this.emptyState){
+            const text=new St.Label({text:GLib.get_language_names()[0].startsWith('tr')?'Kullanılabilir Pencere Yok':'No Available Windows',
+                x_align:Clutter.ActorAlign.CENTER,y_align:Clutter.ActorAlign.CENTER,
+                style:'color: white; font-size: 14px; text-align: center; padding: 0; margin: 0;'});
+            this.emptyState=new St.Bin({child:text,reactive:false,visible:false,
+                x_align:Clutter.ActorAlign.CENTER,y_align:Clutter.ActorAlign.CENTER,
+                style:'background-color: rgba(30,30,34,0.55); border-radius: 18px; padding: 6px 14px;'});
+            Main.layoutManager.overviewGroup.add_child(this.emptyState);
+        }
+        const ws=global.workspace_manager.get_active_workspace();
+        const empty=global.display.get_tab_list(Meta.TabList.NORMAL_ALL,ws).filter(w=>!w.skip_taskbar).length===0;
+        const m=Main.layoutManager.primaryMonitor;
+        const width=this.emptyState.get_preferred_width(-1)[1],height=this.emptyState.get_preferred_height(width)[1];
+        this.emptyState.set_size(width,height);this.emptyState.set_position(m.x+(m.width-width)/2,m.y+(m.height-height)/2);
+        this.emptyState.visible=empty&&!this.leavingOverview&&!Main.overview.animationInProgress&&!this.swipeSurfaces;
+    }
     updateUi(){
         const box=this.thumbnails,scale=St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        if(!box?.mapped){this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of this.labels.values())l.hide();return;}
+        if(!box?.mapped){this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();return;}
+        this.updateEmptyState();
+        // GNOME can retain the indicator's busy flag across overview rebuilds
+        // even after the adjustment has settled. Its state machine then never
+        // removes old thumbnails or finishes adding new ones.
+        if(box._animatingIndicator&&box._scrollAdjustment.value===global.workspace_manager.get_active_workspace_index())box._updateIndicator();
         const [x,y]=box.get_transformed_position(),[width,height]=box.get_transformed_size();
         const m=Main.layoutManager.primaryMonitor;
         const [pointerX,pointerY]=global.get_pointer();
         const compactHeight=36*scale;
         const edgeBottom=this.spacesExpanded?y+height+12*scale:m.y+compactHeight;
-        this.spacesExpanded=pointerX>=m.x&&pointerX<m.x+m.width&&pointerY>=m.y&&pointerY<=edgeBottom;
+        if(!this.stripHoverArmed&&this.stripOpenPointer){
+            const [sx,sy]=this.stripOpenPointer;
+            this.stripHoverArmed=Math.abs(pointerX-sx)+Math.abs(pointerY-sy)>3*scale||pointerY>m.y+compactHeight;
+        }
+        this.spacesExpanded=!Main.overview.animationInProgress&&this.stripHoverArmed&&pointerX>=m.x&&pointerX<m.x+m.width&&pointerY>=m.y&&pointerY<=edgeBottom;
         const expanded=this.spacesExpanded;
+        // OverviewControls also animates opacity during entry. Clip the compact
+        // strip instead of competing with its opacity writes every frame.
+        if(expanded)box.remove_clip();else box.set_clip(0,0,0,0);
         const stripHeight=expanded?y+height-m.y+8*scale:compactHeight;
         if(this.lastExpanded!==expanded){
             box.ease({opacity:expanded?255:0,translation_y:expanded?0:-16*scale,duration:200,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
@@ -243,14 +422,11 @@ export class MissionControl {
         for(const view of this.controls._workspacesDisplay._workspacesViews){
             for(const ws of view._workspaces??[]){
                 const bg=ws._background;if(!bg)continue;
-                if(!this.hiddenBackgrounds.has(bg)){
-                    const id=bg.connect('destroy',()=>this.hiddenBackgrounds.delete(bg));
-                    this.hiddenBackgrounds.set(bg,{opacity:bg.opacity,id});
-                }
-                bg.opacity=0;
+                this.hideWorkspaceBackground(bg);
                 for(const preview of ws._windows??[])this.decorateWindow(preview,scale);
             }
         }
+        this.syncWorkspaceBackgrounds();
         const layoutHeight=this.controls.layout_manager._workAreaBox?.get_height()??this.controls.height;
         const porthole=box._porthole;
         if(layoutHeight>0 && porthole?.width>0){
@@ -271,7 +447,13 @@ export class MissionControl {
             this.previewHint.hide();
         }else if(!showHint)this.hidePreview();
         const [px,py,mods]=global.get_pointer(),seen=new Set();let desktopNumber=0;
-        const compactWidths=box._thumbnails.map(t=>{const l=this.labels.get(t.metaWorkspace);return (l?.get_preferred_width(-1)[1]??90*scale)+20*scale;});
+        for(const t of box._thumbnails){
+            const workspace=t.metaWorkspace;if(workspace.index()<0)continue;
+            const full=[...this.spaces].find(([,entry])=>entry.space===workspace);
+            const title=full?(Shell.WindowTracker.get_default().get_window_app(full[0])?.get_name()??full[0].get_title()):`Desktop ${++desktopNumber}`;
+            this.ensureSpaceLabels(workspace,title);
+        }
+        const compactWidths=box._thumbnails.filter(t=>t.metaWorkspace.index()>=0).map(t=>{const l=this.labels.get(t.metaWorkspace);return (l?.get_preferred_width(-1)[1]??90*scale)+20*scale;});
         let compactX=m.x+(m.width-compactWidths.reduce((a,b)=>a+b,0))/2;let compactIndex=0;
         for(const t of box._thumbnails){
             const ws=t.metaWorkspace;if(ws.index()<0)continue;seen.add(ws);
@@ -284,8 +466,7 @@ export class MissionControl {
             let b=this.buttons.get(ws);if(!b){b=this.button('window-close-symbolic','Close Desktop',()=>this.closeSpace(ws));b.add_style_class_name('fm-space-close');b.child.icon_size=12;this.buttons.set(ws,b);}
             const [tx,ty]=t.get_transformed_position(),[tw,th]=t.get_transformed_size();
             b.set_position(tx-6*scale,ty-6*scale);
-            let label=this.labels.get(ws);
-            if(!label){label=new St.Label({style_class:'fm-space-label',reactive:false});Main.layoutManager.overviewGroup.add_child(label);this.labels.set(ws,label);}
+            const label=this.labels.get(ws),caption=this.expandedLabels.get(ws);
             const full=[...this.spaces].find(([,entry])=>entry.space===ws);
             if(b._fmFullscreen!==!!full){
                 b._fmFullscreen=!!full;
@@ -293,14 +474,23 @@ export class MissionControl {
                 else {b.child.gicon=null;b.child.icon_name='window-close-symbolic';}
             }
             b.accessible_name=full?'Exit Full Screen':'Close Desktop';
-            label.text=full?(Shell.WindowTracker.get_default().get_window_app(full[0])?.get_name()??full[0].get_title()):`Desktop ${++desktopNumber}`;
-            const [,lw]=label.get_preferred_width(-1);label.set_size(lw,label.get_preferred_height(-1)[1]);
-            this.place(label,expanded?tx+(tw-lw)/2:compactX+10*scale,expanded?ty+th+4*scale:m.y+(compactHeight-label.get_preferred_height(-1)[1])/2);label.show();
+            const [,lw]=label.get_preferred_width(-1),[,lh]=label.get_preferred_height(-1);
+            const [,cw]=caption.get_preferred_width(-1),[,ch]=caption.get_preferred_height(-1);
+            label.set_size(lw,lh);caption.set_size(cw,ch);
+            // Each mode owns its label. Never animate text from the compact
+            // strip into the thumbnail row; captions follow their own preview.
+            const ready=t.state===WorkspaceThumbnail.ThumbnailState.NORMAL&&tw>0&&th>0;
+            label.remove_all_transitions();caption.remove_all_transitions();
+            label.set_position(compactX+10*scale,m.y+(compactHeight-lh)/2);
+            caption.set_position(tx+(tw-cw)/2,ty+th+4*scale);
+            label.visible=ready&&!expanded;
+            caption.visible=ready&&expanded;
+            caption.opacity=box.opacity;
             compactX+=compactWidths[compactIndex++];
             const hover=px>=tx-8*scale&&px<=tx+tw&&py>=ty-8*scale&&py<=ty+th;
-            b.visible=expanded && global.workspace_manager.n_workspaces>1 && (!!(mods&Clutter.ModifierType.MOD1_MASK)||hover);
+            b.visible=ready && expanded && global.workspace_manager.n_workspaces>1 && (!!(mods&Clutter.ModifierType.MOD1_MASK)||hover);
         }
-        for(const [ws,b] of this.buttons)if(!seen.has(ws)){b.destroy();this.buttons.delete(ws);this.labels.get(ws)?.destroy();this.labels.delete(ws);}
+        for(const [ws,b] of this.buttons)if(!seen.has(ws)){b.destroy();this.buttons.delete(ws);this.labels.get(ws)?.destroy();this.labels.delete(ws);this.expandedLabels.get(ws)?.destroy();this.expandedLabels.delete(ws);}
     }
     decorateWindow(preview,scale){
         let entry=this.windowDecorations.get(preview);
@@ -343,7 +533,7 @@ export class MissionControl {
         const nativeRadius=12*scale*previewScale;
         const [px,py]=global.get_pointer();
         if(this.hoverOrigin&&!Main.overview.animationInProgress&&(Math.abs(px-this.hoverOrigin[0])>2||Math.abs(py-this.hoverOrigin[1])>2))this.hoverReady=true;
-        const selected=this.hoverReady&&!Main.overview.animationInProgress&&!this.leavingOverview&&preview.mapped&&px>=x&&px<=x+w&&py>=y&&py<=y+h;
+        const selected=this.hoverReady&&!this.workspaceSwitchInProgress()&&!Main.overview.animationInProgress&&!this.leavingOverview&&preview.mapped&&px>=x&&px<=x+w&&py>=y&&py<=y+h;
         entry.frame.visible=selected;
         if(selected){
             const gap=6*scale;
@@ -373,12 +563,12 @@ export class MissionControl {
         else actor.ease({x,y,duration:200,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
     hidePreview(){this.preview?.remove_all_transitions();this.preview?.hide();this.previewHint?.hide();}
-    stopUi(){this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of this.labels.values())l.hide();}
+    stopUi(){this.clearWorkspaceSwipeSurfaces();this.emptyState?.hide();this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();}
     destroy(){
-        this.stopUi();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.get_preferred_height=this.searchPreferredHeight;this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
+        this.stopUi();this.emptyState?.destroy();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.get_preferred_height=this.searchPreferredHeight;this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
         for(const [w,ids] of this.windows)for(const id of ids)w.disconnect(id);
         for(const id of this.sources)GLib.source_remove(id);this.sources.clear();
-        this.previewBackground.destroy();this.preview.destroy();this.previewHint.destroy();this.plus.destroy();for(const b of this.buttons.values())b.destroy();for(const l of this.labels.values())l.destroy();
+        this.previewBackground.destroy();this.preview.destroy();this.previewHint.destroy();this.plus.destroy();for(const b of this.buttons.values())b.destroy();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.destroy();
         // Restore managed fullscreen spaces without closing any application.
         for(const [w,{home,space}] of this.spaces){
             if(w.get_compositor_private()){w.unmake_fullscreen();w.change_workspace(home.index()>=0?home:global.workspace_manager.get_workspace_by_index(0));}
@@ -386,7 +576,7 @@ export class MissionControl {
         }
         this.spaces.clear();
         for(const [t,{bg,signal}] of this.thumbBackgrounds){t.disconnect(signal);bg.destroy();}this.thumbBackgrounds.clear();
-        this.thumbnails.remove_all_transitions();this.thumbnails.translation_y=0;this.thumbnails.opacity=255;this.thumbnails.reactive=true;this.thumbnails.set_style(this.thumbnailStyle);this.injections.clear();Main.messageTray._updateState();this.thumbnails._maxThumbnailScale=this.thumbnailScale;this.thumbnails._updateShouldShow();this.thumbnails.queue_relayout();
+        this.thumbnails.remove_all_transitions();this.thumbnails.remove_clip();this.thumbnails.translation_y=0;this.thumbnails.opacity=255;this.thumbnails.reactive=true;this.thumbnails.set_style(this.thumbnailStyle);this.injections.clear();Main.messageTray._updateState();this.thumbnails._maxThumbnailScale=this.thumbnailScale;this.thumbnails._updateShouldShow();this.thumbnails.queue_relayout();
         if(this.wasDynamic)this.mutter.set_boolean('dynamic-workspaces',true);
     }
 }
