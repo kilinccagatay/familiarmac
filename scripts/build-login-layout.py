@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Build a presentation-only GNOME 46 login resource overlay; fail on source drift."""
+"""Build a GNOME 46 login UI resource overlay; fail on source drift."""
 from pathlib import Path
 import subprocess,sys,hashlib,json
 lib=Path('/usr/lib/gnome-shell/libshell-14.so')
@@ -86,6 +86,46 @@ replace('        // Finally hand out the allocations','''        // Date and clo
         this._macClock.allocate(clockBox);
 
         // Finally hand out the allocations''')
+# Start the selected account's normal PAM flow; use AuthPrompt's native
+# hidden entry rather than retaining password text in a separate buffer.
+replace("        this._userList.connect('activate', (userList, item) => {", """        global.stage.connectObject('captured-event', (_stage, event) => this._macTypeToLogin(event), this);
+        this._authPrompt.connect('reset', () => { this._macTypingLogin = false; });
+        this._authPrompt.connect('prompted', () => { this._macTypingLogin = false; });
+        this._userList.connect('activate', (userList, item) => {""")
+replace('    _onUserListActivated(activatedItem) {', """    _macTypeToLogin(event) {
+        if (!Main.sessionMode.isGreeter || !event || event.type() !== Clutter.EventType.KEY_PRESS)
+            return Clutter.EVENT_PROPAGATE;
+        const mods = event.get_state();
+        if (mods & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.MOD1_MASK | Clutter.ModifierType.SUPER_MASK))
+            return Clutter.EVENT_PROPAGATE;
+        const code = event.get_key_unicode();
+        if (code < 32 || (code >= 127 && code <= 159))
+            return Clutter.EVENT_PROPAGATE;
+        if (!this._macTypingLogin) {
+            if (!this._userSelectionBox.visible || this._disableUserList || this._user)
+                return Clutter.EVENT_PROPAGATE;
+            const focus = global.stage.get_key_focus();
+            const items = Object.values(this._userList._items);
+            // Never guess an account on a multi-user machine.
+            const item = items.find(i => i === focus || (focus && i.contains(focus))) ??
+                (items.length === 1 && (focus === this._userList || !focus) ? items[0] : null);
+            if (!item)
+                return Clutter.EVENT_PROPAGATE;
+            this._onUserListActivated(item);
+            this._macTypingLogin = true;
+        }
+        const prompt = this._authPrompt;
+        if (prompt._entry !== prompt._passwordEntry || !prompt._entry.visible) {
+            this._macTypingLogin = false;
+            return Clutter.EVENT_PROPAGATE;
+        }
+        // This also preserves characters typed while PAM is preparing its first
+        // question. Submission and verification remain entirely owned by GDM.
+        prompt.addCharacter(code);
+        return Clutter.EVENT_STOP;
+    }
+
+    _onUserListActivated(activatedItem) {""")
 out=Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
 (out/'loginDialog.js').write_text(s)
 (out/'source.json').write_text(json.dumps({'library':str(lib),'sha256':hashlib.file_digest(lib.open('rb'),'sha256').hexdigest()}))
