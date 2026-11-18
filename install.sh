@@ -61,6 +61,7 @@ fi
 if [[ $mode == prepare || $mode == all ]]; then
   run sudo bash scripts/bootstrap.sh
   run sudo bash scripts/install-desktop-themes.sh
+  run sudo bash scripts/install-mouse-shortcuts.sh
   if [[ $mode == prepare ]]; then
     echo 'Preparation complete. Next: ./install.sh --desktop'
     exit 0
@@ -88,6 +89,9 @@ if [[ $chatgpt == 1 ]]; then
   run sudo bash scripts/chatgpt-global-menu.sh
 fi
 if [[ $wifi == 1 ]]; then run sudo bash scripts/wifi.sh; fi
+# Older updater versions restore the entire dconf snapshot after install.sh.
+# Finish only the managed extension migration after their successful update.
+if [[ ${FAMILIARMAC_UPDATING:-0} == 1 ]]; then run python3 scripts/prepare-update-migration.py; fi
 if [[ $mode == all ]]; then
   run sudo bash scripts/install-system-appearance.sh
   if [[ ${FAMILIARMAC_UPDATING:-0} != 1 ]]; then run python3 scripts/release-update.py --register "$PWD"; fi

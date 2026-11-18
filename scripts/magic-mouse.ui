@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface>
+  <object class="AdwPreferencesPage" id="fm_magic_page">
+    <child>
+      <object class="AdwPreferencesGroup" id="fm_magic_summary">
+        <property name="title">Magic Mouse</property>
+        <property name="description">Point, click and use gestures on the Multi-Touch surface.</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">18</property>
+            <child>
+              <object class="GtkDrawingArea" id="fm_magic_demo">
+                <property name="height-request">180</property>
+                <property name="hexpand">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="fm_magic_demo_caption">
+                <property name="wrap">True</property>
+                <property name="justify">center</property>
+                <style><class name="dim-label"/></style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackSwitcher">
+                <property name="stack">fm_magic_tabs</property>
+                <property name="halign">fill</property>
+                </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="fm_magic_tabs">
+                <property name="transition-type">crossfade</property>
+                <property name="transition-duration">100</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">point</property>
+                    <property name="title">Point &amp; Click</property>
+                    <property name="child">
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwActionRow" id="fm_magic_speed_row">
+                            <property name="title">Tracking speed</property>
+                            <child type="suffix">
+                              <object class="GtkScale">
+                                <property name="valign">center</property>
+                                <property name="width-request">240</property>
+                                <property name="margin-end">16</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="fm_magic_speed">
+                                    <property name="lower">-1</property>
+                                    <property name="upper">1</property>
+                                    <property name="step-increment">0.05</property>
+                                    <property name="page-increment">0.1</property>
+                                  </object>
+                                </property>
+                                <marks>
+                                  <mark value="-1" position="bottom">Slow</mark>
+                                  <mark value="1" position="bottom">Fast</mark>
+                                </marks>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="fm_magic_natural">
+                            <property name="title">Natural scrolling</property>
+                            <property name="subtitle">Content tracks finger movement.</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwComboRow" id="fm_magic_secondary">
+                            <property name="title">Secondary click</property>
+                            <property name="model">
+                              <object class="GtkStringList">
+                                <items>
+                                  <item>Click Right Side</item>
+                                  <item>Click Left Side</item>
+                                </items>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="fm_magic_zoom">
+                            <property name="title">Smart zoom</property>
+                            <property name="subtitle">Double-tap with one finger in supported browsers and document viewers.</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">gestures</property>
+                    <property name="title">More Gestures</property>
+                    <property name="child">
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="fm_magic_pages">
+                            <property name="title">Swipe between pages</property>
+                            <property name="subtitle">Swipe left or right with one finger.</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="fm_magic_spaces">
+                            <property name="title">Swipe between full-screen applications</property>
+                            <property name="subtitle">Swipe left or right with two fingers between desktops and full-screen apps.</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="fm_magic_mission">
+                            <property name="title">Mission Control</property>
+                            <property name="subtitle">Double-tap with two fingers.</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="description">Tracking speed and button order use the system mouse settings and also affect other connected mice.</property>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <property name="halign">center</property>
+            <child>
+              <object class="GtkMenuButton" id="fm_magic_advanced">
+                <property name="label">Advanced…</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="fm_magic_bluetooth">
+                <property name="label">Bluetooth Settings…</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

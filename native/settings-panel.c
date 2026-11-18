@@ -113,6 +113,14 @@ static void configure_apps(P button,P unused){
  if(process)g_object_unref(process);
  if(error)g_error_free(error);
 }
+static void configure_mission(P button,P unused){
+ (void)button;(void)unused;
+ const char*worker=getenv("FAMILIARMAC_APP_RECHECK");if(!worker)return;
+ const char*argv[]={"/usr/bin/python3",worker,"--mission-control",NULL};P error=NULL;
+ P process=g_subprocess_newv(argv,0,&error);
+ if(process)g_object_unref(process);
+ if(error)g_error_free(error);
+}
 #include "settings-updates.h"
 extern int g_settings_get_int(P,const char*),g_settings_set_int(P,const char*,int);
 static void dock_size_sync(P settings,const char*key,State*s){
@@ -242,16 +250,48 @@ static int attach(P window){
   else g_signal_connect_data(window,"map",first_map,s,NULL,1);
  }
  updates_attach(window,builder,page);
+ P mission=find(page,"GtkButton","fm-configure-mission");
+ if(mission)g_signal_connect_data(mission,"clicked",configure_mission,NULL,NULL,0);
  P configure=find(page,"GtkButton","fm-configure-apps");
  if(configure)g_signal_connect_data(configure,"clicked",configure_apps,NULL,NULL,0);
 g_object_set_data_full(window,"familiarmac-dock-panel",s,free_state);g_object_unref(builder);
  fprintf(stderr,"FamiliarMac Dock & Window sidebar attached\n");
  done:g_object_unref(window);return 0;
 }
+/* Radio visibility belongs to its native Settings panel, even when powered off. */
+extern P adw_preferences_group_new(void),adw_switch_row_new(void),adw_clamp_new(void);
+extern void adw_preferences_group_add(P,P),adw_clamp_set_child(P,P),adw_clamp_set_maximum_size(P,int),adw_toolbar_view_add_bottom_bar(P,P);
+static int attach_radio_visibility(P panel){
+ const char*type=g_type_name_from_instance(panel);
+ const int bluetooth=!strcmp(type,"CcBluetoothPanel");
+ P toolbar=find(panel,"AdwToolbarView",NULL);
+ const char*directory=getenv("FAMILIARMAC_GENIE_SCHEMAS");
+ if(!toolbar||!directory||g_object_get_data(panel,"fm-radio-visibility"))goto done;
+ P error=NULL,source=g_settings_schema_source_new_from_directory(directory,g_settings_schema_source_get_default(),0,&error);
+ if(!source){if(error)g_error_free(error);goto done;}
+ P schema=g_settings_schema_source_lookup(source,"org.gnome.shell.extensions.familiarmac-genie",0);
+ g_settings_schema_source_unref(source);if(!schema)goto done;
+ P settings=g_settings_new_full(schema,NULL,NULL);g_settings_schema_unref(schema);
+ P group=adw_preferences_group_new(),row=adw_switch_row_new(),clamp=adw_clamp_new();
+ adw_preferences_row_set_title(row,bluetooth?"Always show Bluetooth icon":"Show Wi-Fi icon in menu bar");
+ adw_action_row_set_subtitle(row,"Show the connection control in the top panel.");
+ adw_preferences_group_add(group,row);adw_clamp_set_child(clamp,group);adw_clamp_set_maximum_size(clamp,600);
+ g_object_set(clamp,"margin-start",24,"margin-end",24,"margin-top",12,"margin-bottom",18,NULL);
+ adw_toolbar_view_add_bottom_bar(toolbar,clamp);
+ g_settings_bind(settings,bluetooth?"bluetooth-panel-icon":"wifi-panel-icon",row,"active",0);
+ g_object_unref(settings);g_object_set_data_full(panel,"fm-radio-visibility",(P)1,NULL);
+ done:g_object_unref(panel);return 0;
+}
+#include "settings-magic-mouse.h"
 void gtk_widget_init_template(P widget){
  static void(*original)(P);if(!original)original=dlsym(RTLD_NEXT,"gtk_widget_init_template");
  if(!original)return;
  original(widget);
+ const char*kind=g_type_name_from_instance(widget);
+ if(getenv("FAMILIARMAC_GENIE_SCHEMAS")&&(!strcmp(kind,"CcBluetoothPanel")||!strcmp(kind,"CcWifiPanel")))
+  g_idle_add(attach_radio_visibility,g_object_ref(widget));
+ if(getenv("FAMILIARMAC_GENIE_SCHEMAS")&&!strcmp(kind,"CcMousePanel"))
+  g_idle_add(attach_magic_mouse,g_object_ref(widget));
  /* Do not inject this Settings-only helper into child applications. */
  const char *preload=getenv("LD_PRELOAD");
  if(preload&&strstr(preload,"/settings-panel.so")){

@@ -90,11 +90,14 @@ def generate(output):
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--ticket');parser.add_argument('--configure',action='store_true');parser.add_argument('--open');parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--mission-control',action='store_true');parser.add_argument('--ticket');parser.add_argument('--configure',action='store_true');parser.add_argument('--open');parser.add_argument('--ui',action='store_true')
     parser.add_argument('--activate-panel',action='store_true');parser.add_argument('--recheck');parser.add_argument('--generate',type=Path)
     args=parser.parse_args()
     try:
-        if args.configure:
+        if args.mission_control:
+            from mission_control_settings import run
+            raise SystemExit(run())
+        elif args.configure:
             from menu_setup import run
             raise SystemExit(run(inventory, launch, review))
         elif args.activate_panel:

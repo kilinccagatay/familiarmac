@@ -46,8 +46,11 @@ def prepare(root, base, home, binary):
     ET.SubElement(label,'property',name='xalign').text='0'
     ET.ElementTree(tree).write(base/'cc-window.ui',encoding='utf-8',xml_declaration=True)
     # Keep these beside the helper so About restore removes this entire integration.
-    for name in ('settings-applications.py','menu_setup.py','dock-window.ui','release-update.py'):
+    for name in ('settings-applications.py','mission_control_settings.py','menu_setup.py','dock-window.ui','release-update.py'):
         shutil.copy2(root/'scripts'/name,base/name)
+    shutil.copytree(root/'assets/magic-mouse',base/'magic-mouse-assets',dirs_exist_ok=True)
+    mouse_ui=(root/'scripts/magic-mouse.ui').read_text().replace('@ASSETS@',(base/'magic-mouse-assets').resolve().as_uri())
+    (base/'magic-mouse.ui').write_text(mouse_ui)
     subprocess.run(['/usr/bin/python3',str(base/'settings-applications.py'),'--generate',str(base/'dock-page.ui')],check=True)
     import shlex
     q=shlex.quote
