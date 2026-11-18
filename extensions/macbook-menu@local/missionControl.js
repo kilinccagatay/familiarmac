@@ -7,9 +7,11 @@ import St from 'gi://St';
 import Shell from 'gi://Shell';
 import * as Background from 'resource:///org/gnome/shell/ui/background.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as SearchController from 'resource:///org/gnome/shell/ui/searchController.js';
 import * as Workspace from 'resource:///org/gnome/shell/ui/workspace.js';
+import * as WorkspaceAnimation from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 import {WORKSPACE_SPACING} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 import * as WorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
 import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
@@ -37,10 +39,26 @@ export function singleWindowSlot(slots, box, activeWindow=null) {
     });
 }
 
+// DING deliberately filters its Wayland desktop out of get_window_actors().
+// Include only its bottom-most desktop surface, never its dialogs or previews.
+export function preserveDesktopClones(group,actors){
+    if(!group._background)return;
+    for(const actor of actors){
+        const w=actor.meta_window,desktop=w?.customJS_ding;
+        if(!desktop?.hideFromWindowList||!desktop.keepAtBottom||!group._windowIsOnThisMonitor(w))continue;
+        if(group._windowRecords.some(record=>record.windowActor===actor))continue;
+        group._background.add_child(group._createClone(actor));
+    }
+}
+
 export class MissionControl {
     constructor() {
         this.signals=[];this.sources=new Set();this.windows=new Map();this.spaces=new Map();this.buttons=new Map();this.labels=new Map();this.expandedLabels=new Map();this.thumbBackgrounds=new Map();
         this.injections=new InjectionManager();
+        this.injections.overrideMethod(WorkspaceAnimation.WorkspaceGroup.prototype,'_createDesktopWindows',original=>function(){
+            original.call(this);
+            preserveDesktopClones(this,global.window_group.get_children());
+        });
         this.injections.overrideMethod(SearchController.SearchController.prototype,'_shouldTriggerSearch',original=>function(symbol){
             if(Main.overview.visible&&!this._showAppsButton.checked)return false;
             return original.call(this,symbol);
@@ -112,6 +130,7 @@ export class MissionControl {
         this.searchVisibleSignal=this.searchBin.connect('notify::visible',()=>{this.searchBin.opacity=0;});
         this.thumbnails=controls._thumbnailsBox;
         this.installSpaceActivation();
+        this.installDesktopInteractions();
         this.thumbnailStyle=this.thumbnails.get_style();
         this.thumbnails.set_style('spacing: 18px; padding: 0 0 22px;');
         this.thumbnailScale=this.thumbnails._maxThumbnailScale;
@@ -130,6 +149,9 @@ export class MissionControl {
         this.previewHint=new St.Label({text:'Add Desktop',style_class:'fm-space-label',reactive:false});Main.layoutManager.overviewGroup.add_child(this.previewHint);this.previewHint.hide();
         Main.layoutManager.overviewGroup.set_child_above_sibling(this.plus,this.preview);
         this.connect(Main.layoutManager,'monitors-changed',()=>{this.clearWorkspaceSwipeSurfaces();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaperManagers=Main.layoutManager.monitors.map((_m,i)=>new Background.BackgroundManager({container:this.wallpaper,monitorIndex:i,controlPosition:true}));this.hidePreview();this.previewBackground.destroy();this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});});
+        this.connect(Main.overview,'window-drag-begin',()=>this.beginWindowDrag());
+        this.connect(Main.overview,'window-drag-end',()=>this.endWindowDrag());
+        this.connect(Main.overview,'window-drag-cancelled',()=>this.endWindowDrag());
         this.connect(Main.overview,'showing',()=>this.startUi());
         this.connect(Main.overview,'shown',()=>{for(const view of this.controls._workspacesDisplay._workspacesViews)view._updateVisibility?.();this.hoverOrigin=global.get_pointer().slice(0,2);this.hoverReady=false;});
         this.connect(Main.overview,'hiding',()=>{this.leavingOverview=true;for(const view of this.controls._workspacesDisplay._workspacesViews)view._updateVisibility?.();for(const entry of this.windowDecorations.values())entry.frame.hide();});
@@ -183,7 +205,132 @@ export class MissionControl {
     }
     activateSpace(space,time){
         if(space.index()<0||this.leavingOverview)return;
-        space.activate(time);Main.overview.hide();
+        space.activate(time);if(!this.windowDrag)Main.overview.hide();
+    }
+    desktopAtPoint(x,y){
+        if(!Main.overview.visible||this.leavingOverview||this.controls._showAppsButton?.checked)return null;
+        const monitor=Main.layoutManager.monitors.find(m=>x>=m.x&&x<m.x+m.width&&y>=m.y&&y<m.y+m.height);
+        if(!monitor)return null;
+        // The desktop strip has its own drop targets. Never redirect those.
+        if(monitor.index===Main.layoutManager.primaryIndex&&y<monitor.y+this.spaceStrip.height)return null;
+        return monitor;
+    }
+    dragDestination(source){
+        if(!this.windowDrag||!source?.metaWindow)return null;
+        const [x,y]=global.get_pointer(),monitor=this.desktopAtPoint(x,y);
+        if(!monitor)return null;
+        return {monitor,workspace:global.workspace_manager.get_active_workspace()};
+    }
+    acceptDesktopDrop(source){
+        const target=this.dragDestination(source);
+        if(!target||target.workspace.index()<0)return false;
+        const w=source.metaWindow;
+        if(w.get_workspace()!==target.workspace||w.get_monitor()!==target.monitor.index)
+            Main.moveWindowToMonitorAndWorkspace(w,target.monitor.index,target.workspace.index());
+        // A drop onto its own desktop is still successful, not a snap-back.
+        return true;
+    }
+    installDesktopInteractions(){
+        const controller=this;
+        for(const method of ['handleDragOver','acceptDrop'])
+            this.injections.overrideMethod(Workspace.Workspace.prototype,method,original=>function(source,...args){
+                if(controller.dragDestination(source))return method==='acceptDrop'
+                    ?controller.acceptDesktopDrop(source):DND.DragMotionResult.MOVE_DROP;
+                return original.call(this,source,...args);
+            });
+        // Custom wallpaper/outline actors are siblings of the native workspace.
+        // Let DND walk up to this fallback, retaining its native drop cleanup.
+        const group=Main.layoutManager.overviewGroup,previous=group._delegate;
+        this.desktopDelegate={
+            handleDragOver:(source,...args)=>this.dragDestination(source)?DND.DragMotionResult.MOVE_DROP:
+                (previous?.handleDragOver?.(source,...args)??DND.DragMotionResult.CONTINUE),
+            acceptDrop:(source,...args)=>this.acceptDesktopDrop(source)||(previous?.acceptDrop?.(source,...args)??false),
+        };
+        this.previousOverviewDelegate=previous;group._delegate=this.desktopDelegate;
+        this.connect(global.stage,'captured-event',(_stage,event)=>this.desktopClick(event));
+    }
+    emptyDesktopAt(event){
+        const [x,y]=event.get_coords();
+        if(!this.desktopAtPoint(x,y))return false;
+        for(let actor=event.get_source();actor;actor=actor.get_parent()){
+            if(actor instanceof St.Button||actor._delegate?.metaWindow||actor.name==='dashtodockBox'||actor.has_style_class_name?.('popup-menu'))return false;
+        }
+        for(const preview of this.windowDecorations.keys()){
+            if(!preview.mapped)continue;
+            const [px,py]=preview.window_container.get_transformed_position();
+            const [w,h]=preview.window_container.get_transformed_size();
+            if(x>=px&&x<px+w&&y>=py&&y<py+h)return false;
+        }
+        return true;
+    }
+    desktopClick(event){
+        const type=event.type();
+        if(type!==Clutter.EventType.BUTTON_PRESS&&type!==Clutter.EventType.BUTTON_RELEASE)return Clutter.EVENT_PROPAGATE;
+        if(event.get_button()!==1)return Clutter.EVENT_PROPAGATE;
+        if(type===Clutter.EventType.BUTTON_PRESS){
+            this.desktopPress=!this.windowDrag&&!Main.overview.animationInProgress&&this.emptyDesktopAt(event)?event.get_coords():null;
+        }else{
+            const press=this.desktopPress;this.desktopPress=null;
+            const [x,y]=event.get_coords();
+            if(press&&!this.windowDrag&&!Main.overview.animationInProgress&&Math.hypot(x-press[0],y-press[1])<4&&this.emptyDesktopAt(event)){
+                Main.overview.hide();return Clutter.EVENT_STOP;
+            }
+        }
+        return Clutter.EVENT_PROPAGATE;
+    }
+    beginWindowDrag(){
+        this.endWindowDrag();this.desktopPress=null;this.windowDrag=true;this.stripHoverArmed=true;
+        this.windowDragMonitor={dragMotion:event=>{
+            this.hoverDragWorkspace(event);
+            return DND.DragMotionResult.CONTINUE;
+        }};
+        DND.addDragMonitor(this.windowDragMonitor);
+    }
+    endWindowDrag(){
+        this.windowDrag=false;this.clearDragWorkspace();
+        if(this.windowDragMonitor)DND.removeDragMonitor(this.windowDragMonitor);
+        this.windowDragMonitor=null;
+    }
+    clearDragWorkspace(){
+        if(this.dragWorkspaceTimer)GLib.source_remove(this.dragWorkspaceTimer);
+        this.dragWorkspaceTimer=0;this.dragWorkspace=null;
+    }
+    hoverDragWorkspace(event){
+        if(!this.windowDrag||!event.source?.metaWindow||this.leavingOverview){this.clearDragWorkspace();return;}
+        let target=null;
+        for(const thumb of this.thumbnails._thumbnails){
+            const ws=thumb.metaWorkspace;
+            if(ws.index()<0||thumb.state!==WorkspaceThumbnail.ThumbnailState.NORMAL)continue;
+            const actors=this.spacesExpanded?[thumb,this.expandedLabels.get(ws)]:[this.labels.get(ws)];
+            if(actors.some(actor=>{
+                if(!actor?.visible)return false;
+                const [x,y]=actor.get_transformed_position(),[w,h]=actor.get_transformed_size();
+                return event.x>=x&&event.x<x+w&&event.y>=y&&event.y<y+h;
+            })){target=ws;break;}
+        }
+        if(target===global.workspace_manager.get_active_workspace())target=null;
+        if(target===this.dragWorkspace)return;
+        this.clearDragWorkspace();if(!target)return;
+        this.dragWorkspace=target;
+        this.dragWorkspaceTimer=GLib.timeout_add(GLib.PRIORITY_DEFAULT,350,()=>{
+            this.dragWorkspaceTimer=0;
+            if(this.windowDrag&&!this.leavingOverview&&target.index()>=0)
+                target.activate(global.get_current_time());
+            // Activation only: the native drop target moves the window when released.
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+    bindLabelDropTarget(label,workspace){
+        label._delegate={
+            handleDragOver:(source,actor,_x,_y,time)=>{
+                const thumb=this.thumbnails._thumbnails.find(t=>t.metaWorkspace===workspace);
+                return thumb?.handleDragOverInternal(source,actor,time)??DND.DragMotionResult.CONTINUE;
+            },
+            acceptDrop:(source,actor,_x,_y,time)=>{
+                const thumb=this.thumbnails._thumbnails.find(t=>t.metaWorkspace===workspace);
+                return thumb?.acceptDropInternal(source,actor,time)??false;
+            },
+        };
     }
     changeFullscreen(w,enter){
         if(!w.get_compositor_private())return;
@@ -370,6 +517,7 @@ export class MissionControl {
                     if(event.get_button()!==1)return Clutter.EVENT_PROPAGATE;
                     this.activateSpace(workspace,event.get_time());return Clutter.EVENT_STOP;
                 });
+                this.bindLabelDropTarget(label,workspace);
                 Main.layoutManager.overviewGroup.add_child(label);labels.set(workspace,label);
             }
             if(label.text!==title){label.text=title;label.set_size(-1,-1);}
@@ -399,7 +547,7 @@ export class MissionControl {
         const m=Main.layoutManager.primaryMonitor;
         const width=this.emptyState.get_preferred_width(-1)[1],height=this.emptyState.get_preferred_height(width)[1];
         this.emptyState.set_size(width,height);this.emptyState.set_position(m.x+(m.width-width)/2,m.y+(m.height-height)/2);
-        this.emptyState.visible=empty&&!this.leavingOverview&&!Main.overview.animationInProgress&&!this.swipeSurfaces;
+        this.emptyState.visible=empty&&!this.windowDrag&&!this.leavingOverview&&!Main.overview.animationInProgress&&!this.swipeSurfaces;
     }
     updateUi(){
         const box=this.thumbnails,scale=St.ThemeContext.get_for_stage(global.stage).scale_factor;
@@ -409,28 +557,35 @@ export class MissionControl {
         // even after the adjustment has settled. Its state machine then never
         // removes old thumbnails or finishes adding new ones.
         if(box._animatingIndicator&&box._scrollAdjustment.value===global.workspace_manager.get_active_workspace_index())box._updateIndicator();
-        const [x,y]=box.get_transformed_position(),[width,height]=box.get_transformed_size();
+        let [x,y]=box.get_transformed_position();const [width,height]=box.get_transformed_size();
         const m=Main.layoutManager.primaryMonitor;
+        if(!m||![x,y,width,height,box.translation_y].every(Number.isFinite)||width<=0||height<=0)return;
         const [pointerX,pointerY]=global.get_pointer();
         const compactHeight=36*scale;
+        // Search keeps its native allocation for Shell stability, but the
+        // desktop strip must not inherit that hidden search row's top offset.
+        const stripTop=m.y+12*scale;
+        const baseY=y-box.translation_y;
+        const expandedTranslation=stripTop-baseY;
         const edgeBottom=this.spacesExpanded?y+height+12*scale:m.y+compactHeight;
         if(!this.stripHoverArmed&&this.stripOpenPointer){
             const [sx,sy]=this.stripOpenPointer;
             this.stripHoverArmed=Math.abs(pointerX-sx)+Math.abs(pointerY-sy)>3*scale||pointerY>m.y+compactHeight;
         }
-        this.spacesExpanded=!Main.overview.animationInProgress&&this.stripHoverArmed&&pointerX>=m.x&&pointerX<m.x+m.width&&pointerY>=m.y&&pointerY<=edgeBottom;
+        this.spacesExpanded=!Main.overview.animationInProgress&&(this.windowDrag||(this.stripHoverArmed&&pointerX>=m.x&&pointerX<m.x+m.width&&pointerY>=m.y&&pointerY<=edgeBottom));
         const expanded=this.spacesExpanded;
         // OverviewControls also animates opacity during entry. Clip the compact
         // strip instead of competing with its opacity writes every frame.
         if(expanded)box.remove_clip();else box.set_clip(0,0,0,0);
-        const stripHeight=expanded?y+height-m.y+8*scale:compactHeight;
+        const stripHeight=expanded?12*scale+height+8*scale:compactHeight;
         if(this.lastExpanded!==expanded){
-            box.ease({opacity:expanded?255:0,translation_y:expanded?0:-16*scale,duration:200,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
+            box.ease({opacity:expanded?255:0,translation_y:expanded?expandedTranslation:expandedTranslation-16*scale,duration:200,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
             this.lastExpanded=expanded;
             const buttonSize=expanded?32:24;
             this.plus.set_style(`width: ${buttonSize}px; height: ${buttonSize}px; min-width: ${buttonSize}px; min-height: ${buttonSize}px; padding: 0; border-width: 0; background-color: transparent; box-shadow: none;`);
             this.plus.child.icon_size=expanded?20:16;
         }
+        if(!box.get_transition('translation-y'))box.translation_y=expanded?expandedTranslation:expandedTranslation-16*scale;
         if(!box.get_transition('opacity'))box.opacity=expanded?255:0;
         box.reactive=expanded;
         this.wallpaper.show();this.spaceStrip.set_position(m.x,m.y);this.spaceStrip.width=m.width;
@@ -549,7 +704,7 @@ export class MissionControl {
         const nativeRadius=12*scale*previewScale;
         const [px,py]=global.get_pointer();
         if(this.hoverOrigin&&!Main.overview.animationInProgress&&(Math.abs(px-this.hoverOrigin[0])>2||Math.abs(py-this.hoverOrigin[1])>2))this.hoverReady=true;
-        const selected=this.hoverReady&&!this.workspaceSwitchInProgress()&&!Main.overview.animationInProgress&&!this.leavingOverview&&preview.mapped&&px>=x&&px<=x+w&&py>=y&&py<=y+h;
+        const selected=this.hoverReady&&!this.windowDrag&&!this.workspaceSwitchInProgress()&&!Main.overview.animationInProgress&&!this.leavingOverview&&preview.mapped&&px>=x&&px<=x+w&&py>=y&&py<=y+h;
         entry.frame.visible=selected;
         if(selected){
             const gap=6*scale;
@@ -579,8 +734,9 @@ export class MissionControl {
         else actor.ease({x,y,duration:200,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
     hidePreview(){this.preview?.remove_all_transitions();this.preview?.hide();this.previewHint?.hide();}
-    stopUi(){this.clearWorkspaceSwipeSurfaces();this.emptyState?.hide();this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();}
+    stopUi(){this.endWindowDrag();this.clearWorkspaceSwipeSurfaces();this.emptyState?.hide();this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();}
     destroy(){
+        if(Main.layoutManager.overviewGroup._delegate===this.desktopDelegate)Main.layoutManager.overviewGroup._delegate=this.previousOverviewDelegate;
         this.stopUi();this.emptyState?.destroy();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.opacity=this.searchOpacity;this.searchBin.reactive=this.searchReactive;this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
         for(const [w,ids] of this.windows)for(const id of ids)w.disconnect(id);
         for(const id of this.sources)GLib.source_remove(id);this.sources.clear();
