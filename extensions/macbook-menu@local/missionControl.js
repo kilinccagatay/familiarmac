@@ -103,10 +103,13 @@ export class MissionControl {
         this.wallpaper.hide();this.spaceStrip.hide();
         this.searchBin=controls._searchEntryBin;
         this.searchWasVisible=this.searchBin.visible;
-        this.searchPreferredHeight=this.searchBin.get_preferred_height;
-        this.searchBin.get_preferred_height=()=>[0,0];
-        this.searchBin.hide();
-        this.searchVisibleSignal=this.searchBin.connect('notify::visible',()=>{if(this.searchBin.visible)this.searchBin.hide();});
+        // Keep the native minimum size while visually concealed: GNOME still allocates
+        // the search entry and its themed descendants during overview entry.
+        // A forced zero height reaches St rendering and can crash Shell.
+        this.searchOpacity=this.searchBin.opacity;
+        this.searchReactive=this.searchBin.reactive;
+        this.searchBin.opacity=0;this.searchBin.reactive=false;
+        this.searchVisibleSignal=this.searchBin.connect('notify::visible',()=>{this.searchBin.opacity=0;});
         this.thumbnails=controls._thumbnailsBox;
         this.installSpaceActivation();
         this.thumbnailStyle=this.thumbnails.get_style();
@@ -565,7 +568,7 @@ export class MissionControl {
     hidePreview(){this.preview?.remove_all_transitions();this.preview?.hide();this.previewHint?.hide();}
     stopUi(){this.clearWorkspaceSwipeSurfaces();this.emptyState?.hide();this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();}
     destroy(){
-        this.stopUi();this.emptyState?.destroy();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.get_preferred_height=this.searchPreferredHeight;this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
+        this.stopUi();this.emptyState?.destroy();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.opacity=this.searchOpacity;this.searchBin.reactive=this.searchReactive;this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
         for(const [w,ids] of this.windows)for(const id of ids)w.disconnect(id);
         for(const id of this.sources)GLib.source_remove(id);this.sources.clear();
         this.previewBackground.destroy();this.preview.destroy();this.previewHint.destroy();this.plus.destroy();for(const b of this.buttons.values())b.destroy();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.destroy();

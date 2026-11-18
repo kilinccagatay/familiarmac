@@ -213,3 +213,39 @@ During the initial effect-off trial the user minimized/restored ChatGPT several
  times. Shell PID remained 12723 and no new Nouveau or Shell errors were logged.
 This is a short negative control only. The patched-effect comparison remains
 pending a normal login; do not claim the original GPU crash is resolved.
+
+## Host failure during VM validation (18 November, 23:02:32 CET)
+
+The host kernel first reports Nouveau `CTXSW_TIMEOUT` on Shell PID 126236,
+then disables channel 6; Shell segfaults in the same libgallium offset
+`0xb2b187` previously resolved to `pushbuf_dump`. The same sequence occurred
+at 21:03:19, before this VM validation. There is no matching Shell core;
+`~/core` is the older Xwayland dump. No OOM event occurred in this interval.
+
+The VM remained running. Its independent Shell failure is in libst, preceded
+by zero-size overview allocation warnings, not the host Nouveau path. The
+VM uses virtio VGA without GPU passthrough or virgl. A visible GTK VNC viewer
+was running on the host, but timing alone cannot identify it as the trigger.
+No host logout command, driver, boot or Wi-Fi change was made.
+
+Confirmed: GPU channel timeout precedes host Shell failure. Unresolved:
+the GPU workload/instruction causing that timeout. Do not claim this is
+fixed by the Mission Control UI repair. Further VM tests use screenshots
+without reopening the live viewer to avoid adding that rendering workload.
+Reference: https://docs.mesa3d.org/graphics-debugging/debugging-misrenderings-crashes.html
+
+### Separate Mission Control crash, 2026-11-18 23:11 CET
+
+Two subsequent host crashes (23:11:25 and 23:11:44) were triggered by a
+four-finger overview gesture. These did **not** have a new nouveau timeout:
+Shell failed in `libst-14.so` at offset `0x407e7` after NaN actor allocations
+and invalid theme-node/shadow rendering. This matches the VM overview failure,
+not the earlier libgallium failure.
+
+Our overview customization forced the hidden search bin's preferred height to
+zero and kept hiding it. GNOME 46 still allocates that bin and its themed
+descendants. Retaining its native allocation and concealing it with opacity
+removed the reproducer in the VM (empty overview and five windowed entry/exit
+cycles). The same narrow fix was installed and loaded on the host without a
+logout; the user subsequently confirmed four-finger opening/closing works without a crash.
+Do not describe the earlier nouveau timeout as resolved by this layout fix.
