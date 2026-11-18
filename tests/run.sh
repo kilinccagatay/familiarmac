@@ -100,7 +100,7 @@ python3 tests/release-update.py
 python3 tests/release-package.py
 
 "$NODE" tests/mission-control-input.cjs
-node tests/bluetooth-label.cjs
+"$NODE" tests/bluetooth-label.cjs
 
 python3 tests/mouse-shortcuts.py
 
