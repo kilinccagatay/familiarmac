@@ -6,7 +6,7 @@ class Actor {
 }
 const box=new Actor(),app=new Actor(),system=new Actor();app.menu={actor:new Actor()};system.menu={actor:new Actor()};
 let idle;
-const context={Main:{panel:{_leftBox:new Actor(),_centerBox:new Actor(),_rightBox:box,statusArea:{'appindicator-chat':app,quickSettings:system}}},GLib:{PRIORITY_DEFAULT_IDLE:0,SOURCE_REMOVE:false,idle_add(p,fn){idle=fn;return 1;},source_remove(){idle=null;}}};
+const context={TrayActivation:class {track(){} untrack(){} destroy(){}},Main:{panel:{_leftBox:new Actor(),_centerBox:new Actor(),_rightBox:box,statusArea:{'appindicator-chat':app,quickSettings:system}}},GLib:{PRIORITY_DEFAULT_IDLE:0,SOURCE_REMOVE:false,idle_add(p,fn){idle=fn;return 1;},source_remove(){idle=null;}}};
 const source=fs.readFileSync('extensions/macbook-menu@local/indicatorMenus.js','utf8').replace(/^import .*;$/gm,'').replace('export class','class');
 vm.runInNewContext(source+';globalThis.Controller=IndicatorMenus',context);
 const c=new context.Controller();assert(app.menu.actor.classes.has('fm-dock-menu'));assert.equal(system.menu.actor.classes.size,0);

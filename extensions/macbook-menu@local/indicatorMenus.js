@@ -1,3 +1,4 @@
+import {TrayActivation} from './trayActivation.js';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -7,6 +8,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 export class IndicatorMenus {
     constructor() {
         this.buttons = new Map();
+        this.activation = new TrayActivation();
         this.boxes = [Main.panel._leftBox, Main.panel._centerBox, Main.panel._rightBox];
         this.signals = this.boxes.map(box => box.connect('child-added', () => this.queue()));
         this.sync();
@@ -37,14 +39,19 @@ export class IndicatorMenus {
     sync() {
         for (const [id, button] of Object.entries(Main.panel.statusArea)) {
             if (!id.startsWith('appindicator-') || this.buttons.has(button)) continue;
+            this.activation.track(button._indicator);
             const record = {};
             record.menu = button.connect('menu-set', () => this.style(button, record));
-            record.destroy = button.connect('destroy', () => this.buttons.delete(button));
+            record.destroy = button.connect('destroy', () => {
+                this.activation.untrack(button._indicator);
+                this.buttons.delete(button);
+            });
             this.buttons.set(button, record);
             this.style(button, record);
         }
     }
     destroy() {
+        this.activation.destroy();
         if (this.idle) GLib.source_remove(this.idle);
         this.boxes.forEach((box, i) => box.disconnect(this.signals[i]));
         for (const [button, record] of this.buttons) {

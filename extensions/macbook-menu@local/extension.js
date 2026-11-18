@@ -1,3 +1,5 @@
+import {StartupCompletion} from './startupCompletion.js';
+import {DockRefresh} from './dockRefresh.js';
 import {StatusMenuActivation} from './statusMenuActivation.js';
 import {IndicatorMenus} from './indicatorMenus.js';
 import {SystemShortcuts} from './systemShortcuts.js';
@@ -57,6 +59,8 @@ export default class MacBookMenu extends Extension {
         this._appsBrowser = new AppsBrowser();
         this._dockOrder = new DockOrder();
         this._dockTooltips = new DockTooltips();
+        this._dockRefresh = new DockRefresh();
+        this._startupCompletion = new StartupCompletion();
         this._dockMagnification = new DockMagnification();
         this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
@@ -77,6 +81,7 @@ export default class MacBookMenu extends Extension {
             const seen = new Set();
             const visit = actor => {
                 this._dockOrder.trackSeparator(actor);
+                this._dockRefresh.track(actor);
                 if (actor.has_style_class_name?.('familiarmac-downloads-button')) this._dockMagnification.track(actor);
                 if (actor.app?.get_id?.()) this._downloadsStack.track(actor);
                 if (actor.app?.get_id?.() && actor._indicator) {
@@ -279,6 +284,10 @@ export default class MacBookMenu extends Extension {
         this._appsBrowser = null;
         this._dockMagnification?.destroy();
         this._dockMagnification = null;
+        this._startupCompletion?.destroy();
+        this._startupCompletion = null;
+        this._dockRefresh?.destroy();
+        this._dockRefresh = null;
         this._dockTooltips?.destroy();
         this._dockTooltips = null;
         this._dockOrder?.destroy();
