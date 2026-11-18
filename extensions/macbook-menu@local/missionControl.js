@@ -131,7 +131,7 @@ export class MissionControl {
         Main.layoutManager.overviewGroup.set_child_above_sibling(this.plus,this.preview);
         this.connect(Main.layoutManager,'monitors-changed',()=>{this.clearWorkspaceSwipeSurfaces();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaperManagers=Main.layoutManager.monitors.map((_m,i)=>new Background.BackgroundManager({container:this.wallpaper,monitorIndex:i,controlPosition:true}));this.hidePreview();this.previewBackground.destroy();this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});});
         this.connect(Main.overview,'showing',()=>this.startUi());
-        this.connect(Main.overview,'shown',()=>{this.hoverOrigin=global.get_pointer().slice(0,2);this.hoverReady=false;});
+        this.connect(Main.overview,'shown',()=>{for(const view of this.controls._workspacesDisplay._workspacesViews)view._updateVisibility?.();this.hoverOrigin=global.get_pointer().slice(0,2);this.hoverReady=false;});
         this.connect(Main.overview,'hiding',()=>{this.leavingOverview=true;for(const view of this.controls._workspacesDisplay._workspacesViews)view._updateVisibility?.();for(const entry of this.windowDecorations.values())entry.frame.hide();});
         this.connect(Main.overview,'hidden',()=>this.stopUi());
         this.connect(global.display,'window-created',(_d,w)=>this.track(w));
@@ -292,11 +292,10 @@ export class MissionControl {
         const controller=this;
         this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_updateVisibility',original=>function(...args){
             original.apply(this,args);
-            // Native overview keeps adjacent workspaces visible. During exit,
-            // our full-screen spacing returns to the native layout and those
-            // neighbors can briefly cross the viewport, especially when the
-            // active workspace is empty and has no window to cover them.
-            if(controller.leavingOverview){
+            // Native overview keeps adjacent workspaces visible. Entry/exit
+            // changes spacing, so a neighbor can cross an empty viewport.
+            // Keep it concealed until the picker is fully open.
+            if(controller.leavingOverview||Main.overview.animationInProgress){
                 const active=global.workspace_manager.get_active_workspace();
                 for(const workspace of this._workspaces)
                     if(workspace.metaWorkspace!==active)workspace.hide();
@@ -317,6 +316,7 @@ export class MissionControl {
         });
         this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_updateWorkspacesState',original=>function(...args){
             original.apply(this,args);
+            if(controller.leavingOverview||Main.overview.animationInProgress)this._updateVisibility();
             if(Main.overview.visible&&!Main.overview.animationInProgress&&this._fitModeAdjustment.value===0)
                 for(const workspace of this._workspaces)workspace.set_scale(1,1);
         });

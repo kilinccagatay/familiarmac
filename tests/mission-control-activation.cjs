@@ -42,3 +42,9 @@ view._updateVisibility();assert.equal(windows[0].visible,false);assert.equal(win
 view._updateVisibility();assert.equal(windows[0].visible,false,'Settling callbacks cannot reshow the old desktop');
 owner.leavingOverview=false;view._updateVisibility();assert(windows.every(w=>w.visible),'Next overview restores normal swipe neighbors');
 console.log('Overview exit hides only inactive workspace previews and restores normal visibility on re-entry PASS');
+
+ctx.Main.overview.animationInProgress=true;
+view._updateVisibility();assert.equal(windows[0].visible,false,'Opening on an empty desktop conceals the adjacent fullscreen window');
+assert.equal(windows[1].visible,true);
+ctx.Main.overview.animationInProgress=false;view._updateVisibility();assert(windows.every(w=>w.visible));
+console.log('Overview entry guards adjacent fullscreen previews until the shown state PASS');

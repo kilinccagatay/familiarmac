@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [VERSION, '.github/workflows/release.yml']
+    paths: [VERSION, '.github/workflows/release.yml', 'docs/releases/**']
     tags: ['v[0-9]*']
 permissions:
   contents: write
