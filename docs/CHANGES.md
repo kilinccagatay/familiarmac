@@ -4,6 +4,10 @@ This inventory covers project behavior, not every typo or intermediate experimen
 
 | Area | Changes | Source / entry point |
 |---|---|---|
+| Startup and tray recovery | Complete an unambiguous startup for a focused, mapped normal X11 window; refresh Dock on window/tracker changes; guard active drags and modern Shell versions | `startupCompletion.js`, `trayActivation.js`, `dockRefresh.js` |
+| Dock popup geometry | Keep magnification while a menu is open, anchor above visible icon bounds, rounded menu tail and immediate rounded name/Remove bubbles | `dockMenuPointer.js`, `dockMenus.js`, `dockTooltips.js`, `dockOrder.js` |
+| Status popup switching | Transfer the first click between status menus through modal capture; hover does not switch menus | `statusMenuActivation.js` |
+| Settings entry points | User-level panel launchers route through the guarded wrapper, including Change Background; preserve arguments and edited files on restore | `scripts/settings_launchers.py` |
 | Shared GTK action completion | Preserve callbacks during state refresh; add recognized missing exported actions by exact ID without replacing native menus | `overrides/appmenu/realMenuManager.js`, `gtkMenuModel.js` |
 | Actual shortcut readers | GtkAccelMap, explicit GtkBuilder action/accelerator pairs and guarded Python GTK bindings; user overrides preserved | `scripts/application-shortcuts.py` |
 | File chooser ownership | Authenticated portal metadata with guarded compositor-socket matching; no selected file paths recorded | `scripts/portal-owners.py`, `overrides/appmenu/portalOwners.js` |

@@ -8,6 +8,23 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değiştirmesini istemememle başladı. macOS kullanırken bildiği günlük işlemleri Linux'ta da tanıdık bir şekilde yapabilmesini hedefledim. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
+## Son sürüm: 1.0.2
+
+[Sürüm notları](releases/v1.0.2.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.0.2)
+
+Penceresi hazır olmasına rağmen GNOME'un “başlatılıyor” durumunda tuttuğu
+uygulamaların Dock simgesinin gecikmesi düzeltildi. ChatGPT'nin ilk açılış ve
+tepsiden dönüş gecikmesinin giderildiği referans Mac'te kullanıcı tarafından
+doğrulandı. Büyütülmüş Dock simgelerinin sağ tık menüleri, anında görünen isim
+balonları, alt menüde tik hizası ve üst panel menüleri arasında tek tıkla geçiş de
+bu sürüme dahil.
+
+Masaüstünden **Change Background** veya diğer ayar kısayollarıyla açıldığında da
+**Dock & Window** bulunur. Bildirim Merkezi'nin dış yüzeyi açık/koyu temada
+şeffaf kalır. Güncellemeden sonra açık işlerinizi kaydedip oturumu kapatıp açın.
+NVIDIA/Nouveau, Wi-Fi onarımları ve makineye özgü çekirdek/açılış ayarları otomatik
+kuruluma dahil değildir.
+
 ## Ekran görüntüleri
 
 Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmış bölümleri. Tam görüntüyü açmak için görsele tıklayabilirsin. Ağ ve hesap adları gerektiğinde gizlenmiştir.

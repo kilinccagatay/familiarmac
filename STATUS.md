@@ -1,6 +1,8 @@
-# Uygulama denetimi — 17 Kasım 2026
+# Uygulama denetimi — 18 Kasım 2026
 
 Bu dosya README'deki kronolojik notların yerine güncel tamamlanma durumunu özetler. Kurulu dosya ve birim testi, fiziksel kullanım doğrulaması anlamına gelmez.
+
+18 Kasım / 1.0.2: ChatGPT penceresi hazırken Dock simgesinin geç gelmesi kullanıcı tarafından **düzeldi** olarak doğrulandı. İlk açılış için odaklanmış normal X11 penceresine ait, eşleştirmesi kesin başlatma kaydı tamamlanır; tepsi dönüşü ve Dock yenilemesi ayrıca korunur. Bu doğrulama tüm uygulamalar veya GNOME sürümleri için ölçülmüş bir performans garantisi değildir. Dock menü işaretçisi, balonlar, panel geçişleri ve Ayarlar başlatıcıları otomatik test kapsamındadır; her ölçek/ekran düzeni ayrı görsel doğrulama gerektirir.
 
 | İstek | Durum / kalan iş |
 |---|---|

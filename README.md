@@ -10,6 +10,23 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
+## Latest release: 1.0.2
+
+[Release notes](docs/releases/v1.0.2.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.0.2)
+
+This update fixes delayed Dock icons for ready application windows that remain in
+GNOME's startup state, including ChatGPT's first launch and tray return. The
+reported ChatGPT delay was confirmed resolved by the user on the reference Mac.
+It also refines magnified Dock context menus, immediate name bubbles, submenu
+checkmark alignment and single-click switching between status menus.
+**Dock & Window** remains available when Settings is opened through desktop
+**Change Background** and other installed panel shortcuts. Notification Center's
+outer surface stays transparent in both appearance modes.
+
+After updating, save your work and log out/in to load the new Shell code. These
+are portable desktop changes; machine-specific NVIDIA/Nouveau, Wi-Fi repairs and
+boot/kernel tuning remain outside the automatic installer.
+
 ## Screenshots
 
 Feature close-ups cropped from the installed desktop. Click an image to open the full capture. Network and account names are redacted where needed.
