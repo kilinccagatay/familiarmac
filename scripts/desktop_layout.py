@@ -7,6 +7,7 @@ REQUIRED = (
     'touchpad-gesture-customization@coooolapps.com',
     'macbook-menu@local',
     'familiarmac-panel-layout@local',
+    'familiarmac-display-scale@local',
     'familiarmac-lock@local',
     'user-theme@gnome-shell-extensions.gcampax.github.com',
 )

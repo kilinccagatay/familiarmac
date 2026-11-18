@@ -253,6 +253,8 @@ for tray_schema in ('org.gnome.shell.extensions.zorin-appindicator', 'org.gnome.
 write(Path.home()/'.local/share/familiarmac/trash-drop-target.py', (ROOT/'scripts/trash-drop-target.py').read_text())
 for f in (ROOT/'extensions/macbook-menu@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/macbook-menu@local'/f.name,f.read_text())
+for f in (ROOT/'extensions/familiarmac-display-scale@local').iterdir():
+    if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/familiarmac-display-scale@local'/f.name,f.read_text())
 for f in (ROOT/'extensions/familiarmac-panel-layout@local').iterdir():
     if f.is_file(): write(Path.home()/'.local/share/gnome-shell/extensions/familiarmac-panel-layout@local'/f.name,f.read_text())
 for f in (ROOT/'extensions/familiarmac-lock@local').iterdir():

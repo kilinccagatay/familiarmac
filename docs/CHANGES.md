@@ -4,6 +4,7 @@ This inventory covers project behavior, not every typo or intermediate experimen
 
 | Area | Changes | Source / entry point |
 |---|---|---|
+| Display scale changes | Refresh named and file-based Shell icons after resolution/scale changes without changing icon sizes, themes or display preferences | `extensions/familiarmac-display-scale@local/` |
 | Startup and tray recovery | Complete an unambiguous startup for a focused, mapped normal X11 window; refresh Dock on window/tracker changes; guard active drags and modern Shell versions | `startupCompletion.js`, `trayActivation.js`, `dockRefresh.js` |
 | Dock popup geometry | Keep magnification while a menu is open, anchor above visible icon bounds, rounded menu tail and immediate rounded name/Remove bubbles | `dockMenuPointer.js`, `dockMenus.js`, `dockTooltips.js`, `dockOrder.js` |
 | Status popup switching | Transfer the first click between status menus through modal capture; hover does not switch menus | `statusMenuActivation.js` |

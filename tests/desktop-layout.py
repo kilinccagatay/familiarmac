@@ -34,3 +34,12 @@ for active, blocked in [([], []), ([old, 'unrelated@local'], [new])]:
     assert old not in active and old in blocked
     assert select_extensions(active, blocked, False) == (active, blocked)
 print('Genie clean install and Magic Lamp migration PASS')
+
+# Display refresh ships and is enabled on both fresh and previously disabled setups.
+scale = 'familiarmac-display-scale@local'
+active, blocked = select_extensions([], [scale], False)
+assert scale in active and scale not in blocked
+root = Path(__file__).resolve().parents[1]
+assert (root / 'extensions' / scale / 'metadata.json').exists()
+assert "ROOT/'extensions/familiarmac-display-scale@local'" in (root / 'scripts/desktop.py').read_text()
+print('Display scale clean install and re-enable PASS')
