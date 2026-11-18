@@ -23,3 +23,22 @@ adjustment.value=1;adjustment.get_transition=()=>({});
 assert.equal(owner.workspaceSwitchInProgress(),true);
 adjustment.get_transition=()=>null;assert.equal(owner.workspaceSwitchInProgress(),false);
 console.log('Hover guard covers held gesture, fractional position and settling animation PASS');
+
+// Native visibility refreshes during exit must not reveal neighboring previews.
+class View {
+ constructor(workspaces){this._workspaces=workspaces;}
+ _updateVisibility(){for(const w of this._workspaces)w.visible=true;}
+ _getSpacing(){return 12;}
+ _updateWorkspacesState(){}
+}
+const active={};ctx.global={workspace_manager:{get_active_workspace:()=>active}};
+ctx.WorkspacesView={WorkspacesView:View};
+owner.installWorkspaceSwipeLayout();
+const windows=[{metaWorkspace:{},visible:true,hide(){this.visible=false;}},
+ {metaWorkspace:active,visible:true,hide(){this.visible=false;}}];
+const view=new View(windows);
+owner.leavingOverview=true;
+view._updateVisibility();assert.equal(windows[0].visible,false);assert.equal(windows[1].visible,true);
+view._updateVisibility();assert.equal(windows[0].visible,false,'Settling callbacks cannot reshow the old desktop');
+owner.leavingOverview=false;view._updateVisibility();assert(windows.every(w=>w.visible),'Next overview restores normal swipe neighbors');
+console.log('Overview exit hides only inactive workspace previews and restores normal visibility on re-entry PASS');

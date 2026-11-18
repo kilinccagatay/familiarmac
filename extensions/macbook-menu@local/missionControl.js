@@ -132,7 +132,7 @@ export class MissionControl {
         this.connect(Main.layoutManager,'monitors-changed',()=>{this.clearWorkspaceSwipeSurfaces();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaperManagers=Main.layoutManager.monitors.map((_m,i)=>new Background.BackgroundManager({container:this.wallpaper,monitorIndex:i,controlPosition:true}));this.hidePreview();this.previewBackground.destroy();this.previewBackground=new Background.BackgroundManager({container:this.previewBox,monitorIndex:Main.layoutManager.primaryIndex,controlPosition:false,useContentSize:false});});
         this.connect(Main.overview,'showing',()=>this.startUi());
         this.connect(Main.overview,'shown',()=>{this.hoverOrigin=global.get_pointer().slice(0,2);this.hoverReady=false;});
-        this.connect(Main.overview,'hiding',()=>{this.leavingOverview=true;for(const entry of this.windowDecorations.values())entry.frame.hide();});
+        this.connect(Main.overview,'hiding',()=>{this.leavingOverview=true;for(const view of this.controls._workspacesDisplay._workspacesViews)view._updateVisibility?.();for(const entry of this.windowDecorations.values())entry.frame.hide();});
         this.connect(Main.overview,'hidden',()=>this.stopUi());
         this.connect(global.display,'window-created',(_d,w)=>this.track(w));
         this.fullscreenTransitions=new Set();this.restoreFrames=new Map();
@@ -289,6 +289,19 @@ export class MissionControl {
         });
     }
     installWorkspaceSwipeLayout(){
+        const controller=this;
+        this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_updateVisibility',original=>function(...args){
+            original.apply(this,args);
+            // Native overview keeps adjacent workspaces visible. During exit,
+            // our full-screen spacing returns to the native layout and those
+            // neighbors can briefly cross the viewport, especially when the
+            // active workspace is empty and has no window to cover them.
+            if(controller.leavingOverview){
+                const active=global.workspace_manager.get_active_workspace();
+                for(const workspace of this._workspaces)
+                    if(workspace.metaWorkspace!==active)workspace.hide();
+            }
+        });
         // Keep GNOME's gesture, adjustment, allocation and settling animation.
         // Only replace the card spacing/scaling with screen-sized horizontal steps.
         this.injections.overrideMethod(WorkspacesView.WorkspacesView.prototype,'_getSpacing',original=>function(box,fitMode,vertical){
