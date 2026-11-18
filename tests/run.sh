@@ -89,6 +89,7 @@ gjs tests/lazy-dbusmenu.js
 
 python3 tests/hardware-catalog.py
 python3 tests/settings-applications.py
+python3 tests/finder-search-installer.py
 python3 tests/settings-launchers.py
 python3 tests/hardware-install-boundary.py
 

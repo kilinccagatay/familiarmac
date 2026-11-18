@@ -21,7 +21,7 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then test "$GITHUB_REF_NAME" = "v$(cat VERSION)"; fi
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y gjs dbus-daemon build-essential python3 python3-gi gir1.2-gtk-3.0 gir1.2-dbusmenu-glib-0.4 xvfb xauth libinput10 libglib2.0-bin gnome-shell-common
+          sudo apt-get install --no-install-recommends -y gjs dbus-daemon build-essential python3 python3-gi gir1.2-gtk-3.0 gir1.2-dbusmenu-glib-0.4 xvfb xauth libinput10 libglib2.0-bin gnome-shell-common nautilus libgtk-4-1 libadwaita-1-0
       - name: Test
         run: xvfb-run -a env GDK_BACKEND=x11 bash tests/run.sh
       - name: Package and verify

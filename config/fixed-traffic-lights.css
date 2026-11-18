@@ -21,6 +21,11 @@ headerbar button.titlebutton image, windowcontrols button image {
   opacity: 0; background: transparent; border: none; box-shadow: none;
 }
 headerbar button.titlebutton:hover image, windowcontrols button:hover image { opacity: 0.6; }
+/* Fullscreen controls are provided by the compositor's top-edge reveal.
+ * Keep application tools and header layout intact; avoid duplicate controls. */
+window.fullscreen headerbar button.titlebutton,
+window.fullscreen headerbar windowcontrols { opacity: 0; }
+
 /* GTK4: 16px hit node + 6px between nodes = 22px center spacing. */
 headerbar windowcontrols { border-spacing: 6px; }
 windowcontrols button,
