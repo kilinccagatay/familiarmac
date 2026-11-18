@@ -14,34 +14,27 @@ FamiliarMac changes the **interface and interaction**, not the operating system 
 
 [Release notes](docs/releases/v1.0.2.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.0.2)
 
-This update fixes delayed Dock icons for ready application windows that remain in
-GNOME's startup state, including ChatGPT's first launch and tray return. The
-reported ChatGPT delay was confirmed resolved by the user on the reference Mac.
-It also refines magnified Dock context menus, immediate name bubbles, submenu
-checkmark alignment and single-click switching between status menus.
-**Dock & Window** remains available when Settings is opened through desktop
-**Change Background** and other installed panel shortcuts. Notification Center's
-outer surface stays transparent in both appearance modes.
+Customize Dock size, magnification, auto-hide and window animations from
+**Dock & Window** in Settings, where you can also configure application menus
+and check for FamiliarMac updates.
 
-After updating, save your work and log out/in to load the new Shell code. These
-are portable desktop changes; machine-specific NVIDIA/Nouveau, Wi-Fi repairs and
-boot/kernel tuning remain outside the automatic installer.
+Machine-specific NVIDIA/Nouveau, Wi-Fi repairs and boot/kernel tuning remain
+outside the automatic installer. See the release notes for update instructions
+and detailed changes.
 
 ## Screenshots
 
 Feature close-ups cropped from the installed desktop. Click an image to open the full capture. Network and account names are redacted where needed.
 
-[![Dock magnification and immediate name bubble](docs/screenshots/dock-magnification.png)](docs/screenshots/dock-magnification.png)
+[![Dock magnification](docs/screenshots/dock-magnification.png)](docs/screenshots/dock-magnification.png)
 
-**Dock & Window — 1.0.2**
+**Dock & Window**
 
 [![Dock size, magnification, auto-hide and Genie controls](docs/screenshots/details/dock-controls.png)](docs/screenshots/dock-window.png)
 
 [![Installed version and inline update status](docs/screenshots/details/dock-update.png)](docs/screenshots/dock-window.png)
 
 [![Context menu above a magnified Dock icon](docs/screenshots/dock-context-menu.png)](docs/screenshots/dock-context-menu.png)
-
-New captures from the installed 1.0.2 desktop on 18 November 2026; click the settings details to see the complete Settings window.
 
 | About this Mac | Applications |
 | --- | --- |

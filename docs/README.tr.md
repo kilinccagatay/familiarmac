@@ -12,34 +12,27 @@ Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değ
 
 [Sürüm notları](releases/v1.0.2.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.0.2)
 
-Penceresi hazır olmasına rağmen GNOME'un “başlatılıyor” durumunda tuttuğu
-uygulamaların Dock simgesinin gecikmesi düzeltildi. ChatGPT'nin ilk açılış ve
-tepsiden dönüş gecikmesinin giderildiği referans Mac'te kullanıcı tarafından
-doğrulandı. Büyütülmüş Dock simgelerinin sağ tık menüleri, anında görünen isim
-balonları, alt menüde tik hizası ve üst panel menüleri arasında tek tıkla geçiş de
-bu sürüme dahil.
+Ayarlar’daki **Dock & Window** bölümünden Dock boyutunu, büyütmeyi, otomatik
+gizlemeyi ve pencere animasyonlarını düzenleyebilir; uygulama menülerini
+uyarlayabilir ve FamiliarMac güncellemelerini kontrol edebilirsiniz.
 
-Masaüstünden **Change Background** veya diğer ayar kısayollarıyla açıldığında da
-**Dock & Window** bulunur. Bildirim Merkezi'nin dış yüzeyi açık/koyu temada
-şeffaf kalır. Güncellemeden sonra açık işlerinizi kaydedip oturumu kapatıp açın.
-NVIDIA/Nouveau, Wi-Fi onarımları ve makineye özgü çekirdek/açılış ayarları otomatik
-kuruluma dahil değildir.
+Makineye özgü NVIDIA/Nouveau, Wi-Fi onarımları ve çekirdek/açılış ayarları
+otomatik kuruluma dahil değildir. Güncelleme adımları ve ayrıntılı değişiklikler
+sürüm notlarında yer alır.
 
 ## Ekran görüntüleri
 
 Kurulu masaüstünden alınan görüntülerin özelliklere odaklanan kırpılmış bölümleri. Tam görüntüyü açmak için görsele tıklayabilirsin. Ağ ve hesap adları gerektiğinde gizlenmiştir.
 
-[![Dock büyütmesi ve anında görünen isim balonu](screenshots/dock-magnification.png)](screenshots/dock-magnification.png)
+[![Dock büyütmesi](screenshots/dock-magnification.png)](screenshots/dock-magnification.png)
 
-**Dock & Window — 1.0.2**
+**Dock & Window**
 
 [![Dock boyutu, büyütme, otomatik gizleme ve Genie ayarları](screenshots/details/dock-controls.png)](screenshots/dock-window.png)
 
 [![Kurulu sürüm ve bölüm içindeki güncelleme durumu](screenshots/details/dock-update.png)](screenshots/dock-window.png)
 
 [![Büyütülmüş Dock simgesinin üzerinde açılan sağ tık menüsü](screenshots/dock-context-menu.png)](screenshots/dock-context-menu.png)
-
-18 Kasım 2026 tarihinde kurulu 1.0.2 masaüstünden alınan yeni görüntüler. Ayar yakın planlarına tıklayarak Ayarlar penceresinin tamamını açabilirsiniz.
 
 | Bu Mac Hakkında | Uygulamalar |
 | --- | --- |
