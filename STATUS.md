@@ -1,4 +1,6 @@
-# Uygulama denetimi — 18 Kasım 2026
+# Uygulama denetimi — 19 Kasım 2026
+
+**Açık sorunlar:** Kullanıcı, yazarak parola girişini açma ve kaydırma sırasında Magic Mouse kapanınca toparlanma senaryolarının hâlâ çalışmadığını bildirdi. [TODO listesi](TODO.md). Bunlar tamamlanmış özellik olarak değerlendirilmemeli.
 
 Bu dosya README'deki kronolojik notların yerine güncel tamamlanma durumunu özetler. Kurulu dosya ve birim testi, fiziksel kullanım doğrulaması anlamına gelmez.
 
