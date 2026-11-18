@@ -189,6 +189,8 @@ static int attach(P window){
  if(!page||!toggle||!reduce||!dialog){g_object_unref(builder);g_settings_schema_unref(schema);goto done;}
  State*s=calloc(1,sizeof(*s));s->window=window;s->app=g_object_ref(gtk_window_get_application(window));s->split=split;s->list=sidebar;s->row=row;s->native_list=native;s->page=g_object_ref(page);
  s->genie=g_settings_new_full(schema,NULL,NULL);g_settings_schema_unref(schema);s->desktop=g_settings_new("org.gnome.desktop.interface");
+ P launch_animation=gtk_builder_get_object(builder,"dock_launch_animation");
+ if(launch_animation)g_settings_bind(s->genie,"dock-launch-animation",launch_animation,"active",0);
  s->toggle=toggle;s->motion=reduce;s->dialog=g_object_ref(dialog);
  P dock_schema=g_settings_schema_source_lookup(g_settings_schema_source_get_default(),"org.gnome.shell.extensions.zorin-dash",1);
  if(dock_schema){

@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory() as tmp:
         names=t.getnames()
         assert not {Path(n).name for n in names}&p.MANUAL
         assert not any('/.git/' in n or '/.state/' in n for n in names)
-        for path in ('VERSION','RELEASE.json','native/settings-panel.c','scripts/dock-window.ui','scripts/release-update.py'):
+        for path in ('VERSION','RELEASE.json','extensions/macbook-menu@local/dockBounce.js','extensions/familiarmac-display-scale@local/extension.js','native/settings-panel.c','scripts/dock-window.ui','scripts/release-update.py'):
             assert any(n.endswith('/'+path) for n in names),path
         t.extractall(dest/'unpack',filter='data')
     package=next((dest/'unpack').iterdir())

@@ -1,3 +1,4 @@
+import {DockBounce} from './dockBounce.js';
 import {StartupCompletion} from './startupCompletion.js';
 import {DockRefresh} from './dockRefresh.js';
 import {StatusMenuActivation} from './statusMenuActivation.js';
@@ -62,6 +63,7 @@ export default class MacBookMenu extends Extension {
         this._dockRefresh = new DockRefresh();
         this._startupCompletion = new StartupCompletion();
         this._dockMagnification = new DockMagnification();
+        this._dockBounce = new DockBounce(this._dockMagnification);
         this._downloadsStack = new DownloadsStack();
         // Use the dock's own renderer, color, radius and placement for Finder.
         // Only its displayed window count is kept at one when no window exists.
@@ -78,6 +80,7 @@ export default class MacBookMenu extends Extension {
         };
         this._restoreFinderIndicator = restoreIndicator;
         const updateFinder = () => {
+            this._dockBounce?.scan();
             const seen = new Set();
             const visit = actor => {
                 this._dockOrder.trackSeparator(actor);
@@ -282,6 +285,8 @@ export default class MacBookMenu extends Extension {
         this._downloadsStack = null;
         this._appsBrowser?.destroy();
         this._appsBrowser = null;
+        this._dockBounce?.destroy();
+        this._dockBounce = null;
         this._dockMagnification?.destroy();
         this._dockMagnification = null;
         this._startupCompletion?.destroy();

@@ -7,6 +7,11 @@ on asks permission to enable system animations as well; Cancel changes neither
 setting. If system animations are already enabled, Genie switches immediately.
 No separate Reduce Motion setting is created.
 
+**Animate opening applications** makes launching Dock icons bounce until a mapped
+application window is ready. It is enabled by default, respects the system animation
+preference, and stops after 15 seconds if no window appears. It changes visual
+feedback only; application startup state and launch completion remain unchanged.
+
 **Check menus** invokes the same `RealMenuManager` discovery implementation used
 by the top panel, for one running application's window. It does not launch or quit
 applications, activate menu commands, rewrite profiles or apply global adapters.

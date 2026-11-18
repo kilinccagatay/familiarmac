@@ -141,7 +141,7 @@ export class DockMagnification {
             const texture=icon.icon?.icon ?? icon.child;
             const dock = this.dockFor(icon);
             const reveal = this.dockReveal(dock);
-            if(!texture || !icon.mapped || blocked || !reveal.allowed){
+            if(!texture || !icon.mapped || icon._fmLaunchAnimating || blocked || !reveal.allowed){
                 this.reset(icon,item);
                 if (!reveal.allowed) icon.get_parent?.()?.hideLabel?.();
                 continue;
