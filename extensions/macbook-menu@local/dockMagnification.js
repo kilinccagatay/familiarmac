@@ -196,7 +196,8 @@ export class DockMagnification {
                 if(!item.clone||item.resolution!==logicalSize){
                     item.clone?.destroy();
                     // Re-render the actual themed icon, never upscale a small framebuffer.
-                    item.clone=texture.gicon ? new St.Icon({gicon:texture.gicon,icon_size:logicalSize,reactive:false})
+                    item.clone=icon._fmCreateMagnificationActor ? icon._fmCreateMagnificationActor(w*renderFactor,h*renderFactor)
+                        :texture.gicon ? new St.Icon({gicon:texture.gicon,icon_size:logicalSize,reactive:false})
                         :texture.icon_name ? new St.Icon({icon_name:texture.icon_name,icon_size:logicalSize,reactive:false})
                         :icon.app?.create_icon_texture(logicalSize);
                     if(!item.clone){this.reset(icon,item);continue;}

@@ -1,3 +1,4 @@
+import {preparePreviewMagnification} from './previewMagnification.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -133,6 +134,8 @@ export default class Genie extends Extension {
         widget.connect('destroy',()=>{entry.widget=null;this.removePreview(win);});
         entry.unmanaged=win.connect('unmanaged',()=>this.removePreview(win));
         row.add_child(widget);
+        widget._fmDockMenuOpen=()=>entry.menu.isOpen;
+        preparePreviewMagnification(widget,image,app);
         return entry;
     }
     prepare(actor,kind) {
