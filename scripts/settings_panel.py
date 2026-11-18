@@ -48,6 +48,13 @@ def prepare(root, base, home, binary):
     # Keep these beside the helper so About restore removes this entire integration.
     for name in ('settings-applications.py','mission_control_settings.py','menu_setup.py','dock-window.ui','release-update.py'):
         shutil.copy2(root/'scripts'/name,base/name)
+    applications=home/'.local/share/applications'
+    applications.mkdir(parents=True,exist_ok=True)
+    # Match the GTK application ID so Shell shows a human-readable app name.
+    command=str(base/'settings-applications.py').replace('\\','\\\\').replace('"','\\"')
+    (applications/'org.familiarmac.MissionControlSettings.desktop').write_text(
+        '[Desktop Entry]\nType=Application\nName=Settings\nIcon=org.gnome.Settings\n'
+        f'Exec=/usr/bin/python3 "{command}" --mission-control\nNoDisplay=true\n')
     shutil.copytree(root/'assets/magic-mouse',base/'magic-mouse-assets',dirs_exist_ok=True)
     mouse_ui=(root/'scripts/magic-mouse.ui').read_text().replace('@ASSETS@',(base/'magic-mouse-assets').resolve().as_uri())
     (base/'magic-mouse.ui').write_text(mouse_ui)

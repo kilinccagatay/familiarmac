@@ -15,6 +15,7 @@ if '--restore' in sys.argv:
   service=home/'.local/share/dbus-1/services/org.gnome.Settings.service'
   if (base/'service.before').exists(): shutil.copy2(base/'service.before',service)
   elif (base/'service-installed').exists(): service.unlink(missing_ok=True)
+  (home/'.local/share/applications/org.familiarmac.MissionControlSettings.desktop').unlink(missing_ok=True)
   (home/'.local/bin/familiarmac-settings').unlink(missing_ok=True)
   shutil.rmtree(base)
  raise SystemExit(0)

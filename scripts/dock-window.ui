@@ -20,7 +20,7 @@
     </object></child>
     <child><object class="AdwPreferencesGroup">
      <property name="title">Mission Control</property>
-     <child><object class="AdwActionRow"><property name="title">Keyboard, mouse and gestures</property><property name="subtitle">Choose how to show your windows and desktops.</property><child type="suffix"><object class="GtkButton"><property name="name">fm-configure-mission</property><property name="label">Shortcuts…</property><property name="valign">center</property></object></child></object></child>
+     <child><object class="AdwActionRow"><property name="title">Keyboard and trackpad</property><property name="subtitle">Mission Control shortcuts and the F4 key.</property><child type="suffix"><object class="GtkButton"><property name="name">fm-configure-mission</property><property name="label">Shortcuts…</property><property name="valign">center</property></object></child></object></child>
     </object></child>
     <child><object class="AdwPreferencesGroup" id="applications">
      <property name="title">Application menus</property>

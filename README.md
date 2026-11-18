@@ -22,7 +22,7 @@ Machine-specific NVIDIA/Nouveau, Wi-Fi repairs and boot/kernel tuning remain
 outside the automatic installer. See the release notes for update instructions
 and detailed changes.
 
-Mission Control adds named desktops, fullscreen spaces and continuous workspace swipes. Keyboard and mouse shortcuts are configurable in Dock & Window. A connected Magic Mouse gets its own Mouse settings, gesture demonstrations, page navigation and document zoom. Bluetooth has a dedicated menu with device batteries; Bluetooth and Wi-Fi icon visibility live in their respective Settings panels. [Input and gesture details](docs/MISSION-CONTROL-INPUT.md). Finder gains a unified toolbar and expanding search with configurable scope. See [Finder and Spaces](docs/FINDER-AND-SPACES.md).
+Mission Control adds named desktops, fullscreen spaces and continuous workspace swipes. Keyboard shortcuts and the F4 Apps/Spotlight choice are configurable in Dock & Window; mouse buttons and Magic Mouse gestures live in Mouse & Touchpad. A connected Magic Mouse gets its own Mouse settings, gesture demonstrations, page navigation and document zoom. Bluetooth has a dedicated menu with device batteries; Bluetooth and Wi-Fi icon visibility live in their respective Settings panels. [Input and gesture details](docs/MISSION-CONTROL-INPUT.md). Finder gains a unified toolbar and expanding search with configurable scope. See [Finder and Spaces](docs/FINDER-AND-SPACES.md).
 
 ## Screenshots
 

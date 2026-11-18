@@ -99,6 +99,19 @@ static void magic_free(P ptr){
  if(s->mouse_changed)g_signal_handler_disconnect(s->mouse,s->mouse_changed);
  g_object_unref(s->native_page);g_object_unref(s->mouse);g_object_unref(s->genie);free(s);
 }
+/* The conventional mouse shortcut belongs to the Mouse panel too. Both
+ * views bind the existing key; opening Settings never changes a preference. */
+extern void adw_preferences_page_add(P,P);
+static void add_mouse_shortcut(P page,P settings){
+ P group=adw_preferences_group_new(),row=adw_combo_row_new();
+ const char*labels[]={"Off","Middle button (wheel click)","Back button","Forward button",NULL};
+ P model=gtk_string_list_new(labels);
+ adw_preferences_row_set_title(row,"Mission Control");
+ adw_action_row_set_subtitle(row,"Reserve a mouse button to show your windows and desktops.");
+ g_object_set(row,"model",model,NULL);g_object_unref(model);
+ g_settings_bind(settings,"mission-control-mouse",row,"selected",0);
+ adw_preferences_group_add(group,row);adw_preferences_page_add(page,group);
+}
 static int attach_magic_mouse(P panel){
  const char*base=getenv("FAMILIARMAC_DOCK_UI"),*schemas=getenv("FAMILIARMAC_GENIE_SCHEMAS");
  P stack=find(panel,"AdwViewStack",NULL);
@@ -124,6 +137,7 @@ static int attach_magic_mouse(P panel){
  g_settings_bind(s->genie,"magic-mouse-pages",gtk_builder_get_object(builder,"fm_magic_pages"),"active",0);
  g_settings_bind(s->genie,"magic-mouse-spaces",gtk_builder_get_object(builder,"fm_magic_spaces"),"active",0);
  g_settings_bind(s->genie,"magic-mouse-smart-zoom",gtk_builder_get_object(builder,"fm_magic_zoom"),"active",0);
+ add_mouse_shortcut(s->native,s->genie);add_mouse_shortcut(s->page,s->genie);
  magic_mouse_sync(NULL,NULL,s);
  g_signal_connect_data(s->secondary,"notify::selected",magic_secondary_changed,s,NULL,0);
  s->mouse_changed=g_signal_connect_data(s->mouse,"changed",magic_mouse_sync,s,NULL,0);

@@ -1,5 +1,6 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.familiarmac-genie" path="/org/gnome/shell/extensions/familiarmac-genie/">
+    <key name="launcher-key-action" type="s"><choices><choice value="apps"/><choice value="spotlight"/></choices><default>'apps'</default><summary>F4 / Launchpad / Search key action</summary></key>
     <key name="magic-mouse-pages" type="b"><default>false</default><summary>Swipe horizontally with one finger to go back or forward</summary></key>
     <key name="magic-mouse-spaces" type="b"><default>false</default><summary>Swipe with two fingers between desktops and full-screen apps</summary></key>
     <key name="magic-mouse-smart-zoom" type="b"><default>false</default><summary>Double-tap with one finger to toggle document zoom in supported applications</summary></key>

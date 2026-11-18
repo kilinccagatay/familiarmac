@@ -1,3 +1,4 @@
+import {LauncherKey} from './launcherKey.js';
 import {MissionControlInput} from './missionControlInput.js';
 import {FullscreenControls} from './fullscreenControls.js';
 import {MissionControl} from './missionControl.js';
@@ -62,6 +63,7 @@ export default class MacBookMenu extends Extension {
         this._captureBindings = new CaptureBindings();
         this._trashDrop = new TrashDrop();
         this._appsBrowser = new AppsBrowser();
+        this._launcherKey = new LauncherKey(() => this._appsBrowser.Show());
         this._dockOrder = new DockOrder();
         this._dockTooltips = new DockTooltips();
         this._dockRefresh = new DockRefresh();
@@ -300,6 +302,7 @@ export default class MacBookMenu extends Extension {
         this._cancelMissionStartup = null;
         this._missionControl?.destroy();
         this._missionControl = null;
+        this._launcherKey?.destroy();this._launcherKey=null;
         this._missionControlInput?.destroy();
         this._missionControlInput = null;
         this._dockBounce?.destroy();

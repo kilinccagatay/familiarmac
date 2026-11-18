@@ -3,7 +3,7 @@ from pathlib import Path
 import gi
 gi.require_version('Gtk','4.0')
 gi.require_version('Adw','1')
-from gi.repository import Adw, Gtk, Gio, Gdk
+from gi.repository import Adw, Gtk, Gio, Gdk, GLib
 
 def local_settings(uuid,schema):
     directory=Path.home()/'.local/share/gnome-shell/extensions'/uuid/'schemas'
@@ -13,6 +13,8 @@ def local_settings(uuid,schema):
 def conflicting_shortcut(accelerator):
     if not accelerator:return None
     wanted=Gtk.accelerator_parse(accelerator)[1:]
+    if any(Gtk.accelerator_parse(key)[1:]==wanted for key in ('F4','XF86LaunchB','XF86Search')):
+        return 'F4 Apps / Spotlight'
     for name in ('org.gnome.desktop.wm.keybindings','org.gnome.shell.keybindings','org.gnome.settings-daemon.plugins.media-keys'):
         schema=Gio.SettingsSchemaSource.get_default().lookup(name,True)
         if not schema:continue
@@ -26,16 +28,17 @@ def conflicting_shortcut(accelerator):
     return None
 
 def run():
+    GLib.set_application_name('Keyboard Shortcuts')
     app=Adw.Application(application_id='org.familiarmac.MissionControlSettings')
     def activate(app):
         if app.get_active_window():app.get_active_window().present();return
-        window=Adw.PreferencesWindow(application=app,title='Mission Control',default_width=600,default_height=580)
+        window=Adw.PreferencesWindow(application=app,title='Keyboard & Trackpad',default_width=600,default_height=520,search_enabled=False)
         page=Adw.PreferencesPage();window.add(page)
-        group=Adw.PreferencesGroup(title='Keyboard and Mouse Shortcuts',description='Show or hide Mission Control from any application.');page.add(group)
+        group=Adw.PreferencesGroup(title='Keyboard Shortcuts',description='Choose how to open Mission Control, Apps and Spotlight.');page.add(group)
         shell=Gio.Settings.new('org.gnome.shell.keybindings')
         current=shell.get_strv('toggle-overview')
         labels=[Gtk.accelerator_get_label(*Gtk.accelerator_parse(v)[1:]) for v in current]
-        row=Adw.ActionRow(title='Keyboard shortcut',subtitle=', '.join(labels) or 'Off');group.add(row)
+        row=Adw.ActionRow(title='Mission Control',subtitle=', '.join(labels) or 'Off');group.add(row)
         record=Gtk.Button(label='Change…',valign=Gtk.Align.CENTER);row.add_suffix(record)
         error=Adw.ActionRow(title='');error.set_visible(False);group.add(error)
         def record_key(_button):
@@ -61,9 +64,9 @@ def run():
             controller.connect('key-pressed',pressed);capture.add_controller(controller);capture.present()
         record.connect('clicked',record_key)
         genie=local_settings('familiarmac-genie@local','org.gnome.shell.extensions.familiarmac-genie')
-        mouse=Adw.ComboRow(title='Mouse shortcut',subtitle='The chosen button is reserved for Mission Control.',model=Gtk.StringList.new(['Off','Middle button (wheel click)','Back button','Forward button']))
-        mouse.set_selected(genie.get_uint('mission-control-mouse'));group.add(mouse)
-        mouse.connect('notify::selected',lambda row,_:genie.set_uint('mission-control-mouse',row.get_selected()))
+        launcher=Adw.ComboRow(title='F4 key',subtitle='Apple Launchpad / Search key',model=Gtk.StringList.new(['Apps','Spotlight']))
+        launcher.set_selected(0 if genie.get_string('launcher-key-action')=='apps' else 1);group.add(launcher)
+        launcher.connect('notify::selected',lambda row,_:genie.set_string('launcher-key-action','apps' if row.get_selected()==0 else 'spotlight'))
         touch=Adw.PreferencesGroup(title='Trackpad',description='Use the existing system gesture engine. Other gestures are preserved.');page.add(touch)
         try:
             gesture=local_settings('touchpad-gesture-customization@coooolapps.com','org.gnome.shell.extensions.touchpad-gesture-customization')
@@ -77,10 +80,10 @@ def run():
                 switch.connect('notify::active',changed)
         except Exception:
             touch.add(Adw.ActionRow(title='Trackpad gestures unavailable',subtitle='The supported gesture extension is not installed.'))
-        magic=Adw.PreferencesGroup(title='Magic Mouse');page.add(magic)
-        magic_switch=Adw.SwitchRow(title='Double-tap with two fingers',subtitle='Show or hide Mission Control. Native clicking and scrolling are preserved.')
-        magic.add(magic_switch)
-        genie.bind('mission-control-magic-mouse',magic_switch,'active',Gio.SettingsBindFlags.DEFAULT)
+        devices=Adw.PreferencesGroup();page.add(devices)
+        mouse_link=Adw.ActionRow(title='Mouse &amp; Touchpad',subtitle='Mouse buttons and Magic Mouse gestures',activatable=True)
+        mouse_link.add_suffix(Gtk.Image.new_from_icon_name('go-next-symbolic'));devices.add(mouse_link)
+        mouse_link.connect('activated',lambda *_:Gio.Subprocess.new([str(Path.home()/'.local/bin/familiarmac-settings'),'mouse'],Gio.SubprocessFlags.NONE))
         window.present()
     app.connect('activate',activate)
     return app.run([])
