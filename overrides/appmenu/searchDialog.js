@@ -242,6 +242,7 @@ class SearchDialog extends ModalDialog.ModalDialog {
             this._restoreShortcutMode();
             return;
         }
+        Main.extensionManager?.lookup('macbook-menu@local')?.stateObj?._launcherKey?.trackDialog(this);
         this._entry.grab_key_focus();
     }
 

@@ -132,6 +132,7 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
     }
     open() {
         if (!super.open(global.get_current_time())) return false;
+        Main.extensionManager?.lookup('macbook-menu@local')?.stateObj?._launcherKey?.trackDialog(this);
         this._entry.grab_key_focus();
         return true;
     }

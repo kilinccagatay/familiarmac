@@ -23,8 +23,34 @@ export class LauncherKey {
             if(this.ids.includes(id)&&!Main.sessionMode.isLocked&&Main.sessionMode.hasWindows)this.activate();
         });
     }
+    trackDialog(dialog) {
+        if (this.disposed || this.dialog === dialog) return;
+        this._releaseDialog();
+        this.dialog = dialog;
+        const restore = () => {
+            if (this.dialog !== dialog) return;
+            this._releaseDialog();
+            this._allowModal(false);
+        };
+        this.dialogSignals = [dialog.connect('closed', restore), dialog.connect('destroy', restore)];
+        this._allowModal(true);
+    }
+    _releaseDialog() {
+        if (this.dialog) {
+            for (const id of this.dialogSignals ?? []) this.dialog.disconnect(id);
+        }
+        this.dialog = null;
+        this.dialogSignals = [];
+    }
+    _allowModal(enabled) {
+        const mode = Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW |
+            (enabled ? Shell.ActionMode.SYSTEM_MODAL : 0);
+        for (const id of this.ids)
+            Main.wm.allowKeybinding(Meta.external_binding_name_for_action(id), mode);
+    }
     async activate(){
         if(this.disposed||this.loading)return;
+        if(this.dialog){this.dialog.close();return;}
         if(this.settings.get_string('launcher-key-action')==='apps'){this.showApps();return;}
         const extension=Extension.lookupByUUID('appmenu@ChathurangaBW.github.io');
         if(!extension)return;
@@ -39,7 +65,7 @@ export class LauncherKey {
         finally{this.loading=false;}
     }
     destroy(){
-        this.disposed=true;global.display.disconnect(this.signal);
+        this.disposed=true;this._releaseDialog();global.display.disconnect(this.signal);
         for(const id of this.ids){global.display.ungrab_accelerator(id);Main.wm.allowKeybinding(Meta.external_binding_name_for_action(id),Shell.ActionMode.NONE);}
         this.ids=[];
     }

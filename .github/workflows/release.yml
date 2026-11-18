@@ -1,8 +1,9 @@
 name: Release
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths: [VERSION]
+    paths: [VERSION, '.github/workflows/release.yml']
     tags: ['v[0-9]*']
 permissions:
   contents: write

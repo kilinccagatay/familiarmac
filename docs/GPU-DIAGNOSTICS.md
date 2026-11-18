@@ -249,3 +249,22 @@ removed the reproducer in the VM (empty overview and five windowed entry/exit
 cycles). The same narrow fix was installed and loaded on the host without a
 logout; the user subsequently confirmed four-finger opening/closing works without a crash.
 Do not describe the earlier nouveau timeout as resolved by this layout fix.
+
+## Recurrence on 18 November, 23:31:07 CET
+
+The host again reported Nouveau `CTXSW_TIMEOUT` on GNOME Shell's channel,
+followed by rejected push buffers and a libgallium SIGSEGV at `0xb2b187`.
+This matches the previously identified dump-path failure after a GPU fault;
+it does not identify the initial trigger. No zero-size/NaN overview error
+was recorded immediately before this event.
+
+The VM was running headlessly with `-display none`, software virtio graphics,
+and VNC. Only the guest's GDM service was restarted via SSH at 23:30:47;
+no host logout or display-service restart was issued. The latest Apps/Spotlight
+modal shortcut changes had been copied only to the guest, not the host.
+The host session ended and its VM process disappeared. Timing alone does not
+establish that the guest restart caused the host GPU timeout.
+
+No driver, boot, keyd or network settings were changed. Preserve logs and
+investigate the GPU trigger separately; do not describe the Mission Control
+layout fix or the F4 shortcut change as a repair for this Nouveau fault.
