@@ -52,6 +52,14 @@ assert.equal(edge.x,626);assert.equal(edge.y,550);
 app.state=1;icon._menu._rebuildMenu();
 assert.deepEqual(icon._menu.items.map(i=>i.label),['Document','separator','New Private Window','New Window','Options','separator','Show All Windows','Hide','Quit']);
 assert.equal(record.flyout.items[0].ornament,1);
+assert.equal(icon._menu.items[0].ornament,1);
+assert(icon._menu.items.filter(i=>i.label!=='separator'&&i.label!=='Document').every(i=>i.ornament===0),'actions reserve the same checkmark column as window titles');
+const focusedWindows=app.get_windows;
+app.get_windows=()=>focusedWindows().map(w=>({...w,has_focus:()=>false}));
+icon._menu._rebuildMenu();
+assert(icon._menu.items.filter(i=>i.label!=='separator').every(i=>i.ornament===2),'no phantom indent when no window is focused');
+app.get_windows=focusedWindows;icon._menu._rebuildMenu();
+
 icon._menu.items.find(i=>i.label==='Hide').action();assert.equal(hidden,1);
 icon._menu.items.find(i=>i.label==='Quit').action();assert.equal(quit,1);
 app.get_id=()=> 'org.gnome.Nautilus.desktop';icon._menu._rebuildMenu();assert.equal(record.flyout.items[0].sensitive,false);assert(!icon._menu.items.some(i=>i.label==='Quit'));

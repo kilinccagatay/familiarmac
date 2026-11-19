@@ -734,3 +734,17 @@
   border-width: 0; border-color: transparent; border-radius: 0; background-color: transparent;
   background-image: none; box-shadow: none; padding: 0;
 }
+
+/* Scope compact close controls to Dock window previews, not screenshots or
+ * Mission Control. Values are logical pixels and scale with the shell. */
+.dashtodock-app-well-preview-menu-item .window-close {
+    width: 18px; height: 18px; min-width: 0; min-height: 0;
+    padding: 2px; border-width: 0; border-radius: 99px;
+    background-image: none;
+    background-color: rgba(48,48,50,0.94); color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition-duration: 0ms;
+}
+.dashtodock-app-well-preview-menu-item .window-close StIcon { icon-size: 12px; }
+.dashtodock-app-well-preview-menu-item .window-close:hover { background-color: #ed5f5d; }
+.dashtodock-app-well-preview-menu-item .window-close:active { background-color: #d94846; }

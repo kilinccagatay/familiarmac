@@ -207,6 +207,7 @@ export class DockMenus {
         }
         const {running, fixed} = dockMenuState(app, icon._macbookBackgroundRunning);
         const windows = app.get_windows().filter(w => !w.is_override_redirect() && !w.skip_taskbar);
+        const checkedWindowItems = new Set();
         const separator = () => menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const isSettings = app.get_id() === 'org.gnome.Settings.desktop';
         if (isSettings) {
@@ -227,7 +228,8 @@ export class DockMenus {
         if (running && !isSettings) {
             for (const window of windows) {
                 const item = menu.addAction(window.get_title() || app.get_name(), () => Main.activateWindow(window));
-                item.setOrnament(window.has_focus() ? PopupMenu.Ornament.CHECK : PopupMenu.Ornament.NONE);
+                if (window.has_focus()) checkedWindowItems.add(item);
+                item.setOrnament(window.has_focus() ? PopupMenu.Ornament.CHECK : PopupMenu.Ornament.HIDDEN);
             }
             if (windows.length) separator();
             const actions = info.list_actions();
@@ -338,6 +340,13 @@ export class DockMenus {
             }
             if (!fixed) menu.addAction('Quit', () => app.request_quit());
         } else menu.addAction('Open', () => app.activate());
+        // One shared checkmark column for the whole menu; no empty indent when
+        // no window is checked. Window titles and action labels share an origin.
+        for (const item of menu._getMenuItems()) {
+            if (item instanceof PopupMenu.PopupSeparatorMenuItem) continue;
+            item.setOrnament(checkedWindowItems.has(item) ? PopupMenu.Ornament.CHECK :
+                checkedWindowItems.size ? PopupMenu.Ornament.NONE : PopupMenu.Ornament.HIDDEN);
+        }
     }
     dispose(record, restore) {
         this.clearFlyout(record);
