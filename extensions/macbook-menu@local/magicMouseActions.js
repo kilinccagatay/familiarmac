@@ -36,8 +36,22 @@ export class MagicMouseActions {
     beginEdge(packet){
         const actor=global.window_group;
         if(!actor)return false;
+        // The wallpaper is a child of window_group too. Keep a stationary
+        // wallpaper-only copy behind it while it rebounds, otherwise moving
+        // the group exposes an unpainted strip at the physical screen edge.
+        // Do not clone/hide desktop windows: their icons must remain visible.
+        const background=Main.layoutManager._backgroundGroup;
+        const parent=actor.get_parent();
+        if(!background||!parent)return false;
+        const backdrop=new Clutter.Clone({source:background,reactive:false});
+        const [x,y]=background.get_position();
+        backdrop.set_position(actor.x+x,actor.y+y);
+        backdrop.set_size(...background.get_size());
+        parent.insert_child_below(backdrop,actor);
+        const panel=Main.layoutManager.panelBox;
         this.edgeState={id:packet.id,startDx:packet.dx,natural:packet.natural,
-            actor,origin:actor.translation_x,target:0,rendered:0,last:GLib.get_monotonic_time(),frame:GLib.get_monotonic_time()};
+            panel,panelOrigin:panel?.translation_x??0,
+            actor,backdrop,origin:actor.translation_x,target:0,rendered:0,last:GLib.get_monotonic_time(),frame:GLib.get_monotonic_time()};
         this.edgeTimeline=new Clutter.Timeline({actor:global.stage,duration:1000,repeat_count:-1});
         this.edgeTimeline.connect('new-frame',()=>{
             const s=this.edgeState;if(!s)return;
@@ -46,6 +60,7 @@ export class MagicMouseActions {
             const dt=Math.min(50,Math.max(0,(now-s.frame)/1000));s.frame=now;
             s.rendered+=(s.target-s.rendered)*(1-Math.exp(-dt/16));
             s.actor.translation_x=s.origin+s.rendered;
+            if(s.panel)s.panel.translation_x=s.panelOrigin+s.rendered;
         });
         this.edgeTimeline.start();return true;
     }
@@ -53,14 +68,19 @@ export class MagicMouseActions {
         const s=this.edgeState;if(!s)return;
         this.edgeState=null;this.edgeTimeline?.stop();this.edgeTimeline=null;
         this.edgeReturn=s;
+        if(animate)s.panel?.ease({translation_x:s.panelOrigin,duration:180,mode:Clutter.AnimationMode.EASE_OUT_CUBIC});
+        else if(s.panel)s.panel.translation_x=s.panelOrigin;
         if(animate)s.actor.ease({translation_x:s.origin,duration:180,mode:Clutter.AnimationMode.EASE_OUT_CUBIC,
-            onComplete:()=>{if(this.edgeReturn===s)this.edgeReturn=null;}});
-        else {s.actor.translation_x=s.origin;this.edgeReturn=null;}
+            onComplete:()=>{s.backdrop?.destroy();s.backdrop=null;if(this.edgeReturn===s)this.edgeReturn=null;}});
+        else {s.actor.translation_x=s.origin;s.backdrop?.destroy();s.backdrop=null;this.edgeReturn=null;}
     }
     clearEdgeReturn(){
         if(!this.edgeReturn)return;
+        this.edgeReturn.panel?.remove_transition('translation-x');
+        if(this.edgeReturn.panel)this.edgeReturn.panel.translation_x=this.edgeReturn.panelOrigin;
         this.edgeReturn.actor.remove_transition('translation-x');
-        this.edgeReturn.actor.translation_x=this.edgeReturn.origin;this.edgeReturn=null;
+        this.edgeReturn.actor.translation_x=this.edgeReturn.origin;
+        this.edgeReturn.backdrop?.destroy();this.edgeReturn.backdrop=null;this.edgeReturn=null;
     }
     swipe(packet) {
         if(packet?.type!=='workspace-swipe'||!['begin','update','end','cancel'].includes(packet.phase)||!Number.isFinite(packet.dx)||Math.abs(packet.dx)>8192||!Number.isInteger(packet.id))return;

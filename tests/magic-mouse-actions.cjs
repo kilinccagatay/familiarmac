@@ -51,8 +51,16 @@ a.swipe(packet('begin',0,8));now+=20000;a.swipe(packet('update',-120,8));now+=15
 console.log('Release velocity: repeated sample preserves flick; pause cancels momentum PASS');
 // Edge feedback moves the original desktop, without creating workspace clones.
 ctx.Clutter.AnimationMode={EASE_OUT_CUBIC:1};
-let bounce=[];
-ctx.global.window_group={translation_x:0,remove_transition(){},ease(params){bounce.push(params.translation_x);this.translation_x=params.translation_x;params.onComplete();}};
+let bounce=[],backdrops=[];
+ctx.Main.layoutManager._backgroundGroup={get_position:()=>[0,0],get_size:()=>[2880,1800]};
+ctx.Clutter.Clone=class {
+ constructor(props){Object.assign(this,props);this.destroyed=false;backdrops.push(this)}
+ set_position(x,y){this.x=x;this.y=y}
+ set_size(w,h){this.width=w;this.height=h}
+ destroy(){this.destroyed=true}
+};
+const windowParent={insert_child_below(clone,actor){assert.equal(actor,ctx.global.window_group);assert.equal(clone.source,ctx.Main.layoutManager._backgroundGroup)}};
+ctx.global.window_group={x:0,y:0,get_parent:()=>windowParent,translation_x:0,remove_transition(){},ease(params){bounce.push(params.translation_x);this.translation_x=params.translation_x;params.onComplete();}};
 index=0;overview=false;controller._switchData=null;
 a.swipe(packet('begin',150,20));assert.ok(a.edgeState);assert.equal(controller._switchData,null);
 now+=16000;a.swipe(packet('update',450,20));frame();
@@ -85,3 +93,36 @@ actionModeOverride=4;frame();assert.equal(a.edgeState,null);
 assert.equal(ctx.global.window_group.translation_x,0);
 actionModeOverride=null;
 console.log('Modal guards: blocked begin, mid-swipe cancellation, overview and edge recovery PASS');
+
+// Every bounce uses a stationary wallpaper-only backing, retained through its
+// return animation and removed on completion, cancellation or a new gesture.
+assert(backdrops.length>0&&backdrops.every(b=>b.destroyed));
+index=0;overview=false;let complete;
+ctx.global.window_group.ease=params=>{complete=params.onComplete};
+a.swipe(packet('begin',160,40));const backing=a.edgeState.backdrop;
+assert.equal(backing.source,ctx.Main.layoutManager._backgroundGroup);
+assert.equal(backing.width,2880);assert.equal(backing.reactive,false);
+a.swipe(packet('update',500,40));frame();assert.equal(backing.x,0);
+a.swipe(packet('end',500,40));assert.equal(backing.destroyed,false);
+a.swipe(packet('begin',160,41));assert.equal(backing.destroyed,true);
+const next=a.edgeState.backdrop;complete();assert.equal(next.destroyed,false);
+a.cancelSwipe();assert.equal(next.destroyed,true);
+assert.equal(ctx.global.window_group.translation_x,0);
+console.log('Edge backing: stationary wallpaper, return lifetime, replacement and cleanup PASS');
+
+// The panel follows the same displacement, preserving its own origin and Y.
+let panelReturn;
+const panel=ctx.Main.layoutManager.panelBox={translation_x:7,translation_y:-12,
+ ease(p){panelReturn=p;},remove_transition(){panelReturn=null;}};
+index=0;overview=false;
+a.swipe(packet('begin',150,50));now+=16000;a.swipe(packet('update',500,50));frame();
+assert.equal(panel.translation_x-7,ctx.global.window_group.translation_x);
+assert.equal(panel.translation_y,-12,'Fullscreen vertical position is untouched');
+a.swipe(packet('end',500,50));assert.equal(panelReturn.translation_x,7);
+assert.equal(panelReturn.duration,180);
+a.clearEdgeReturn();assert.equal(panel.translation_x,7);assert.equal(panelReturn,null);
+a.swipe(packet('begin',150,51));now+=16000;a.swipe(packet('update',500,51));frame();
+actionModeOverride=4;frame();assert.equal(panel.translation_x,7);actionModeOverride=null;
+a.swipe(packet('begin',150,52));now+=16000;a.swipe(packet('update',500,52));frame();
+a.cancelSwipe();assert.equal(panel.translation_x,7);assert.equal(panel.translation_y,-12);
+console.log('Edge panel: synchronous displacement, return, modal/cancel recovery and fullscreen Y preservation PASS');
