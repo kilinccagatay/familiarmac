@@ -1,3 +1,4 @@
+import {ownsFullscreen, requestNativeFullscreen} from './nativeFullscreen.js';
 import Clutter from 'gi://Clutter';
 import {WorkspacePanel} from './workspacePanel.js';
 import Gio from 'gi://Gio';
@@ -348,6 +349,14 @@ export class MissionControl {
     }
     changeFullscreen(w,enter){
         if(!w.get_compositor_private())return;
+        if(ownsFullscreen(w)) {
+            this.fullscreenTransitions.add(w);
+            Main.wm._sizeChangeWindowDone(global.window_manager,w.get_compositor_private());
+            if(enter)w.unmaximize(Meta.MaximizeFlags.BOTH);
+            requestNativeFullscreen(w,enter);
+            const id=GLib.timeout_add(GLib.PRIORITY_DEFAULT,350,()=>{this.sources.delete(id);this.fullscreenTransitions.delete(w);return GLib.SOURCE_REMOVE;});this.sources.add(id);
+            return;
+        }
         this.fullscreenTransitions.add(w);
         const actor=w.get_compositor_private();
         // Cancel the first maximize request before its buffer is presented.
@@ -373,6 +382,7 @@ export class MissionControl {
         const id=GLib.timeout_add(GLib.PRIORITY_DEFAULT,900,()=>{this.sources.delete(id);this.fullscreenAnimationWindows.delete(w);return GLib.SOURCE_REMOVE;});this.sources.add(id);
     }
     fullscreen(w){
+        if(ownsFullscreen(w))return;
         if(!w.is_fullscreen()){this.leave(w,false);return;}
         if(this.spaces.has(w)||w.is_on_all_workspaces()||w.get_window_type()!==Meta.WindowType.NORMAL)return;
         const home=w.get_workspace(),space=global.workspace_manager.append_new_workspace(false,global.get_current_time());

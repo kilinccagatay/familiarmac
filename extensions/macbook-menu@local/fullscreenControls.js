@@ -1,3 +1,4 @@
+import {ownsFullscreen, requestNativeFullscreen} from './nativeFullscreen.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
@@ -20,8 +21,8 @@ export class FullscreenControls {
         });
         this.bar=new St.BoxLayout({reactive:true,style:'background-color: rgba(40,40,42,0.98); padding: 0 10px; spacing: 8px;'});
         this.close=this.button('#ff5f57','Close Window',()=>this.target?.delete(global.get_current_time()));
-        this.minimize=this.button('#febc2e','Minimize Window',()=>{const w=this.target;if(w){w.unmake_fullscreen();w.minimize();}});
-        this.restore=this.button('#28c840','Exit Full Screen',()=>this.target?.unmake_fullscreen());
+        this.minimize=this.button('#febc2e','Minimize Window',()=>{const w=this.target;if(w){if(!ownsFullscreen(w))w.unmake_fullscreen();w.minimize();}});
+        this.restore=this.button('#28c840','Exit Full Screen',()=>{if(ownsFullscreen(this.target))requestNativeFullscreen(this.target,false);else this.target?.unmake_fullscreen();});
         this.title=new St.Label({y_align:Clutter.ActorAlign.CENTER,x_expand:true,x_align:Clutter.ActorAlign.CENTER,style:'color: white; font-size: 10pt;'});this.bar.add_child(this.title);
         Main.layoutManager.addChrome(this.bar,{affectsStruts:false,trackFullscreen:false});Main.uiGroup.set_child_below_sibling(this.bar,Main.layoutManager.panelBox);this.bar.hide();
         for(const [object,event] of [[global.display,'in-fullscreen-changed'],[global.display,'notify::focus-window'],[global.workspace_manager,'active-workspace-changed'],[Main.layoutManager,'monitors-changed'],[Main.overview,'showing'],[Main.overview,'hidden'],[Main.sessionMode,'updated']]){

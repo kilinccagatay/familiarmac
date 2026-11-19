@@ -14,3 +14,12 @@ assert.deepEqual(JSON.parse(JSON.stringify(bounds)),{x1:0,y1:0,x2:1440,y2:850});
 frame.metaWindow.maximizedHorizontally=false;frame.metaWindow.maximizedVertically=false;
 bounds=boundsContext.computeBounds(frame,[0,0,0,0]);assert.equal(bounds.x1,1);assert.equal(bounds.y1,1);
 console.log('Maximized clipping reaches all work-area edges; floating inset preserved: PASS');
+
+const safety=source.match(/export function safeEffectSize\([\s\S]*?\n\}/)[0].replace('export ','');
+vm.runInNewContext(safety,context);
+assert.equal(context.safeEffectSize(11700,7446,70),false,'Remote multi-monitor window must not allocate huge effect targets');
+assert.equal(context.safeEffectSize(2880,1800,70),true,'Current display retains its rounding');
+assert.equal(context.safeEffectSize(3840,2160,140),true,'4K display retains its rounding');
+for(const v of [0,-1,Infinity,NaN])assert.equal(context.safeEffectSize(v,100,70),false);
+assert.equal(context.safeEffectSize(4096,4096,70),false,'Shadow padding counts toward allocation budget');
+console.log('Offscreen effect budget: oversized remote windows, invalid dimensions and normal HiDPI windows PASS');

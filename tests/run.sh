@@ -109,3 +109,5 @@ python3 tests/mouse-seat-state.py
 PYTHONPATH=vendor/familiarmac-magic-mouse python3 -m unittest discover -s vendor/familiarmac-magic-mouse/tests
 
 python3 tests/magic-actions.py
+
+dbus-run-session -- python3 tests/remmina-native-gtk.py

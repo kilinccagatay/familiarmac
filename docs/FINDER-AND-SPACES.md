@@ -52,3 +52,7 @@ monitor behavior are not claimed to match Finder without separate verification.
 Reference behavior:
 [Finder settings](https://support.apple.com/guide/mac-help/change-finder-settings-on-mac-mchlp2803/mac),
 [fullscreen apps](https://support.apple.com/guide/mac-help/use-apps-in-full-screen-mchl9c21d2be/mac).
+
+## Remmina fullscreen
+
+The green button delegates to Remmina’s native fullscreen toggle through a local GTK3 adapter. It never sends a shortcut into the remote session. Remmina keeps its own window lifecycle instead of a separate FamiliarMac fullscreen Space. The adapter is installed for the standard packaged Remmina desktop launcher; fully quit and reopen Remmina after updating. Flatpak and Snap builds are not covered.

@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+let calls=[],notices=[];
+const c={console,Main:{notify:(...a)=>notices.push(a)},GLib:{Variant:class{constructor(type,value){this.type=type;this.value=value;}}},Gio:{DBusCallFlags:{NO_AUTO_START:1},DBus:{session:{call:(...args)=>calls.push(args)}}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/nativeFullscreen.js','utf8').replace(/^import .*;$/gm,'').replace(/^export /gm,''),c);
+const w={get_wm_class:()=> 'org.remmina.Remmina',get_pid:()=>42,get_title:()=> 'VNC test'};
+c.requestNativeFullscreen(w,true);assert.equal(calls.length,1);assert.equal(calls[0][0],'org.familiarmac.Remmina.p42');assert.deepEqual(Array.from(calls[0][4].value),['VNC test',true]);
+c.requestNativeFullscreen(w,true);assert.equal(calls.length,1,'coalesce pending calls');
+calls[0].at(-1)({call_finish:()=>({deep_unpack:()=>[true]})},{});
+c.requestNativeFullscreen(w,false);assert.equal(calls.length,2);
+calls[1].at(-1)({call_finish:()=>({deep_unpack:()=>[false]})},{});assert.equal(notices.length,1);
+c.requestNativeFullscreen({get_wm_class:()=> 'org.gnome.Nautilus'},true);assert.equal(calls.length,2,'other applications keep existing path');
+console.log('Native fullscreen: process routing, exact title, coalescing, failure and application scope PASS');

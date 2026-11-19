@@ -23,7 +23,7 @@ if [ -n "$FAIL_ON" ]; then case "$*" in *"$FAIL_ON"*) exit 19;; esac; fi
               'sudo bash scripts/bootstrap.sh','sudo bash scripts/install-desktop-themes.sh','sudo bash scripts/install-mouse-shortcuts.sh',
               'python3 scripts/doctor.py --require desktop','python3 scripts/desktop.py',
               'python3 scripts/install-rounded-corners.py','python3 scripts/install-apps.py',
-              'python3 scripts/install-about.py','python3 scripts/install-finder-search.py','python3 scripts/install-dock-icons.py',
+              'python3 scripts/install-about.py','python3 scripts/install-finder-search.py','python3 scripts/install-remmina-fullscreen.py','python3 scripts/install-dock-icons.py',
               'python3 scripts/install-trash-drop.py','sudo bash scripts/install-system-appearance.sh',
               'python3 scripts/release-update.py --register '+str(base)]
     assert lines==expected,lines
@@ -47,6 +47,7 @@ if [ -n "$FAIL_ON" ]; then case "$*" in *"$FAIL_ON"*) exit 19;; esac; fi
     assert result.returncode==0,result.stderr
     assert trace.read_text().splitlines()==[
         'sudo bash scripts/install-system-appearance.sh --restore',
+        'python3 scripts/install-remmina-fullscreen.py --restore',
         'python3 scripts/install-finder-search.py --restore',
         'python3 scripts/desktop.py restore'],trace.read_text()
 print('Combined installer stage order, failure boundaries and hardware-option rejection PASS')

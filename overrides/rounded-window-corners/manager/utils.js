@@ -165,8 +165,21 @@ export function updateShadowActorStyle(win, actor, borderRadius = getPref('globa
  * @param win - The window to check.
  * @returns Whether the window should have rounded corners.
  */
+// Offscreen rounding and shadow passes each allocate a full-size render target.
+// Remote desktop clients can restore a window at the remote multi-monitor size.
+// Keep decorative targets below 16M pixels (64 MiB per RGBA target), including
+// shadow padding, rather than exhausting GPU memory on oversized windows.
+export function safeEffectSize(width, height, padding) {
+    return [width, height, padding].every(Number.isFinite) &&
+        width > 0 && height > 0 && padding >= 0 &&
+        (width + 2 * padding) * (height + 2 * padding) <= 16 * 1024 * 1024;
+}
+
 export function shouldEnableEffect(win) {
     if (!win) return false;
+    const buffer = win.get_buffer_rect();
+    const scale = windowScaleFactor(win);
+    if (!safeEffectSize(buffer.width, buffer.height, SHADOW_PADDING * scale)) return false;
     // Skip rounded corners for the DING (Desktop Icons NG) extension.
     //
     // https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/

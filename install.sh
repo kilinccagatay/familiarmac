@@ -78,6 +78,7 @@ run python3 scripts/install-rounded-corners.py
 run python3 scripts/install-apps.py
 run python3 scripts/install-about.py
 run python3 scripts/install-finder-search.py
+run python3 scripts/install-remmina-fullscreen.py
 run python3 scripts/install-dock-icons.py
 run python3 scripts/install-trash-drop.py
 if [[ $brightness == 1 ]]; then run python3 scripts/install-brightness.py; fi

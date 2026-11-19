@@ -3,6 +3,7 @@ let pointer=[500,100],now=1000000,removed=0;
 const ws={},Main={overview:{visible:false},sessionMode:{isLocked:false,hasWindows:true},layoutManager:{primaryIndex:0,primaryMonitor:{x:0,y:0,width:1000},panelBox:{height:28}},panel:{menuManager:{}}};
 const global={workspace_manager:{get_active_workspace:()=>ws},display:{focus_window:null,sort_windows_by_stacking:a=>a},get_window_actors:()=>[],get_pointer:()=>pointer,stage:{get_key_focus:()=>null}};
 const context={Main,global,GLib:{get_monotonic_time:()=>now,source_remove:()=>removed++},St:{ThemeContext:{get_for_stage:()=>({scale_factor:1})}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/nativeFullscreen.js','utf8').replace(/^import .*;$/gm,'').replace(/^export /gm,''),context);
 vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/fullscreenControls.js','utf8').replace(/^import .*;$/gm,'').replace('export class FullscreenControls','this.FullscreenControls=class FullscreenControls'),context);
 const c=Object.create(context.FullscreenControls.prototype),window={get_compositor_private:()=>({}),is_fullscreen:()=>true,minimized:false,get_monitor:()=>0,is_on_all_workspaces:()=>false,get_workspace:()=>ws,get_pid:()=>1};
 c.target=window;global.display.focus_window=window;assert.equal(c.candidate(),window);
@@ -19,3 +20,7 @@ pointer=[500,400];now+=100000;c.poll();assert.equal(hidden,0);now+=150000;c.poll
 c.revealed=true;Main.panel.menuManager.activeMenu={isOpen:true};c.poll();assert.equal(hidden,1,'Panel menus hold the reveal');
 Main.panel.menuManager.activeMenu=null;c.nativeReveal={get_uint:()=>1};now+=500000;c.poll();assert.equal(hidden,1,'Native popovers hold the reveal');
 console.log('Fullscreen controls: lifecycle, edge reveal, grace period, and menu ownership PASS');
+
+window.get_wm_class=()=> 'org.remmina.Remmina';assert.equal(c.candidate(),window,'Remmina retains green fullscreen controls');
+window.get_wm_class=()=> 'org.gnome.Nautilus';assert.equal(c.candidate(),window,'Finder keeps familiar fullscreen controls');
+console.log('Native fullscreen ownership: Remmina and Finder retained PASS');

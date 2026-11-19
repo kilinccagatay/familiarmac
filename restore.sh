@@ -11,6 +11,7 @@ if [[ ${1:-} == --system-appearance || ${1:-} == --all ]]; then
   sudo bash scripts/install-system-appearance.sh --restore
   if [[ ${1:-} != --all ]]; then exit 0; fi
 fi
+python3 scripts/install-remmina-fullscreen.py --restore
 python3 scripts/install-finder-search.py --restore
 state="${XDG_STATE_HOME:-$HOME/.local/state}/macbook-zorin"
 if [[ -f "$HOME/.config/systemd/user/familiarmac-app-integrations.service" ]]; then python3 scripts/install-app-integrations.py --restore; fi
