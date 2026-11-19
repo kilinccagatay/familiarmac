@@ -23,3 +23,22 @@ assert.equal(context.safeEffectSize(3840,2160,140),true,'4K display retains its 
 for(const v of [0,-1,Infinity,NaN])assert.equal(context.safeEffectSize(v,100,70),false);
 assert.equal(context.safeEffectSize(4096,4096,70),false,'Shadow padding counts toward allocation budget');
 console.log('Offscreen effect budget: oversized remote windows, invalid dimensions and normal HiDPI windows PASS');
+
+{
+const shadowCode=source.match(/export function updateShadowActorStyle\([\s\S]*?\n\}/)[0].replace('export ','');
+const shadowContext={CLIP_SHADOW_EFFECT:'shadow-clip',ClipShadowEffect:class{},SHADOW_PADDING:70,global:{stage:{}},St:{ThemeContext:{get_for_stage:()=>({scaleFactor:1})}},windowScaleFactor:()=>1,boxShadowCss:()=>'',getPref:()=>({smoothing:.2})};
+vm.runInNewContext(shadowCode,shadowContext);
+let effect={},redraws=0,removed=0,added=0;
+const shadowActor={firstChild:{queue_redraw(){redraws++;}},remove_effect_by_name(){effect=null;removed++;},get_effect(){return effect;},add_effect_with_name(_,value){effect=value;added++;}};
+const pad={left:0,right:0,top:0,bottom:0};
+shadowContext.updateShadowActorStyle({},shadowActor,12,{opacity:0},pad);
+assert.equal(effect,null);assert.equal(shadowActor.opacity,0);assert.equal(redraws,0);
+shadowContext.updateShadowActorStyle({},shadowActor,12,{opacity:60},pad);
+assert.ok(effect);assert.equal(shadowActor.opacity,255);assert.equal(added,1);assert.equal(redraws,1);
+shadowContext.updateShadowActorStyle({maximizedHorizontally:true},shadowActor,12,{opacity:60},pad);
+assert.equal(effect,null);assert.equal(shadowActor.opacity,0);
+shadowContext.updateShadowActorStyle({},shadowActor,12,{opacity:60},pad);
+assert.equal(added,2);assert.equal(shadowActor.opacity,255);
+console.log('Disabled/maximized shadows release buffers and recreate clipping when visible: PASS');
+
+}

@@ -2,8 +2,9 @@
 import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
+import { ClipShadowEffect } from '../effect/clip_shadow_effect.js';
 import { boxShadowCss } from '../utils/box_shadow.js';
-import { APP_SHADOWS, ROUNDED_CORNERS_EFFECT, SHADOW_PADDING, } from '../utils/constants.js';
+import { APP_SHADOWS, CLIP_SHADOW_EFFECT, ROUNDED_CORNERS_EFFECT, SHADOW_PADDING, } from '../utils/constants.js';
 import { readFile } from '../utils/file.js';
 import { logDebug } from '../utils/log.js';
 import { getPref } from '../utils/settings.js';
@@ -133,6 +134,18 @@ export function computeShadowActorOffset(actor, [offsetX, offsetY, offsetWidth, 
  * @param padding - The padding of the shadow actor.
  */
 export function updateShadowActorStyle(win, actor, borderRadius = getPref('global-rounded-corner-settings').borderRadius, shadow = getPref('focused-shadow'), padding = getPref('global-rounded-corner-settings').padding) {
+    // Hide the whole offscreen shadow actor, not just its child. A transparent
+    // child still leaves a full-window GLSL clipping pass in the compositor.
+    const hidden = win.maximizedHorizontally || win.maximizedVertically ||
+        win.fullscreen || shadow.opacity <= 0;
+    actor.opacity = hidden ? 0 : 255;
+    if (hidden) {
+        // Release the cached full-window framebuffer, not merely its drawing.
+        actor.remove_effect_by_name(CLIP_SHADOW_EFFECT);
+        return;
+    }
+    if (!actor.get_effect(CLIP_SHADOW_EFFECT))
+        actor.add_effect_with_name(CLIP_SHADOW_EFFECT, new ClipShadowEffect());
     const { left, right, top, bottom } = padding;
     // Increase border_radius when smoothing is on
     let adjustedBorderRadius = borderRadius;
