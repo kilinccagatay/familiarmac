@@ -10,9 +10,9 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
-## Latest release: 1.2.1
+## Latest release: 1.2.2
 
-[Release notes](docs/releases/v1.2.1.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.1)
+[Release notes](docs/releases/v1.2.2.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.2)
 
 Customize Dock size, magnification, auto-hide and window animations from
 **Dock & Window** in Settings, where you can also configure application menus
