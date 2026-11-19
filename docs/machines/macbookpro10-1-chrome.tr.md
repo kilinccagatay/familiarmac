@@ -30,7 +30,7 @@ vblank_mode=0
 --user-data-dir=/home/YOUR_USER/.var/app/com.google.Chrome/config/google-chrome-smooth
 ```
 
-Mevcut FamiliarMac başlatıcısı ve `--ozone-platform=x11` korunur. Sistem geneli GPU, fan ve güç ayarlarına dokunulmaz. `--disable-frame-rate-limit` kullanılmaz: düşük dropped-frame sayısına rağmen gerçek sunum hızını düşürdüğü görüldü. Teşhis amaçlı tracing ve otomatik oynatma seçenekleri kalıcı ayarlarda yoktur.
+Mevcut FamiliarMac başlatıcısı ve `--ozone-platform=x11` korunur. Sistem başlık çubuğu ve FamiliarMac pencere düğmeleri için seçili profilde `browser.custom_chrome_frame=false` kullanılır. 1.2.9 ile Check Menus özel Chrome profil yolunu da tanır; önceki sürümler yalnızca varsayılan profili kontrol ediyordu. Sistem geneli GPU, fan ve güç ayarlarına dokunulmaz. `--disable-frame-rate-limit` kullanılmaz: düşük dropped-frame sayısına rağmen gerçek sunum hızını düşürdüğü görüldü. Teşhis amaçlı tracing ve otomatik oynatma seçenekleri kalıcı ayarlarda yoktur.
 
 ## İsteğe bağlı uygulama
 

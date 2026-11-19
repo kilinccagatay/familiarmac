@@ -14,7 +14,7 @@ Recorded 19 November 2026. **Opt-in, machine-specific documentation only.** Fami
 
 ## Recorded final configuration
 
-The existing FamiliarMac launcher and its `--ozone-platform=x11` argument are retained. No global GPU, power or fan settings are changed.
+The existing FamiliarMac launcher and its `--ozone-platform=x11` argument are retained. The selected profile uses `browser.custom_chrome_frame=false` for the system title bar and FamiliarMac window buttons. Starting with 1.2.9, Check Menus also recognizes this explicit Chrome profile path; earlier versions only inspected the default profile. No global GPU, power or fan settings are changed.
 
 Only this Flatpak application receives:
 

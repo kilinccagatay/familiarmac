@@ -1,13 +1,30 @@
 #!/usr/bin/python3
 """Shared Chromium Flatpak adapter; refresh profiles only when browser is stopped."""
 from pathlib import Path
-import json, os, re, shutil, subprocess, sys
+import hashlib, json, os, re, shlex, shutil, subprocess, sys
 HOME=Path.home()
 APPS={'com.google.Chrome':'google-chrome','org.chromium.Chromium':'chromium','com.brave.Browser':'BraveSoftware/Brave-Browser','io.github.ungoogled_software.ungoogled_chromium':'chromium'}
 STATE=HOME/'.local/state/familiarmac/chromium'
 
+def profile_base(app):
+    config=HOME/'.var/app'/app/'config'
+    base=config/APPS[app]
+    # Chrome's Flatpak launcher reads this file before starting the browser.
+    # Respect its explicit profile without changing any graphics options.
+    flags=config/'chrome-flags.conf'
+    if app=='com.google.Chrome' and flags.exists():
+        args=shlex.split(flags.read_text(),comments=True)
+        selected=None
+        for i,arg in enumerate(args):
+            if arg.startswith('--user-data-dir='):selected=arg.split('=',1)[1]
+            elif arg=='--user-data-dir' and i+1<len(args):selected=args[i+1]
+        if selected:
+            base=Path(selected)
+            if not base.is_absolute():raise ValueError('Chrome profile path must be absolute')
+    return base
+
 def refresh(app):
-    base=HOME/'.var/app'/app/'config'/APPS[app]
+    base=profile_base(app)
     # Chromium SingletonLock can be a dangling symlink; exists() is insufficient.
     if os.path.lexists(base/'SingletonLock'):
         print(app+': running/locked profile; decoration change deferred until next launch.');return
@@ -19,7 +36,9 @@ def refresh(app):
         data=json.loads(before) if before is not None else {}
         browser=data.setdefault('browser',{})
         if not isinstance(browser,dict):continue
-        record=STATE/app/(path.parent.name+'.json');record.parent.mkdir(parents=True,exist_ok=True)
+        default=HOME/'.var/app'/app/'config'/APPS[app]
+        key=path.parent.name if base==default else hashlib.sha256(str(path).encode()).hexdigest()
+        record=STATE/app/(key+'.json');record.parent.mkdir(parents=True,exist_ok=True)
         if record.exists() and browser.get('custom_chrome_frame') is not False:
             print(app+': later frame preference retained.');continue
         backup={'path':str(path),'had_value':'custom_chrome_frame' in browser,'before':browser.get('custom_chrome_frame')}
@@ -64,7 +83,7 @@ def apply():
 def restore():
     for app in APPS:
         state=STATE/app
-        base=HOME/'.var/app'/app/'config'/APPS[app]
+        base=profile_base(app)
         if os.path.lexists(base/'SingletonLock'):raise SystemExit('Close '+app+' before restore.')
         for record in state.glob('*.json'):
             r=json.loads(record.read_text())
@@ -75,6 +94,7 @@ def restore():
                 else:path.write_text(r['before'])
             else:
                 path=Path(r['path'])
+                if os.path.lexists(path.parent.parent/'SingletonLock'):raise SystemExit('Close '+app+' before restore.')
                 if path.exists():
                     data=json.loads(path.read_text());browser=data.get('browser',{})
                     if browser.get('custom_chrome_frame') is False:

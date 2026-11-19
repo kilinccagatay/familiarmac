@@ -22,3 +22,21 @@ with tempfile.TemporaryDirectory() as temp:
  before=pref.stat().st_mtime_ns;m.refresh(app);assert pref.stat().st_mtime_ns==before,'repeat rewrote profile'
  m.restore();assert 'custom_chrome_frame' not in json.loads(pref.read_text())['browser'];assert json.loads(pref.read_text())['personal']['keep']==42
 print('Chromium: first-run profile, running-profile guard, preservation, idempotency and restore PASS')
+
+with tempfile.TemporaryDirectory() as temp:
+ m.HOME=Path(temp);m.STATE=m.HOME/'state';app='com.google.Chrome'
+ config=m.HOME/'.var/app'/app/'config';config.mkdir(parents=True)
+ m.refresh(app)
+ old=config/'google-chrome/Default/Preferences';original=old.read_bytes()
+ custom=config/'custom profile';pref=custom/'Default/Preferences';pref.parent.mkdir(parents=True)
+ pref.write_text('{"personal":42}')
+ flags=config/'chrome-flags.conf';flags.write_text('--use-angle=gl\n--user-data-dir="'+str(custom)+'"\n')
+ flagbytes=flags.read_bytes()
+ (custom/'SingletonLock').symlink_to('host-123');m.refresh(app)
+ assert 'browser' not in json.loads(pref.read_text())
+ (custom/'SingletonLock').unlink();m.refresh(app)
+ assert json.loads(pref.read_text())=={'personal':42,'browser':{'custom_chrome_frame':False}}
+ assert old.read_bytes()==original and flags.read_bytes()==flagbytes
+ assert len(list((m.STATE/app).glob('*.json')))==2
+ m.restore();assert json.loads(pref.read_text())=={'personal':42,'browser':{}}
+print('Chrome explicit profile: lock guard, independent backup, untouched graphics and restore PASS')
