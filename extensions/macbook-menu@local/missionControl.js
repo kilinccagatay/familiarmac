@@ -1,4 +1,5 @@
 import Clutter from 'gi://Clutter';
+import {WorkspacePanel} from './workspacePanel.js';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
@@ -54,6 +55,7 @@ export function preserveDesktopClones(group,actors){
 export class MissionControl {
     constructor() {
         this.signals=[];this.sources=new Set();this.windows=new Map();this.spaces=new Map();this.buttons=new Map();this.labels=new Map();this.expandedLabels=new Map();this.thumbBackgrounds=new Map();
+        this.workspacePanel=new WorkspacePanel();
         this.injections=new InjectionManager();
         this.injections.overrideMethod(WorkspaceAnimation.WorkspaceGroup.prototype,'_createDesktopWindows',original=>function(){
             original.call(this);
@@ -736,6 +738,7 @@ export class MissionControl {
     hidePreview(){this.preview?.remove_all_transitions();this.preview?.hide();this.previewHint?.hide();}
     stopUi(){this.endWindowDrag();this.clearWorkspaceSwipeSurfaces();this.emptyState?.hide();this.clearWindowDecorations();if(this.panelState){Main.panel.opacity=this.panelState.opacity;Main.panel.reactive=this.panelState.reactive;for(const [b,visible] of this.panelState.boxes)b.visible=visible;this.panelState=null;}Main.messageTray._updateState();this.wallpaper?.hide();this.spaceStrip?.hide();for(const [bg,v] of this.hiddenBackgrounds){bg.opacity=v.opacity;bg.disconnect(v.id);}this.hiddenBackgrounds.clear();this.hidePreview();if(this.uiTimer){GLib.source_remove(this.uiTimer);this.uiTimer=0;}this.plus.hide();for(const b of this.buttons.values())b.hide();for(const l of [...this.labels.values(),...this.expandedLabels.values()])l.hide();}
     destroy(){
+        this.workspacePanel?.destroy();
         if(Main.layoutManager.overviewGroup._delegate===this.desktopDelegate)Main.layoutManager.overviewGroup._delegate=this.previousOverviewDelegate;
         this.stopUi();this.emptyState?.destroy();for(const manager of this.wallpaperManagers)manager.destroy();this.wallpaper.destroy();this.spaceStrip.destroy();this.overviewActor.set_style(this.overviewStyle);this.searchBin.disconnect(this.searchVisibleSignal);this.searchBin.opacity=this.searchOpacity;this.searchBin.reactive=this.searchReactive;this.searchBin.visible=this.searchWasVisible;for(const [o,id] of this.signals)o.disconnect(id);
         for(const [w,ids] of this.windows)for(const id of ids)w.disconnect(id);

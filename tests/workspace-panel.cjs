@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const clones=[],panel={visible:true,opacity:230,x:100,y:0};
+const group=full=>({workspace:{list_windows:()=>full?[{get_monitor:()=>0,is_fullscreen:()=>true}]:[]},add_child(c){this.clone=c}});
+const groups=[group(false),group(true)];
+const ctx={console,Clutter:{Clone:class {constructor(p){Object.assign(this,p);clones.push(this)}destroy(){this.destroyed=true}}},Main:{panel:{width:1000,height:28},overview:{visible:false},layoutManager:{panelBox:panel,primaryIndex:0},wm:{_workspaceAnimation:{}}},InjectionManager:class {overrideMethod(){}clear(){}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/workspacePanel.js','utf8').replace(/^import .*;$/gm,'').replace('export class WorkspacePanel','this.WorkspacePanel=class WorkspacePanel'),ctx);
+const p=new ctx.WorkspacePanel(),data={monitors:[{index:0,_monitor:{x:100,y:0},_workspaceGroups:groups}]};
+p.attach(data);assert.equal(panel.opacity,0);assert.equal(clones.length,1);assert.equal(clones[0].x,0);assert.equal(clones[0].source,ctx.Main.panel);assert.equal(groups[1].clone,undefined);
+p.attach(data);assert.equal(clones.length,1);p.clear();assert.equal(panel.opacity,230);assert.equal(clones[0].destroyed,true);
+ctx.Main.overview.visible=true;p.attach(data);assert.equal(panel.opacity,230);ctx.Main.overview.visible=false;
+p.attach(data);p.destroy();assert.equal(panel.opacity,230);assert.ok(clones.every(c=>c.destroyed));
+console.log('Workspace panel: native group ownership, fullscreen exclusion, idempotency, overview guard and restoration PASS');
