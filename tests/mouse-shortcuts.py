@@ -63,3 +63,20 @@ service.drop_magic('other');assert service.swipe is not None
 service.drop_magic('mouse');assert service.swipe is None;assert packets[-1][0]=='cancel'
 count=len(packets);service.drop_magic('mouse');assert len(packets)==count
 print('Disconnect cancels swipe before reader removal; unrelated devices and repeated cleanup safe PASS')
+
+# A powered-off device may remain discoverable; repeated transport heartbeats
+# must not keep its workspace gesture alive without fresh touch reports.
+resets=[]
+reader=types.SimpleNamespace(last_contact_at=10,recognizer=types.SimpleNamespace(reset=lambda:resets.append(True)))
+service.magic_devices={'mouse':reader};service.swipe_sent=10
+service.stream_swipe('mouse',Gesture('swipe',2,'begin',-320,5))
+service.maintain_swipe(10.3);assert packets[-1][0]=='update'
+service.swipe_sent=10.3
+service.maintain_swipe(10.6);assert service.swipe is not None
+service.maintain_swipe(11.01);assert service.swipe is None and packets[-1][0]=='cancel' and resets==[True]
+count=len(packets);service.maintain_swipe(12);assert len(packets)==count
+service.stream_swipe('mouse',Gesture('swipe',2,'begin',-320,5))
+reader.last_contact_at=20
+service.maintain_swipe(20.5);assert service.swipe is not None
+service.magic_devices={};service.maintain_swipe(20.6);assert service.swipe is None
+print('Stale physical touch cancels despite live heartbeat/discoverable device; fresh input and missing reader PASS')

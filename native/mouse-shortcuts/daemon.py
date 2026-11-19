@@ -219,6 +219,17 @@ class Service:
     def cancel_swipe(self):
         if self.swipe:self.send_swipe('cancel')
         self.swipe=None
+    def maintain_swipe(self,now):
+        if not self.swipe:return
+        reader=self.magic_devices.get(self.swipe[0])
+        # A transport heartbeat is not evidence of a live touch surface.
+        # Bluetooth can retain hidraw/evdev nodes after the physical power switch.
+        if reader is None or now-reader.last_contact_at > 1.0:
+            self.cancel_swipe()
+            if reader is not None:reader.recognizer.reset()
+            return
+        if now-self.swipe_sent > .25:self.send_swipe('update',self.swipe[1])
+
     def stream_swipe(self,path,gesture):
         if not self.peer or not self.options.spaces or gesture.kind!='swipe' or gesture.fingers!=2:return False
         if gesture.phase=='begin':
@@ -251,7 +262,7 @@ class Service:
                 enabled=(self.choice in BUTTONS or self.magic) and self.owner==uid and now-self.last<3
                 if not enabled:
                     self.release();continue
-                if self.swipe and now-self.swipe_sent>.25:self.send_swipe('update',self.swipe[1])
+                self.maintain_swipe(now)
                 button=BUTTONS.get(self.choice)
                 if now>=scan_at:
                     if button:self.scan(button)
