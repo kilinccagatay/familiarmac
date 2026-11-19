@@ -37,14 +37,14 @@ with tempfile.TemporaryDirectory() as temp:
             calls.append(args)
             if args[:2]==['bash','install.sh']:raise subprocess.CalledProcessError(1,args)
             return subprocess.CompletedProcess(args,0)
-        with patch.object(u.subprocess,'check_output',return_value=b'[test]\nx=true\n'),patch.object(u.subprocess,'run',side_effect=run):
+        with patch.object(u,'run_system_update',side_effect=lambda args,stream,progress:run(args)),patch.object(u.subprocess,'check_output',return_value=b'[test]\nx=true\n'),patch.object(u.subprocess,'run',side_effect=run):
             try:u.install('1.1.0');raise AssertionError('Failure accepted')
             except RuntimeError:pass
         assert u.read(u.STATE/'installed.json')['version']=='1.0.0'
         assert u.read(u.STATE/'transaction.json')['status']=='failed'
         assert calls[-1]==['dconf','load','/']
         assert calls[0][0]=='pkexec' and calls[1]==['bash','install.sh','--desktop']
-        with patch.object(u.subprocess,'check_output',return_value=b''),patch.object(u.subprocess,'run',return_value=subprocess.CompletedProcess([],0)),patch.object(u,'register') as register:
+        with patch.object(u,'run_system_update'),patch.object(u.subprocess,'check_output',return_value=b''),patch.object(u.subprocess,'run',return_value=subprocess.CompletedProcess([],0)),patch.object(u,'register') as register:
             u.install('1.1.0');register.assert_called_once_with(u.DATA/'1.1.0')
             assert u.read(u.STATE/'transaction.json')['logout_required'] is True
         bad=b'broken'

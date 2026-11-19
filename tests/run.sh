@@ -96,6 +96,7 @@ python3 tests/hardware-install-boundary.py
 python3 tests/combined-install.py
 
 python3 tests/release-update.py
+python3 tests/package-manager.py
 
 python3 tests/release-package.py
 

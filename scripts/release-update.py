@@ -101,6 +101,16 @@ def preserve_preferences(before, after):
     result=io.StringIO();previous.write(result,space_around_delimiters=False)
     return result.getvalue().encode()
 
+def run_system_update(command, stream, progress):
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, bufsize=1) as child:
+        for line in child.stdout:
+            stream.write(line);stream.flush()
+            if line.startswith('FAMILIARMAC_STATUS\t'):
+                progress(.75, line.split('\t',1)[1].strip())
+        code=child.wait()
+    if code: raise subprocess.CalledProcessError(code,command)
+
 def install(expected, progress=lambda fraction,message:None):
     version(expected)
     progress(0,'Checking release…')
@@ -136,7 +146,7 @@ def install(expected, progress=lambda fraction,message:None):
         try:
             with log.open('w') as stream:
                 progress(.75,'Installing shared themes — administrator authentication may be required…')
-                subprocess.run(['pkexec','bash',str(final/'scripts/update-portable-system.sh')],stdout=stream,stderr=subprocess.STDOUT,check=True)
+                run_system_update(['pkexec','bash',str(final/'scripts/update-portable-system.sh')],stream,progress)
                 progress(.85,'Installing desktop update…')
                 env=dict(os.environ,FAMILIARMAC_UPDATING='1')
                 subprocess.run(['bash','install.sh','--desktop'],cwd=final,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
@@ -150,7 +160,7 @@ def install(expected, progress=lambda fraction,message:None):
         register(final)
         save(STATE/'transaction.json',{'version':expected,'status':'complete','logout_required':True})
         progress(1,'Update installed.')
-        return 'Update installed. Log out and back in to load the new desktop code.'
+        return 'Update installed. Log out and log back in to apply the changes.'
 
 def emit_progress(fraction,message):
     # Closing Settings must not interrupt an already confirmed installation.
