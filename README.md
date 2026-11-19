@@ -10,9 +10,11 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
-## Latest release: 1.2.3
+## Latest release: 1.2.4
 
-[Release notes](docs/releases/v1.2.3.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.3)
+[Release notes](docs/releases/v1.2.4.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.4)
+
+Magic Mouse page swipes now follow finger movement with native browser feedback. Dock notification badges follow icon magnification.
 
 Customize Dock size, magnification, auto-hide and window animations from
 **Dock & Window** in Settings, where you can also configure application menus
