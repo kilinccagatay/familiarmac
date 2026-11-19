@@ -21,8 +21,8 @@ export function quitAction(model) {
 export class ApplicationQuit {
     constructor(menuManager) {
         this.manager=menuManager;
-        this.id=global.display.grab_accelerator('<Super>q',Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
-        if (!this.id) {console.warn('FamiliarMac: Super+Q already owned; quit binding unchanged');return;}
+        this.id=global.display.grab_accelerator('<Control><Alt><Super>q',Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
+        if (!this.id) {console.warn('FamiliarMac: Quit accelerator already owned; quit binding unchanged');return;}
         this.name=Meta.external_binding_name_for_action(this.id);
         Main.wm.allowKeybinding(this.name,Shell.ActionMode.NORMAL);
         this.signal=global.display.connect('accelerator-activated',(_display,id)=>{
