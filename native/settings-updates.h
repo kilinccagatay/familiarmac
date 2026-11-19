@@ -35,7 +35,7 @@ static void updates_installed(P process,P result,Updates*u){
   free(u->version);u->version=NULL;gtk_progress_bar_set_fraction(u->progress,1);
   gtk_progress_bar_set_text(u->progress,"Installed");adw_action_row_set_subtitle(u->row,"Update installed. Log out and back in when ready.");
   if(u->window&&gtk_widget_get_visible(u->window)){
-   P dialog=adw_message_dialog_new(u->window,"Update installed","Save your work, then log out and back in to load the new desktop code.");
+   P dialog=adw_message_dialog_new(u->window,"Update installed","To apply the changes, save your work, then log out and log back in.");
    adw_message_dialog_add_response(dialog,"later","Later");adw_message_dialog_add_response(dialog,"logout","Log Out…");
    adw_message_dialog_set_default_response(dialog,"later");adw_message_dialog_set_close_response(dialog,"later");
    g_signal_connect_data(dialog,"response",updates_logout,updates_ref(u),updates_closure_free,0);gtk_window_present(dialog);
