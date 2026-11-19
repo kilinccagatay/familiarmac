@@ -99,7 +99,7 @@ replace('    _onUserListActivated(activatedItem) {', """    _macTypeToLogin(even
         if (mods & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.MOD1_MASK | Clutter.ModifierType.SUPER_MASK))
             return Clutter.EVENT_PROPAGATE;
         const code = event.get_key_unicode();
-        if (code < 32 || (code >= 127 && code <= 159))
+        if (!code || !GLib.unichar_isprint(code))
             return Clutter.EVENT_PROPAGATE;
         if (!this._macTypingLogin) {
             if (!this._userSelectionBox.visible || this._disableUserList || this._user)
@@ -108,11 +108,17 @@ replace('    _onUserListActivated(activatedItem) {', """    _macTypeToLogin(even
             const items = Object.values(this._userList._items);
             // Never guess an account on a multi-user machine.
             const item = items.find(i => i === focus || (focus && i.contains(focus))) ??
-                (items.length === 1 && (focus === this._userList || !focus) ? items[0] : null);
+                (items.length === 1 && (!focus || focus === this || focus === this._userList ||
+                    focus === this._userSelectionBox || this._userList.contains(focus)) ? items[0] : null);
             if (!item)
                 return Clutter.EVENT_PROPAGATE;
+            // AuthPrompt.hide() calls setUser(null), which selects the plain
+            // username entry. Prepare the secret entry before beginning PAM;
+            // otherwise type-ahead is discarded until its first question.
+            this._authPrompt._updateEntry(true);
             this._onUserListActivated(item);
             this._macTypingLogin = true;
+            this._showPrompt();
         }
         const prompt = this._authPrompt;
         if (prompt._entry !== prompt._passwordEntry || !prompt._entry.visible) {
