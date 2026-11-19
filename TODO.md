@@ -8,3 +8,9 @@
   - Local candidate: expire the swipe after one second without real touch reports, even while hidraw remains discoverable and transport heartbeats continue; reset the stale recognizer. Regression tests cover live heartbeats with stale input, fresh touches and reader removal. Physical power-switch test confirmed fixed by the user on 19 November 2026.
 
 Desktop icon visibility during workspace transitions also needs physical confirmation after the latest DING clone fix.
+
+## Update flow follow-up — 19 November 2026
+
+- [ ] **Wait for the package manager:** When apt/dpkg is busy, wait instead of immediately failing the update, and show a clear waiting state in Settings. Continue automatically when the lock is released. Preserve working settings; never remove lock files or terminate another package operation as part of the updater. Implement and test in the VM through Settings (not a terminal install), covering both a busy package manager and successful completion after it becomes available. Do not change the host computer’s working settings.
+  - Requested scope: “tamam paket yoneticisi mesgulken hata vermek yerine beklesin ve arayuzde bekledigini gostersin bunu duzeltip VM'de test edelim calisan ayarlari bozma”
+  - Evidence: the VM update from 1.2.0 to 1.2.2 failed while unattended-upgrades held the dpkg frontend lock; retrying through Settings after the lock was released succeeded.
