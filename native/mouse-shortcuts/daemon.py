@@ -6,12 +6,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "vendor/familiarmac
 from magic_mouse_support.devices import Reader, discover
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gesture_actions import MagicOptions, action_for
+from seat_state import SeatState
 from evdev import InputDevice, UInput, ecodes as E
 from gi.repository import Gio
 
 SOCKET='/run/familiarmac-mouse/control.sock'
 BUTTONS={1:E.BTN_MIDDLE,2:E.BTN_SIDE,3:E.BTN_EXTRA}
 PREFIX='FamiliarMac mouse bridge'
+
+def is_magic_device(device):
+    return device.info.vendor in (0x05ac,0x004c) and device.info.product in (0x030d,0x0269,0x0323)
 
 def compatible(caps, name, button, properties):
     keys=caps.get(E.EV_KEY,[]);rel=caps.get(E.EV_REL,[])
@@ -153,7 +157,7 @@ class Service:
                 name=Path('/sys/class/input')/node.name/'device/name'
                 if name.exists() and name.read_text().startswith(PREFIX):continue
                 device=InputDevice(path)
-                if (self.magic and device.info.vendor in (0x05ac,0x004c) and device.info.product in (0x030d,0x0269,0x0323)
+                if (self.magic and is_magic_device(device)
                     or not compatible(device.capabilities(absinfo=False),device.name,button,text)):
                     ignored[path]=identity;continue
                 if any(k>=E.BTN_MOUSE for k in device.active_keys()):continue
@@ -162,13 +166,25 @@ class Service:
             finally:
                 if device:device.close()
         self._scan_ignored={p:key for p,key in ignored.items() if p in present}
+    def reconcile_magic_ownership(self):
+        # A mode change must hand over an existing conventional bridge before
+        # the HID gesture path tries EVIOCGRAB. Complete any held click first.
+        for path,bridge in list(self.devices.items()):
+            if not is_magic_device(bridge.device):continue
+            try:
+                if bridge.device.active_keys():continue
+            except OSError:pass
+            bridge.close();self.devices.pop(path,None)
+
     def scan_magic(self):
+        self.reconcile_magic_ownership()
         found=set()
         for path,(_,product),entry in discover():
             found.add(path)
             if path in self.magic_devices:continue
             # Both hidraw and its associated input nodes must belong to seat0.
             paths=[Path(path)]+[Path('/dev/input')/p.name for p in (entry/'device').glob('input/input*/event*')]
+            if any(str(node) in self.devices for node in paths[1:]):continue
             try:
                 allowed=True
                 for node in paths:
@@ -258,11 +274,13 @@ class Service:
         self.keyboard.write(E.EV_KEY,code,0);self.keyboard.syn()
 
     def run(self):
-        scan_at=seat_at=0;uid=None
+        scan_at=0
+        seat=SeatState(self.active_user)
         try:
+            seat.start()
             while self.running:
                 now=time.monotonic()
-                if now>=seat_at:uid=self.active_user();seat_at=now+1
+                uid=seat.current()
                 readers=[self.socket]+[b.device.fd for b in self.devices.values()]+[r.fd for r in self.magic_devices.values()]+[b.device.fd for b in self.magic_pointers.values()]
                 ready,_,_=select.select(readers,[],[],.05)
                 if self.socket in ready:
@@ -323,6 +341,7 @@ class Service:
                     except BlockingIOError:pass
                     except OSError:b.close();self.devices.pop(path,None)
         finally:
+            seat.close()
             self.release();self.keyboard.close();self.socket.close()
             try:os.unlink(SOCKET)
             except FileNotFoundError:pass

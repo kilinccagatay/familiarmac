@@ -103,6 +103,7 @@ python3 tests/release-package.py
 "$NODE" tests/bluetooth-label.cjs
 
 python3 tests/mouse-shortcuts.py
+python3 tests/mouse-seat-state.py
 
 PYTHONPATH=vendor/familiarmac-magic-mouse python3 -m unittest discover -s vendor/familiarmac-magic-mouse/tests
 

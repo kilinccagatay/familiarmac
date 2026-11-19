@@ -10,6 +10,7 @@ install -m644 "$root/vendor/familiarmac-magic-mouse/magic_mouse_support/"*.py /u
 install -m644 "$root/vendor/familiarmac-magic-mouse/"{LICENSE,THIRD_PARTY_NOTICES.md} /usr/local/share/doc/familiarmac-magic-mouse/
 install -m644 "$root/vendor/familiarmac-magic-mouse/licenses/"*.txt /usr/local/share/doc/familiarmac-magic-mouse/licenses/
 install -Dm644 "$root/native/mouse-shortcuts/gesture_actions.py" /usr/local/libexec/gesture_actions.py
+install -Dm644 "$root/native/mouse-shortcuts/seat_state.py" /usr/local/libexec/seat_state.py
 install -Dm644 "$root/native/mouse-shortcuts/daemon.py" /usr/local/libexec/familiarmac-mouse.py
 install -Dm644 "$root/native/mouse-shortcuts/familiarmac-mouse.service" /etc/systemd/system/familiarmac-mouse.service
 install -Dm644 "$root/native/mouse-shortcuts/familiarmac-magic-mouse.conf" /etc/modprobe.d/familiarmac-magic-mouse.conf

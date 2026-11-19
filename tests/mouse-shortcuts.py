@@ -121,3 +121,40 @@ with tempfile.TemporaryDirectory() as tmp:
  probe.scan(275);assert opened[-1]=='/dev/input/event3' and len(opened)==3
  m.Path=original_path;m.InputDevice=original_input;m.Bridge=original_bridge
 print('Discovery: keyboard/touchpad exclusion before open, existing bridge skip, unsupported-device cache and choice change PASS')
+
+# Changing gesture mode releases only the old Magic Mouse bridge, and only
+# after its current physical click has completed. Ordinary mice stay grabbed.
+import socket,struct,json
+closed=[];held=[272]
+magic_device=types.SimpleNamespace(info=types.SimpleNamespace(vendor=0x05ac,product=0x030d),active_keys=lambda:list(held))
+ordinary_device=types.SimpleNamespace(info=types.SimpleNamespace(vendor=0x046d,product=1),active_keys=lambda:[])
+magic_bridge=types.SimpleNamespace(device=magic_device,close=lambda:closed.append('magic'))
+ordinary_bridge=types.SimpleNamespace(device=ordinary_device,close=lambda:closed.append('ordinary'))
+probe=m.Service.__new__(m.Service)
+probe.owner=1000;probe.choice=1;probe.options=m.MagicOptions();probe.magic=False;probe.peer=None;probe.swipe=None
+probe.devices={'/dev/input/event16':magic_bridge,'/dev/input/event20':ordinary_bridge}
+probe.magic_pointers={};probe.magic_devices={}
+control=dict(mouse=1,magic=False,pages=True,spaces=False,zoom=False,natural=True)
+probe.socket=types.SimpleNamespace(recvmsg=lambda *_:(json.dumps(control).encode(),[(socket.SOL_SOCKET,socket.SCM_CREDENTIALS,struct.pack('3i',123,1000,1000))],0,''))
+probe.receive(1000)
+probe.reconcile_magic_ownership()
+assert not closed and len(probe.devices)==2, 'Do not split a held click'
+# The HID path must not even open a reader while the conventional bridge owns it.
+old_discover,old_reader=m.discover,m.Reader
+class Entry:
+ def __truediv__(self,_):return self
+ def glob(self,_):return [types.SimpleNamespace(name='event16')]
+m.discover=lambda:iter([('/dev/hidraw2',(0x05ac,0x030d),Entry())])
+m.Reader=lambda *_:(_ for _ in ()).throw(AssertionError('Reader opened before ownership handoff'))
+probe.magic_errors={};probe.scan_magic()
+m.discover,m.Reader=old_discover,old_reader
+held.clear();probe.reconcile_magic_ownership()
+assert closed==['magic'] and list(probe.devices)==['/dev/input/event20']
+# Turning gestures off releases their bridge; the conventional scan can then
+# acquire Magic Mouse again without releasing the Logitech bridge.
+probe.magic_pointers={'/dev/input/event16':magic_bridge}
+probe.magic_devices={'/dev/hidraw2':types.SimpleNamespace(close=lambda:closed.append('reader'))}
+control['pages']=False;probe.receive(1000)
+assert not probe.magic_pointers and not probe.magic_devices and not probe.magic
+assert list(probe.devices)==['/dev/input/event20'] and 'ordinary' not in closed
+print('Ownership: mode change, held-click deferral, no duplicate grab and ordinary-mouse preservation PASS')
