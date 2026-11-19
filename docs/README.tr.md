@@ -8,11 +8,11 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değiştirmesini istemememle başladı. macOS kullanırken bildiği günlük işlemleri Linux'ta da tanıdık bir şekilde yapabilmesini hedefledim. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
-## Son sürüm: 1.2.9
+## Son sürüm: 1.2.10
 
-[Sürüm notları](releases/v1.2.9.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.9)
+[Sürüm notları](releases/v1.2.10.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.10)
 
-Cmd+Q ortak masaüstü çıkış eylemini kullanır. Chrome menü entegrasyonu özel profil yollarını tanır; Dock önizlemelerinin küçük kapatma düğmeleri daha belirgindir.
+Cmd+Q, Dock üzerinde kısayol numaraları göstermeden etkin uygulamadan çıkar. Diğer klavye kısayolları korunur.
 
 Ayarlar’daki **Dock & Window** bölümünden Dock boyutunu, büyütmeyi, otomatik
 gizlemeyi ve pencere animasyonlarını düzenleyebilir; uygulama menülerini
