@@ -2,7 +2,7 @@
 
 **Mac kullanımına alışmış insanlar için tanıdık bir Linux deneyimi.**
 
-[English](../README.md) · [Kurulum](INSTALL.md) · [Tüm değişiklikler](CHANGES.md) · [Kaynaklar](../THIRD_PARTY.md)
+[English](../README.md) · [Kurulum](INSTALL.md) · [Tüm değişiklikler](CHANGES.md) · [Kaynaklar](../THIRD_PARTY.md) · [Cihaza özel kayıtlar](machines/README.md)
 
 Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanılabilir durumda olabilir. Linux bu bilgisayara yeni bir ömür kazandırır. Ben de masaüstünde alışılmış kullanım biçimini korumak istedim.
 
