@@ -2,7 +2,7 @@
 
 **A familiar Linux desktop for people who already know their Mac.**
 
-[🇹🇷 Türkçe](docs/README.tr.md) · [Install](docs/INSTALL.md) · [All changes](docs/CHANGES.md) · [Sources & licenses](THIRD_PARTY.md) · [Known limitations](STATUS.md) · [Machine-specific records](docs/machines/README.md)
+[🇹🇷 Türkçe](docs/README.tr.md) · [Install](docs/INSTALL.md) · [All changes](docs/CHANGES.md) · [Sources & licenses](THIRD_PARTY.md) · [Known limitations](STATUS.md)
 
 A Mac can remain useful long after its supported macOS releases stop arriving. Linux can extend its life, and I wanted the desktop to keep the routines its owner already knew.
 

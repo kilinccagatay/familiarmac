@@ -9,3 +9,8 @@ touchpad-settings.ini
 .env.*
 
 dist/
+
+# Private working notes and per-machine records are maintained separately.
+AGENTS.md
+docs/agent/
+docs/machines/
