@@ -1,3 +1,4 @@
+import {MacKeyboard} from './macKeyboard.js';
 import {LauncherKey} from './launcherKey.js';
 import {MissionControlInput} from './missionControlInput.js';
 import {FullscreenControls} from './fullscreenControls.js';
@@ -226,6 +227,7 @@ export default class MacBookMenu extends Extension {
         }
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._systemShortcuts = new SystemShortcuts();
+        this._macKeyboard = new MacKeyboard();
         const forceQuit = () => { menu.close(); Util.spawn(['gnome-system-monitor']); };
         const forceItem = menu.addAction(label('Force Quit…', 'Çıkmaya Zorla…'), forceQuit);
         this._systemShortcuts.add(forceItem, '<Super><Alt>Escape', '⌥⌘⎋', forceQuit);
@@ -268,6 +270,8 @@ export default class MacBookMenu extends Extension {
         this._statusMenuActivation = null;
         this._indicatorMenus?.destroy();
         this._indicatorMenus = null;
+        this._macKeyboard?.destroy();
+        this._macKeyboard = null;
         this._systemShortcuts?.destroy();
         this._systemShortcuts = null;
         this._appearance?.destroy();

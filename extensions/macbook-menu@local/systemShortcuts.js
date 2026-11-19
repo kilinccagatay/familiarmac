@@ -20,6 +20,7 @@ export class SystemShortcuts {
         const name = Meta.external_binding_name_for_action(id);
         Main.wm.allowKeybinding(name, Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP);
         this.bindings.set(id, {name, activate});
+        if (!item) return true;
         item.label.x_expand = true;
         item.add_child(new St.Label({text: hint, style_class: 'fm-system-shortcut',
             x_align: Clutter.ActorAlign.END, y_align: Clutter.ActorAlign.CENTER}));

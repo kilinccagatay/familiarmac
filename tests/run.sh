@@ -112,3 +112,8 @@ PYTHONPATH=vendor/familiarmac-magic-mouse python3 -m unittest discover -s vendor
 python3 tests/magic-actions.py
 
 dbus-run-session -- python3 tests/remmina-native-gtk.py
+
+shortcut_test=$(mktemp)
+cc -Wall -Wextra -Werror tests/finder-shortcuts.c -o "$shortcut_test" -Wl,-l:libgtk-4.so.1 -Wl,-l:libgio-2.0.so.0 -Wl,-l:libgobject-2.0.so.0 -Wl,-l:libglib-2.0.so.0
+"$shortcut_test"
+rm -f "$shortcut_test"

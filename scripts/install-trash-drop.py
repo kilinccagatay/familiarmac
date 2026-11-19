@@ -26,7 +26,21 @@ def prepare(source, destination, patch):
         raise RuntimeError('Unsupported desktop focus source version; no files changed.')
     emulator = emulator.replace(focus_anchor,
         '                    if (checkWorkspace && !Main.overview.visible) {')
+    manager = (source / 'app/desktopManager.js').read_text()
+    key_anchor = '        const selection = this.getCurrentSelection(false);'
+    key_start = manager.index('    onKeyPress(')
+    key_pos = manager.index(key_anchor, key_start)
+    guard = """        // Reserved keyd translation, only while the desktop grid owns focus.
+        const focus = window.get_focus?.();
+        if (focus instanceof Gtk.Editable || focus instanceof Gtk.TextView) return false;
+        if (symbol === Gdk.KEY_BackSpace && isCtrl && isAlt && isShift) {
+            this.doTrash();
+            return true;
+        }
+"""
+    manager = manager[:key_pos] + guard + manager[key_pos:]
     shutil.copytree(source, destination)
+    (destination / 'app/desktopManager.js').write_text(manager)
     (destination / 'emulateX11WindowType.js').write_text(emulator)
     (destination / 'app/desktopIconItem.js').write_text(text.replace(anchor, patch + anchor))
     metadata = json.loads((destination / 'metadata.json').read_text())

@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const bindings=new Map();let destroyed=false;
+const c={SystemShortcuts:class{add(_i,k,_h,f){assert(!bindings.has(k));bindings.set(k,f)}destroy(){destroyed=true}},global:{get_current_time:()=>1},console};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/macKeyboard.js','utf8').replace(/^import.*\n/gm,'').replace(/^export /gm,'')+'\nglobalThis.run=runWindowCommand;globalThis.Keyboard=MacKeyboard;',c);
+const calls=[];
+const win=(name,extra={})=>({skip_taskbar:false,is_override_redirect:()=>false,can_minimize:()=>true,minimize:()=>calls.push('min:'+name),delete:t=>calls.push('close:'+name+':'+t),...extra});
+const a={get_windows:()=>[win('a'),win('dialog',{skip_taskbar:true}),win('popup',{is_override_redirect:()=>true}),win('b')]};
+const b={get_windows:()=>[win('other')]};
+c.run('hide',a,[a,b],7);assert.deepEqual(calls,['min:a','min:b']);calls.length=0;
+c.run('hide-others',a,[a,b],7);assert.deepEqual(calls,['min:other']);calls.length=0;
+c.run('close-all',a,[a,b],7);assert.deepEqual(calls,['close:a:7','close:b:7']);calls.length=0;
+c.run('close-all',null,[a,b],7);assert.equal(calls.length,0);
+const keyboard=new c.Keyboard();assert.equal(bindings.size,7);assert(bindings.has('<Control>Down'));keyboard.destroy();assert(destroyed);
+console.log('Mac keyboard: app scope, other apps, native close requests, popup exclusion and teardown PASS');

@@ -13,13 +13,17 @@ with tempfile.TemporaryDirectory() as tmp:
     (source/'app/desktopIconItem.js').write_text(original)
     focus='                    if (checkWorkspace) {\n'
     (source/'emulateX11WindowType.js').write_text(focus)
+    manager='    onKeyPress() {\n        const selection = this.getCurrentSelection(false);\n    }\n'
+    (source/'app/desktopManager.js').write_text(manager)
     target=base/m.UUID
     m.prepare(source,target,'// hook\n')
     assert json.loads((target/'metadata.json').read_text())['uuid']==m.UUID
     assert m.UUID!=m.SOURCE_UUID  # Never enter Zorin's skipped-mode-extension branch.
     assert (source/'app/desktopIconItem.js').read_text()==original
     assert (target/'app/desktopIconItem.js').read_text()=='// hook\n'+original
-    assert len(m.hashes(target))==3
+    assert len(m.hashes(target))==4
+    assert (source/'app/desktopManager.js').read_text()==manager
+    assert 'this.doTrash();' in (target/'app/desktopManager.js').read_text()
     assert (source/'emulateX11WindowType.js').read_text()==focus
     assert 'checkWorkspace && !Main.overview.visible' in (target/'emulateX11WindowType.js').read_text()
     (source/'app/desktopIconItem.js').write_text('unsupported')

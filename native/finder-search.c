@@ -124,8 +124,10 @@ static int outside_search_event(P controller,P event,P unused){
  if(slot)g_idle_add(collapse_search,slot);
  return 0; /* Preserve the clicked control's native action. */
 }
+#include "finder-shortcuts.h"
 static int window_attach(P window){
  fullscreen_attach(window);green_button_attach(window);
+ P shortcuts=gtk_event_controller_key_new();gtk_event_controller_set_propagation_phase(shortcuts,1);g_signal_connect_data(shortcuts,"key-pressed",fm_finder_key,NULL,NULL,0);gtk_widget_add_controller(window,shortcuts);
  P outside=gtk_event_controller_legacy_new();gtk_event_controller_set_propagation_phase(outside,1);g_signal_connect_data(outside,"event",outside_search_event,NULL,NULL,0);gtk_widget_add_controller(window,outside);
  P toolbar=find(window,"NautilusToolbar"),header=find(toolbar,"AdwHeaderBar");
  P folder_menu=find(find(toolbar,"NautilusPathBar"),"GtkMenuButton");if(folder_menu)gtk_menu_button_set_icon_name(folder_menu,"pan-down-symbolic");

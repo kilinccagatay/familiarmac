@@ -14,6 +14,9 @@ cc -DDATA_DIR='""' -iquote "$temp/src" -o "$temp/device-match" tests/device-matc
 cc -DDATA_DIR='""' -iquote "$temp/src" -o "$temp/screenshot-shortcuts" tests/screenshot-shortcuts.c \
   "$temp"/src/{keyboard,config,string,macro,log,ini,keys,unicode}.c
 "$temp/screenshot-shortcuts" "$repo/config/apple.conf"
+cc -DDATA_DIR='""' -iquote "$temp/src" -o "$temp/app-bindings" tests/app-bindings.c \
+  "$temp"/src/{config,string,macro,log,ini,keys,unicode}.c
+"$temp/app-bindings" "$repo/config/apple.conf" "$repo/config/app.conf"
 python3 - "$repo" <<'PY'
 import ast, fnmatch, pathlib, sys
 root=pathlib.Path(sys.argv[1])
