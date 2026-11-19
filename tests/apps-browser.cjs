@@ -25,7 +25,7 @@ const info=(id,visible=true)=>({get_id:()=>id,should_show:()=>visible});
 const shellApp={get_name:()=> 'Visible App',activate(){}};
 assert.deepEqual(Array.from(browser.installedApps({get_installed:()=>[info('visible'),info('hidden',false),info('missing'),info('org.familiarmac.Apps.desktop')],lookup_app:id=>id==='visible'?shellApp:null})),[shellApp]);
 
-assert.equal(browser.COLUMNS,5);
+assert.equal(browser.COLUMNS,7);
 const mk=id=>({get_id:()=>id});
 const apps=['a','b','c','d','e','f'].map(mk);
 const suggested=browser.suggestedApps(apps,{a:1000000,b:999999,c:0},[mk('a'),mk('c'),mk('d'),mk('e'),mk('f')],1000001);
@@ -49,12 +49,13 @@ assert.equal(visible.reduce((n,a)=>n+a.width,0)+(visible.length-1)*gap,114);
 dock.destroy();assert.equal(sep.visible,true);assert.equal(sep.show_on_set_parent,true);assert.equal(disconnected,2);
 
 const css=fs.readFileSync('extensions/macbook-menu@local/stylesheet.css','utf8');
-assert.match(css,/\.modal-dialog\.familiarmac-apps \.modal-dialog-content-box \{ margin: 0; padding: 0; max-width: 560px;/);
+assert.match(css,/\.modal-dialog\.familiarmac-apps \.modal-dialog-content-box \{ margin: 0; padding: 0; spacing: 8px;/);
 
 // Mixed layout: suggestions stay as a five-tile row, app list fills from left.
 class Actor {
  constructor(props={}) {Object.assign(this,props);this.children=[];}
  add_child(child){this.children.push(child)} set_child(child){this.child=child}
+ set_style(s){this.style=s;}
  connect(){} destroy_all_children(){this.children=[]}
 }
 const layout=load('extensions/macbook-menu@local/appsBrowser.js',{
@@ -65,13 +66,13 @@ const layout=load('extensions/macbook-menu@local/appsBrowser.js',{
 },'AppsDialog');
 const renderApps=Array.from({length:6},(_,i)=>({get_id:()=>String(i),get_name:()=>`App ${i}`,get_description:()=>'',get_app_info:()=>null,create_icon_texture:size=>new Actor({size})}));
 const dialog=Object.create(layout.AppsDialog.prototype);
-Object.assign(dialog,{_apps:renderApps,_added:{},_list:true,_category:'',_categoryButtons:[],_entry:{get_text:()=>''},_results:new Actor(),_scroll:{vadjustment:{}}});
+Object.assign(dialog,{_columns:5,_geometry:{tileWidth:92},_scrollbarVisibility:{reset(){}},_apps:renderApps,_added:{},_list:true,_category:'',_categoryButtons:[],_entry:{get_text:()=>''},_results:new Actor(),_scroll:{vadjustment:{}}});
 dialog._render();
 assert.equal(dialog._rows[0].length,5);
 assert.equal(dialog._rows.length,7);
 for(const tile of dialog._rows[0]) {
  assert.equal(tile.style_class,'familiarmac-apps-tile');assert.equal(tile.child.vertical,true);
- assert.equal(tile.child.children[0].size,48);
+ assert.equal(tile.child.children[0].size,64);
 }
 for(const row of dialog._rows.slice(1)) {
  assert.equal(row.length,1);const item=row[0];
@@ -81,6 +82,9 @@ for(const row of dialog._rows.slice(1)) {
 }
 dialog._list=false;dialog._render();
 assert.deepEqual(Array.from(dialog._rows,row=>row.length),[5,5,1]);
+const gridRows=dialog._results.children.filter(a=>a.style_class==='familiarmac-apps-row');
+assert.equal(gridRows[gridRows.length-1].style,gridRows[0].style); // incomplete row retains every column's width
+assert(gridRows[0].style.includes('width: 552px'));
 console.log('Apps mixed view: suggestions retain grid, list content fills left, grid toggle preserved PASS');
 
 assert(order.isFixedApp('org.familiarmac.Apps.desktop'));
@@ -240,3 +244,32 @@ assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:1000,b:999},[mk('c'),m
 assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:1000,b:999},[mk('c'),mk('a'),mk('d'),mk('e'),mk('f')],1600),a=>a.get_id()),['c','a','d','e','f']);
 assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:2000},[mk('c')],1600),a=>a.get_id()),['c']);
 console.log('Newest install occupies one slot for ten minutes; expiry restores usage order PASS');
+
+const sizes=load('extensions/macbook-menu@local/appsBrowser.js',{GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}}},'appsGeometry');
+for(const [w,h,scale] of [[2880,1800,2],[1280,720,1],[1024,768,2]]) {
+ const g=sizes.appsGeometry(w,h,scale);
+ assert(g.columns*(g.tileWidth+12)+(g.columns-1)*8<=g.width+0.01);
+ assert(g.width+48<=w/scale);assert(g.height+220<=h/scale);
+}
+
+assert.match(css,/\.familiarmac-apps-results \{ spacing: 10px; padding: 12px 0 0;/);
+
+assert.equal(sizes.appsGeometry(2880,1800,2).columns,7);
+assert(!css.includes(".familiarmac-apps-tile:hover"));
+
+const listGeometry=sizes.appsGeometry(2880,1800,2,true);
+assert.equal(listGeometry.columns,5);
+assert.equal(listGeometry.width,580);
+assert.equal(listGeometry.height,sizes.appsGeometry(2880,1800,2).height);
+
+let savedView;
+const preferences=load('extensions/macbook-menu@local/appsBrowser.js',{
+ GObject:{registerClass:c=>c},ModalDialog:{ModalDialog:class{}}, TextDecoder,
+ GLib:{file_get_contents(){if(savedView===undefined)throw Error('missing');return [true,Buffer.from(savedView)];},
+ path_get_dirname:()=>'/tmp',mkdir_with_parents(){},file_set_contents(_path,value){savedView=value;}},
+},'loadAppsView,saveAppsView');
+assert.equal(preferences.loadAppsView('test'),'grid');
+preferences.saveAppsView('test','list');assert.equal(preferences.loadAppsView('test'),'list');
+preferences.saveAppsView('test','grid');assert.equal(preferences.loadAppsView('test'),'grid');
+savedView='broken';assert.equal(preferences.loadAppsView('test'),'grid');
+console.log('Apps view preference: list/grid round trip and corrupt/missing fallback PASS');

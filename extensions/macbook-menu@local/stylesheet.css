@@ -65,22 +65,19 @@
 /* One separator immediately before the fixed Trash, including running apps. */
 #dashtodockContainer.bottom .dash-separator { width: 0; margin: 0; background-color: transparent; }
 #dashtodockContainer.bottom .familiarmac-trash-end { border-left: 1px solid rgba(255,255,255,0.22); padding-left: 8px; margin-left: 5px; }
-.modal-dialog.familiarmac-apps { width: 560px; padding: 16px; border-radius: 24px; }
-.modal-dialog.familiarmac-apps .modal-dialog-content-box { margin: 0; padding: 0; max-width: 560px; spacing: 12px; }
-.familiarmac-apps-toolbar { spacing: 10px; }
+.modal-dialog.familiarmac-apps { border-radius: 32px; }
+.modal-dialog.familiarmac-apps .modal-dialog-content-box { margin: 0; padding: 0; spacing: 8px; }
+.familiarmac-apps-toolbar { spacing: 10px; padding-bottom: 0; }
 .familiarmac-apps-categories { spacing: 4px; }
-.familiarmac-apps-category { padding: 6px 9px; border-radius: 12px; font-size: 9pt; }
+.familiarmac-apps-category { padding: 4px 9px; border-radius: 9px; font-size: 9.5pt; background-color: rgba(128,128,128,0.22); }
 .familiarmac-apps-category:checked { background-color: rgba(128,128,128,0.35); }
-.familiarmac-apps-scroll { height: 350px; }
-.familiarmac-apps-row { spacing: 6px; }
-.familiarmac-apps-divider { height: 1px; margin: 8px 4px; background-color: rgba(128,128,128,0.35); }
-.familiarmac-apps-results { spacing: 6px; }
-.familiarmac-apps-tile { width: 96px; height: 88px; padding: 4px; border-radius: 10px; }
+.familiarmac-apps-divider { margin: 8px 0; }
+.familiarmac-apps-results { spacing: 10px; padding: 12px 0 0; }
+.familiarmac-apps-tile { height: 80px; border-radius: 10px; }
 .familiarmac-apps-item-content { spacing: 7px; }
-.familiarmac-apps-tile StLabel { max-width: 94px; font-size: 9pt; }
+.familiarmac-apps-tile StLabel { max-width: 104px; font-size: 10pt; }
 .familiarmac-apps-list-item { padding: 8px; border-radius: 8px; }
-.familiarmac-apps-tile:hover, .familiarmac-apps-tile:focus,
-.familiarmac-apps-list-item:hover, .familiarmac-apps-list-item:focus { background-color: rgba(128,128,128,0.25); }
+.familiarmac-apps-tile:focus, .familiarmac-apps-list-item:focus { background-color: rgba(128,128,128,0.25); }
 .familiarmac-apps-empty { padding: 24px; text-align: center; }
 #dashtodockContainer.bottom .familiarmac-trash-with-downloads { border-left: 0; padding-left: 0; margin-left: 0; }
 .familiarmac-downloads-start { border-left: 0; padding-left: 0; margin-left: 0; }
@@ -417,7 +414,7 @@
 .fm-system-dark .fm-battery-separator,
 .fm-system-dark .fm-focus-menu .popup-separator-menu-item-separator,
 .fm-system-dark .familiarmac-control-center .popup-separator-menu-item-separator,
-.fm-system-dark .familiarmac-apps-divider { background-color: rgba(255,255,255,0.16); }
+.fm-system-dark .familiarmac-apps-divider, .fm-system-dark .familiarmac-apps-scroll-edge, .fm-system-dark .familiarmac-apps-search-divider { background-color: rgba(255,255,255,0.16); }
 .fm-system-dark .fm-control-row:hover,
 .fm-system-dark .fm-sound-mute:hover,
 .fm-system-dark .fm-sound-mute:focus { background-color: rgba(255,255,255,0.20); }
@@ -470,7 +467,7 @@
 .fm-system-light .fm-battery-separator,
 .fm-system-light .fm-focus-menu .popup-separator-menu-item-separator,
 .fm-system-light .familiarmac-control-center .popup-separator-menu-item-separator,
-.fm-system-light .familiarmac-apps-divider { background-color: rgba(30,40,50,0.18); }
+.fm-system-light .familiarmac-apps-divider, .fm-system-light .familiarmac-apps-scroll-edge, .fm-system-light .familiarmac-apps-search-divider { background-color: rgba(30,40,50,0.18); }
 .fm-system-light .fm-control-row:hover,
 .fm-system-light .fm-sound-mute:hover,
 .fm-system-light .fm-sound-mute:focus { background-color: rgba(40,50,60,0.26); }
@@ -748,3 +745,39 @@
 .dashtodock-app-well-preview-menu-item .window-close StIcon { icon-size: 12px; }
 .dashtodock-app-well-preview-menu-item .window-close:hover { background-color: #f07a79; }
 .dashtodock-app-well-preview-menu-item .window-close:active { background-color: #d94846; }
+
+/* A dedicated gutter keeps the overlay thumb clear of tiles and dividers. */
+.familiarmac-apps-scroll StScrollBar { width: 7px; padding: 0; margin: 2px 1px; }
+.familiarmac-apps-scroll StScrollBar StBin#trough { background-color: transparent; }
+.familiarmac-apps-scroll StScrollBar StButton#vhandle { border-radius: 4px; min-width: 5px; }
+
+/* Keep the search field integrated with the header, like Spotlight's Apps view. */
+.familiarmac-apps .familiarmac-apps-search,
+.familiarmac-apps .familiarmac-apps-search:focus {
+    background-color: transparent; color: inherit; border: 0; box-shadow: none;
+    border-radius: 0; padding: 0; font-size: 18pt;
+}
+.familiarmac-apps-view { padding: 5px; border-radius: 8px; }
+.familiarmac-apps-view:focus { background-color: rgba(128,128,128,0.25); }
+.familiarmac-apps-category-scroll { padding-bottom: 2px; }
+.familiarmac-apps-divider, .familiarmac-apps-scroll-edge, .familiarmac-apps-search-divider {
+    height: 1px; background-color: rgba(128,128,128,0.35); border: 0; box-shadow: none;
+}
+.familiarmac-apps-scroll-edge { margin: 0; }
+.familiarmac-apps-search-divider { margin: 0; }
+.familiarmac-apps-view-menu { min-width: 130px; }
+
+/* The overlay scrollbar must never repaint or resize the adjacent separator. */
+.familiarmac-apps-scroll { -st-vfade-offset: 0; -st-hfade-offset: 0; }
+.familiarmac-apps-scroll StScrollBar,
+.familiarmac-apps-scroll StScrollBar StBin#trough {
+    background-color: transparent; border: 0; box-shadow: none;
+}
+.familiarmac-apps-scroll StScrollBar StButton#vhandle,
+.familiarmac-apps-scroll StScrollBar StButton#vhandle:hover,
+.familiarmac-apps-scroll StScrollBar StButton#vhandle:active {
+    width: 5px; min-width: 5px; margin: 0; border: 0; box-shadow: none;
+}
+
+/* Chips scroll horizontally without shrinking their labels or reserving a bar. */
+.familiarmac-apps-category-scroll StScrollBar { height: 0; min-height: 0; padding: 0; margin: 0; }

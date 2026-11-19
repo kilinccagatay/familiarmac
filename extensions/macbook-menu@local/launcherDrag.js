@@ -20,6 +20,7 @@ export function launcherAppButton(app, dialog, properties) {
     };
     let settle = 0;
     button._draggable.connect('drag-begin', () => {
+        dialog.beginAppDrag?.();
         for (const key of ['_timeoutId', '_timer']) {
             if (dialog[key]) GLib.source_remove(dialog[key]);
             dialog[key] = 0;
@@ -37,6 +38,7 @@ export function launcherAppButton(app, dialog, properties) {
             else {
                 dialog.show();
                 if (!dialog.pushModal()) dialog.close();
+                else dialog.endAppDrag?.();
             }
             return GLib.SOURCE_REMOVE;
         });

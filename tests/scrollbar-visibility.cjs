@@ -1,0 +1,16 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+let serial=0;const timers=new Map();
+const actor=()=>({signals:new Map(),connect(n,f){this.signals.set(++serial,{n,f});return serial},disconnect(i){this.signals.delete(i)},emit(n){for(const s of this.signals.values())if(s.n===n)s.f()},remove_all_transitions(){},ease(p){this.opacity=p.opacity}});
+const bar=actor(),adjustment=actor(),scroll={mapped:true,vadjustment:adjustment,get_vscroll_bar:()=>bar};
+const c={GLib:{PRIORITY_DEFAULT:0,SOURCE_REMOVE:false,timeout_add:(_p,_ms,f)=>{timers.set(++serial,f);return serial},source_remove:id=>timers.delete(id)},Clutter:{AnimationMode:{EASE_OUT_QUAD:0}}};
+vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/scrollbarVisibility.js','utf8').replace(/^import.*\n/gm,'').replace('export class','class')+';globalThis.Controller=ScrollbarVisibility;',c);
+const ctl=new c.Controller(scroll);assert.equal(bar.opacity,0);
+adjustment.emit('notify::value');assert.equal(bar.opacity,255);assert.equal(timers.size,1);
+adjustment.emit('notify::value');assert.equal(timers.size,1);
+bar.emit('scroll-start');assert.equal(timers.size,0);assert.equal(bar.opacity,255);
+bar.emit('scroll-stop');assert.equal(timers.size,1);
+const fn=[...timers.values()][0];timers.clear();fn();assert.equal(bar.opacity,0);
+bar.hover=true;bar.emit('notify::hover');assert.equal(bar.opacity,255);assert.equal(timers.size,0);
+bar.hover=false;bar.emit('notify::hover');assert.equal(timers.size,1);
+ctl.destroy();assert.equal(timers.size,0);assert.equal(bar.signals.size,0);assert.equal(adjustment.signals.size,0);
+console.log('Scrollbar: activity timeout renewal, drag/hover hold and destruction cleanup PASS');
