@@ -7,7 +7,7 @@
 - [x] **Magic Mouse disconnect during a swipe:** Switching the mouse off partway between desktops still leaves the transition stuck on the physical computer. The attempted reader-removal cancellation did not resolve the reported scenario. Trace Bluetooth disconnect, heartbeat and Shell cancellation together, and verify with the physical power switch before closing.
   - Local candidate: expire the swipe after one second without real touch reports, even while hidraw remains discoverable and transport heartbeats continue; reset the stale recognizer. Regression tests cover live heartbeats with stale input, fresh touches and reader removal. Physical power-switch test confirmed fixed by the user on 19 November 2026.
 
-Desktop icon visibility during workspace transitions also needs physical confirmation after the latest DING clone fix.
+Desktop edge-bounce and menu-bar transitions were tested locally and confirmed working by the user on 19 November 2026. Wallpaper backing prevents unpainted edge strips; native transitions include the menu bar.
 
 ## Update flow follow-up — 19 November 2026
 
