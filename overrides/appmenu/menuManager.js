@@ -1,3 +1,4 @@
+import {ApplicationQuit} from './applicationQuit.js';
 import {MenuInspection} from './menuInspection.js';
 import {PortalOwners} from './portalOwners.js';
 import {hasWindowMenu, panelAppName, menuWindowIdentity, isApplicationWindowType, orderedMenuActors} from './menuRoles.js';
@@ -412,6 +413,8 @@ export class MenuManager {
         this._realMenuManager = new RealMenuManager(this._settings, () => {
             this.updateMenuForWindow(global.display.get_focus_window(), true);
         });
+
+        this._applicationQuit = new ApplicationQuit(this._realMenuManager);
 
         // Cached settings values (updated via signals, not read per focus change)
         this._cachedMenuIcon = this._settings ? this._settings.get_string('menu-icon') : '';
@@ -847,6 +850,8 @@ export class MenuManager {
         this._virtualDevice = null;
         this._inspection?.destroy();
         this._portalOwners?.destroy();
+        this._applicationQuit?.destroy();
+        this._applicationQuit = null;
         this._realMenuManager?.destroy();
         this._realMenuManager = null;
     }

@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+let focus={skip_taskbar:false,get_wm_class:()=> 'test'},closed=0,quit=0,lookedAt=null,model=null;
+const app={get_name:()=> 'Example',request_quit:()=>closed++};
+const ctx={console,Meta:{KeyBindingFlags:{IGNORE_AUTOREPEAT:1},external_binding_name_for_action:()=> 'quit'},Shell:{ActionMode:{NORMAL:1,NONE:0},WindowTracker:{get_default:()=>({get_window_app:()=>app})}},Main:{wm:{allowKeybinding(){}}},global:{display:{get_focus_window:()=>focus,grab_accelerator:()=>1,connect:()=>2,disconnect(){},ungrab_accelerator(){}}}};
+vm.runInNewContext(fs.readFileSync('overrides/appmenu/applicationQuit.js','utf8').replace(/^import .*;$/gm,'').replaceAll('export ','')+';globalThis.Q=ApplicationQuit;globalThis.find=quitAction;',ctx);
+const q=new ctx.Q({updateForWindow(w){lookedAt=w;return model}});
+q.activate();assert.equal(closed,1);assert.equal(lookedAt,focus);
+model={topLevelMenus:[{children:[{label:'Exit fullscreen',activate:()=>{throw Error('wrong action')}},{label:'Quit',activate:()=>quit++}]}]};
+q.activate();assert.equal(quit,1);assert.equal(closed,1);
+model={appMenuChildren:[{actionId:'app.quit',label:'Localized name',sensitive:false,activate:()=>quit++}]};q.activate();assert.equal(quit,1);assert.equal(closed,1);
+model.appMenuChildren[0].sensitive=true;q.activate();assert.equal(quit,2);
+focus={skip_taskbar:false};model=null;q.activate();assert.equal(lookedAt,focus);assert.equal(closed,2);
+focus=null;q.activate();assert.equal(closed,2);q.destroy();
+const bindings=fs.readFileSync('config/app.conf','utf8');assert.match(bindings,/\[\*\]\ncommand.q = M-q/);assert(!bindings.includes('macro(A-f'));
+console.log('Common Quit: native action, disabled action, focus isolation, no desktop action and graceful fallback PASS');
