@@ -4,6 +4,7 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {MagicMousePageSwipe} from './magicMousePageSwipe.js';
 import {MagicMouseActions} from './magicMouseActions.js';
 
 export function mouseShortcutButton(choice) {return [0,2,8,9][choice]??0;}
@@ -17,7 +18,7 @@ export class MissionControlInput {
         this.socket=Gio.Socket.new(Gio.SocketFamily.UNIX,Gio.SocketType.DATAGRAM,Gio.SocketProtocol.DEFAULT);
         this.socket.set_blocking(false);
         this.address=Gio.UnixSocketAddress.new('/run/familiarmac-mouse/control.sock');
-        this.actions=new Map();this.timer=0;this.gestures=new MagicMouseActions();
+        this.actions=new Map();this.timer=0;this.gestures=new MagicMouseActions();this.pageSwipe=new MagicMousePageSwipe();
         // An unguessable abstract return address avoids filesystem sockets and
         // lets the authenticated seat-local service stream gesture progress.
         this.socket.bind(Gio.UnixSocketAddress.new_with_type('familiarmac-swipe-'+GLib.uuid_string_random(),Gio.UnixSocketAddressType.ABSTRACT),false);
@@ -27,7 +28,9 @@ export class MissionControlInput {
             for(let i=0;i<128&&(this.socket.condition_check(GLib.IOCondition.IN)&GLib.IOCondition.IN);i++){
                 try{
                     const packet=JSON.parse(new TextDecoder().decode(this.input.read_bytes(1024,null).get_data()));
-                    if(this.settings.get_boolean('magic-mouse-spaces'))this.gestures.swipe(packet);
+                    if(packet.type==='page-swipe'){
+                        if(this.settings.get_boolean('magic-mouse-pages'))this.pageSwipe.handle(packet);
+                    }else if(this.settings.get_boolean('magic-mouse-spaces'))this.gestures.swipe(packet);
                 }catch(_error){/* Ignore malformed packets and nonblocking races. */}
             }
             return GLib.SOURCE_CONTINUE;
@@ -50,7 +53,9 @@ export class MissionControlInput {
     send(forceOff=false) {
         const off=forceOff||Main.sessionMode.isLocked||!Main.sessionMode.hasWindows;
         if(off||!this.settings.get_boolean('magic-mouse-spaces'))this.gestures.cancelSwipe();
+        if(off||!this.settings.get_boolean('magic-mouse-pages'))this.pageSwipe.cancel();
         const choice={
+            page_stream:true,
             mouse:!off&&this.actions.has('mission')?this.settings.get_uint('mission-control-mouse'):0,
             magic:!off&&this.actions.has('mission')&&this.settings.get_boolean('mission-control-magic-mouse'),
             pages:!off&&this.settings.get_boolean('magic-mouse-pages'),
@@ -89,6 +94,6 @@ export class MissionControlInput {
         for(const id of this.actions.values()){
             global.display.ungrab_accelerator(id);Main.wm.allowKeybinding(Meta.external_binding_name_for_action(id),Shell.ActionMode.NONE);
         }
-        this.actions.clear();this.gestures.destroy();this.inputSource.destroy();this.input.close(null);this.socket.close();
+        this.actions.clear();this.pageSwipe.destroy();this.gestures.destroy();this.inputSource.destroy();this.input.close(null);this.socket.close();
     }
 }

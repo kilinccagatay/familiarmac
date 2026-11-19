@@ -9,6 +9,7 @@ class MagicOptions:
     spaces: bool = False
     zoom: bool = False
     natural: bool = True
+    page_stream: bool = False
 
     @property
     def enabled(self):

@@ -158,3 +158,27 @@ control['pages']=False;probe.receive(1000)
 assert not probe.magic_pointers and not probe.magic_devices and not probe.magic
 assert list(probe.devices)==['/dev/input/event20'] and 'ordinary' not in closed
 print('Ownership: mode change, held-click deferral, no duplicate grab and ordinary-mouse preservation PASS')
+
+# Native page streaming is opt-in by the Shell consumer. Legacy clients retain
+# their discrete page shortcuts; workspace packets retain their existing shape.
+control=dict(mouse=0,magic=False,pages=True,spaces=True,zoom=True,natural=True,page_stream=True)
+_,options=m.parse_control(json.dumps(control).encode())
+assert options.page_stream
+control['page_stream']=1
+try:m.parse_control(json.dumps(control).encode());raise AssertionError('non-bool capability')
+except ValueError:pass
+probe=m.Service.__new__(m.Service);probe.peer=b'\0familiarmac-swipe-test';probe.options=options
+probe.swipe=None;probe.swipe_id=0;packets=[]
+probe.socket=types.SimpleNamespace(sendto=lambda data,_peer:packets.append(json.loads(data)))
+g=lambda phase,dx,fingers=1:types.SimpleNamespace(kind='swipe',fingers=fingers,phase=phase,dx=dx,dy=0)
+assert probe.stream_swipe('mouse',g('begin',300))
+assert probe.stream_swipe('mouse',g('update',500))
+assert probe.stream_swipe('mouse',g('end',500))
+assert [p['type'] for p in packets]==['page-swipe']*3
+assert probe.swipe is None
+probe.stream_swipe('mouse',g('begin',300,2));probe.cancel_swipe()
+assert packets[-1]['type']=='workspace-swipe' and packets[-1]['phase']=='cancel'
+probe.options=m.MagicOptions(pages=True,spaces=True)
+assert not probe.stream_swipe('mouse',g('begin',300))
+assert probe.stream_swipe('mouse',g('begin',300,2))
+print('Page stream: negotiated native packets, no duplicate action, legacy fallback and workspace isolation PASS')

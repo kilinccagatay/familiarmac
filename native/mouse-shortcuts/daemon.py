@@ -37,11 +37,12 @@ def parse_control(data):
         choice=value['mouse']
         if type(value['magic']) is not bool:raise ValueError('Invalid magic value')
         options=MagicOptions(mission=value['magic'])
-    elif isinstance(value,dict) and set(value)=={'mouse','magic','pages','spaces','zoom','natural'}:
+    elif isinstance(value,dict) and set(value) in ({'mouse','magic','pages','spaces','zoom','natural'}, {'mouse','magic','pages','spaces','zoom','natural','page_stream'}):
         choice=value['mouse']
         if any(type(value[k]) is not bool for k in ('magic','pages','spaces','zoom','natural')):
             raise ValueError('Invalid gesture values')
-        options=MagicOptions(value['magic'],value['pages'],value['spaces'],value['zoom'],value['natural'])
+        if type(value.get('page_stream',False)) is not bool:raise ValueError('Invalid streaming capability')
+        options=MagicOptions(value['magic'],value['pages'],value['spaces'],value['zoom'],value['natural'],value.get('page_stream',False))
     else:raise ValueError('Invalid control packet')
     if type(choice) is not int or choice not in (0,1,2,3):raise ValueError('Invalid mouse value')
     return choice,options
@@ -98,7 +99,7 @@ class Service:
             return self.property(path,'org.freedesktop.login1.Session','User')[0]
         except Exception:return None
     def receive(self,uid):
-        data,anc,flags,peer=self.socket.recvmsg(128,socket.CMSG_SPACE(12))
+        data,anc,flags,peer=self.socket.recvmsg(256,socket.CMSG_SPACE(12))
         if flags & (socket.MSG_TRUNC | socket.MSG_CTRUNC):return
         credentials=next((struct.unpack('3i',v[:12]) for level,kind,v in anc if level==socket.SOL_SOCKET and kind==socket.SCM_CREDENTIALS),None)
         if not credentials or credentials[1]!=uid:return
@@ -237,7 +238,7 @@ class Service:
 
     def send_swipe(self,phase,dx=0):
         if not self.peer:return False
-        packet=dict(type='workspace-swipe',phase=phase,dx=dx,natural=self.options.natural,id=self.swipe_id)
+        packet=dict(type=getattr(self,'swipe_type','workspace-swipe'),phase=phase,dx=dx,natural=self.options.natural,id=self.swipe_id)
         try:self.socket.sendto(json.dumps(packet).encode(),self.peer)
         except OSError:return False
         self.swipe_sent=time.monotonic()
@@ -257,10 +258,14 @@ class Service:
         if now-self.swipe_sent > .25:self.send_swipe('update',self.swipe[1])
 
     def stream_swipe(self,path,gesture):
-        if not self.peer or not self.options.spaces or gesture.kind!='swipe' or gesture.fingers!=2:return False
+        if not self.peer or gesture.kind!='swipe':return False
+        page=gesture.fingers==1 and self.options.pages and self.options.page_stream
+        space=gesture.fingers==2 and self.options.spaces
+        if not (page or space):return False
         if gesture.phase=='begin':
             if abs(gesture.dx)<=abs(gesture.dy)*1.5:return True
             self.cancel_swipe();self.swipe_id+=1;self.swipe=(path,gesture.dx)
+            self.swipe_type='page-swipe' if page else 'workspace-swipe'
             self.send_swipe('begin',gesture.dx)
         elif self.swipe and self.swipe[0]==path:
             self.send_swipe(gesture.phase,gesture.dx)
