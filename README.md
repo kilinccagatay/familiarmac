@@ -10,11 +10,11 @@ This project began when I installed Linux on my father's MacBook. He was already
 
 FamiliarMac changes the **interface and interaction**, not the operating system into macOS. It combines credited upstream projects with integration code and fixes. It is not a new distribution, an Apple product, or a universal macOS compatibility layer.
 
-## Latest release: 1.2.12
+## Latest release: 1.2.13
 
-[Release notes](docs/releases/v1.2.12.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.12)
+[Release notes](docs/releases/v1.2.13.md) · [Download](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.13)
 
-Apps now follows Tahoe-style Grid/List proportions, remembers the selected view and keeps scrolling, dividers and keyboard navigation consistent. Additional [Mac-style keyboard mappings](docs/MAC-KEYBOARD.md) and rounding performance improvements are included.
+Command-Backspace now moves selected desktop files to Trash without Fn. Finder and unrelated applications retain their existing shortcut behavior.
 
 Customize Dock size, magnification, auto-hide and window animations from
 **Dock & Window** in Settings, where you can also configure application menus
