@@ -45,6 +45,7 @@ python3 tests/quiet-kernel-entry.py
 python3 tests/console-init.py
 
 python3 tests/desktop-extension.py
+"$NODE" tests/desktop-window-list.cjs
 
 python3 tests/video-firmware.py
 

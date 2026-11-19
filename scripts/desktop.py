@@ -109,6 +109,7 @@ for schema, keys in values.items():
 desktop_schema = 'org.gnome.shell.extensions.zorin-desktop-icons'
 if Gio.SettingsSchemaSource.get_default().lookup(desktop_schema, True):
     setting(desktop_schema, 'start-corner', "'top-right'")
+    setting(desktop_schema, 'show-drop-place', 'false')
 
 # GNOME Screenshot supports direct area selection and clipboard-only capture.
 capture=Path.home()/'.local/bin/macbook-screenshot-clipboard'

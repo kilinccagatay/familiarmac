@@ -1,0 +1,42 @@
+/* Hover must not highlight the desktop grid cell. */
+window.desktopwindow .file-item,
+window.desktopwindow .file-item-hover,
+window.desktopwindow .file-item:hover {
+    background-color: transparent;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+}
+/* Selection belongs to the icon and its caption, not the desktop grid cell. */
+window.desktopwindow .file-item.desktop-icons-selected,
+window.desktopwindow .file-item.desktop-icons-keyboard-selected {
+    background-color: transparent;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+}
+/* Reserve the frame inside its own box, so no shadow gets clipped by GTK. */
+window.desktopwindow .fm-desktop-icon-frame {
+    padding: 4px;
+    border: 2px solid transparent;
+    border-radius: 7px;
+    background-color: transparent;
+    box-shadow: none;
+    margin-bottom: 3px;
+}
+window.desktopwindow .file-item.desktop-icons-selected .fm-desktop-icon-frame,
+window.desktopwindow .file-item.desktop-icons-keyboard-selected .fm-desktop-icon-frame {
+    border-color: rgba(195, 199, 210, 0.48);
+    background-color: transparent;
+}
+window.desktopwindow .fm-desktop-caption {
+    padding: 1px 5px;
+    border-radius: 5px;
+}
+window.desktopwindow .file-item.desktop-icons-selected label,
+window.desktopwindow .file-item.desktop-icons-keyboard-selected label {
+    border-radius: 5px;
+    background-color: #1769df;
+    color: white;
+    text-shadow: none;
+}

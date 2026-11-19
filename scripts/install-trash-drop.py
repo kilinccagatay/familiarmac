@@ -26,6 +26,20 @@ def prepare(source, destination, patch):
         raise RuntimeError('Unsupported desktop focus source version; no files changed.')
     emulator = emulator.replace(focus_anchor,
         '                    if (checkWorkspace && !Main.overview.visible) {')
+    # Install only against the known upstream lifecycle, before touching files.
+    early_anchors = {
+        "        this._idMap = global.window_manager.connect_after('map',":
+            "        this._earlyWindowList = new EarlyDesktopWindowList(global.display, global.window_manager, () => this._waylandClient);\n        this._idMap = global.window_manager.connect_after('map',",
+        "        this._waylandClient = client;\n        for (let window of this._windowList)":
+            "        this._waylandClient = client;\n        this._earlyWindowList?.refresh();\n        for (let window of this._windowList)",
+        "        // disconnect signals\n":
+            "        this._earlyWindowList?.destroy();\n        this._earlyWindowList = null;\n        // disconnect signals\n",
+    }
+    for before, after in early_anchors.items():
+        if emulator.count(before) != 1:
+            raise RuntimeError('Unsupported desktop lifecycle version; no files changed.')
+        emulator = emulator.replace(before, after)
+    emulator = "import { EarlyDesktopWindowList } from './earlyWindowList.js';\n" + emulator
     manager = (source / 'app/desktopManager.js').read_text()
     key_anchor = '        const selection = this.getCurrentSelection(false);'
     key_start = manager.index('    onKeyPress(')
@@ -39,7 +53,29 @@ def prepare(source, destination, patch):
         }
 """
     manager = manager[:key_pos] + guard + manager[key_pos:]
+    icon_anchors = {
+        '        this._iconContainer.pack_start(this._icon, true, true, 0);':
+            "        this._iconContainer.get_style_context().add_class('fm-desktop-icon-frame');\n        this._iconContainer.pack_start(this._icon, true, true, 0);",
+        '        this._label = new Gtk.Label();':
+            "        this._label = new Gtk.Label();\n        this._label.get_style_context().add_class('fm-desktop-caption');",
+    }
+    for before, after in icon_anchors.items():
+        if text.count(before) != 1:
+            raise RuntimeError('Unsupported desktop icon structure; no files changed.')
+        text = text.replace(before, after)
+    selection_css = (Path(__file__).resolve().parents[1] / 'overrides/desktop-icons/selection.css').read_text()
+    stylesheet = (source / 'app/stylesheet.css').read_text()
+    # GTK providers of equal priority are resolved by provider order before
+    # selector specificity. Put our rules in the final selection provider too.
+    selection_anchor = '        this._cssProviderSelection.load_from_data(style);'
+    if manager.count(selection_anchor) != 1:
+        raise RuntimeError('Unsupported desktop selection provider; no files changed.')
+    manager = manager.replace(selection_anchor,
+        '        style += ' + json.dumps('\n' + selection_css) + ';\n' + selection_anchor)
+
     shutil.copytree(source, destination)
+    (destination / 'app/stylesheet.css').write_text(stylesheet + '\n' + selection_css)
+    shutil.copy2(Path(__file__).resolve().parents[1] / 'overrides/desktop-icons/earlyWindowList.js', destination / 'earlyWindowList.js')
     (destination / 'app/desktopManager.js').write_text(manager)
     (destination / 'emulateX11WindowType.js').write_text(emulator)
     (destination / 'app/desktopIconItem.js').write_text(text.replace(anchor, patch + anchor))
