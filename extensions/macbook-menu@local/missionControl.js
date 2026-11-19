@@ -52,6 +52,18 @@ export function preserveDesktopClones(group,actors){
     }
 }
 
+// Desktop surfaces follow the active workspace asynchronously; they must not
+// keep an otherwise empty, extension-created fullscreen Space alive. Do not
+// ignore all skip-taskbar windows: application dialogs can use that flag too.
+export function hasSpaceWindows(space, departingWindow) {
+    return space.list_windows().some(w => {
+        if (w === departingWindow || w.is_on_all_workspaces()) return false;
+        const desktop = w.customJS_ding;
+        return w.get_window_type() !== Meta.WindowType.DESKTOP &&
+            !(desktop?.hideFromWindowList && desktop.keepAtBottom);
+    });
+}
+
 export class MissionControl {
     constructor() {
         this.signals=[];this.sources=new Set();this.windows=new Map();this.spaces=new Map();this.buttons=new Map();this.labels=new Map();this.expandedLabels=new Map();this.thumbBackgrounds=new Map();
@@ -381,7 +393,7 @@ export class MissionControl {
             if(active)home.activate(global.get_current_time());
             const id=GLib.timeout_add(GLib.PRIORITY_DEFAULT,450,()=>{
                 this.sources.delete(id);
-                if(entry.space.index()>=0&&wm.n_workspaces>1&&!entry.space.list_windows().some(v=>v!==w&&!v.is_on_all_workspaces()))wm.remove_workspace(entry.space,global.get_current_time());
+                if(entry.space.index()>=0&&wm.n_workspaces>1&&!hasSpaceWindows(entry.space,w))wm.remove_workspace(entry.space,global.get_current_time());
                 return GLib.SOURCE_REMOVE;
             });this.sources.add(id);
         });
@@ -747,7 +759,7 @@ export class MissionControl {
         // Restore managed fullscreen spaces without closing any application.
         for(const [w,{home,space}] of this.spaces){
             if(w.get_compositor_private()){w.unmake_fullscreen();w.change_workspace(home.index()>=0?home:global.workspace_manager.get_workspace_by_index(0));}
-            if(space.index()>=0 && global.workspace_manager.n_workspaces>1 && !space.list_windows().some(v=>v!==w&&!v.is_on_all_workspaces()))global.workspace_manager.remove_workspace(space,global.get_current_time());
+            if(space.index()>=0 && global.workspace_manager.n_workspaces>1 && !hasSpaceWindows(space,w))global.workspace_manager.remove_workspace(space,global.get_current_time());
         }
         this.spaces.clear();
         for(const [t,{bg,signal}] of this.thumbBackgrounds){t.disconnect(signal);bg.destroy();}this.thumbBackgrounds.clear();
