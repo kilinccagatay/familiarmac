@@ -43,6 +43,25 @@ export class NotificationCenter {
         // Date heading, notification list, then one compact calendar widget.
         this.move(this.date._date, this.area, 0);
         this.move(this.date._calendar, this.area, 2);
+        // Reuse GNOME's selected-day agenda and calendar launch action. The
+        // original calendar column is hidden, so move its agenda out as well.
+        if (this.date._eventsItem) {
+            this.agenda = new St.ScrollView({
+                style_class: 'fm-calendar-agenda',
+                x_expand: true, y_expand: false,
+                overlay_scrollbars: true,
+                hscrollbar_policy: St.PolicyType.NEVER,
+                vscrollbar_policy: St.PolicyType.AUTOMATIC,
+            });
+            this.agendaContent = new St.BoxLayout({vertical: true, x_expand: true});
+            this.agenda.set_child(this.agendaContent);
+            this.area.insert_child_at_index(this.agenda, 3);
+            this.move(this.date._eventsItem, this.agendaContent, 0);
+            const syncAgenda = () => { this.agenda.visible = this.date._eventsItem.visible; };
+            this.signals.push([this.date._eventsItem,
+                this.date._eventsItem.connect('notify::visible', syncAgenda)]);
+            syncAgenda();
+        }
         this.language = new CalendarLanguage(this.date);
         this.drawer = new NotificationDrawer(this.date.menu, this.area, this.date._calendar);
         const controls = list._dndButton.get_parent();
@@ -134,6 +153,8 @@ export class NotificationCenter {
             actor.get_parent()?.remove_child(actor);
             parent.insert_child_at_index(actor, index);
         }
+        this.agenda?.destroy();
+        this.agenda = null;
         for (const [actor, visible] of this.hidden.splice(0)) actor.visible = visible;
         this.date?._indicator?._sync();
         if (this.area) {
