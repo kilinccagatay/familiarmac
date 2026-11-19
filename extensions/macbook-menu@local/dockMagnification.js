@@ -35,8 +35,44 @@ export class DockMagnification {
     track(icon) {
         if (this.items.has(icon)) return;
         const item = {clone:null, scale:1, shift:0};
-        item.signal = icon.connect('destroy', () => { item.clone?.destroy(); this.items.delete(icon); });
+        item.signal = icon.connect('destroy', () => { this.resetBadge(item); item.clone?.destroy(); this.items.delete(icon); });
         this.items.set(icon,item);
+    }
+    resetBadge(item) {
+        const badge=item.badge;
+        if(!badge)return;
+        item.badge=null;
+        badge.source.disconnect(badge.destroySignal);
+        badge.source.opacity=badge.opacity;
+        badge.clone.destroy();
+    }
+    updateBadge(icon,item,texture,bounds) {
+        const source=icon._iconContainer?.get_children?.()
+            .map(bin=>bin.child??bin)
+            .find(child=>child.has_style_class_name?.('notification-badge'));
+        if(item.badge?.source!==source)this.resetBadge(item);
+        if(!source||!source.visible){this.resetBadge(item);return;}
+        if(!item.badge){
+            const clone=new Clutter.Clone({source,reactive:false});
+            const badge={source,clone,opacity:source.opacity};
+            badge.destroySignal=source.connect('destroy',()=>{
+                if(item.badge===badge)item.badge=null;
+                clone.destroy();
+            });
+            item.badge=badge;
+            Main.layoutManager.addChrome(clone);
+            Shell.util_set_hidden_from_pick(clone,true);
+            source.opacity=0;
+        }
+        const [tx,ty]=texture.get_transformed_position();
+        const [bx,by]=source.get_transformed_position();
+        const [bw,bh]=source.get_transformed_size();
+        const {clone}=item.badge;
+        clone.set_size(bw,bh);
+        clone.set_scale(item.scale,item.scale);
+        clone.set_position(bounds[0]+(bx-tx)*item.scale,bounds[1]+(by-ty)*item.scale);
+        // Recreated high-resolution icon textures must stay behind the badge.
+        clone.get_parent()?.set_child_above_sibling(clone,item.clone);
     }
     moveDivider(icon, item, shift) {
         const divider = icon.get_parent?.()?.get_children?.().find(
@@ -48,6 +84,7 @@ export class DockMagnification {
         item.dividerShift = shift;
     }
     reset(icon,item) {
+        this.resetBadge(item);
         this.moveDivider(icon, item, 0);
         item.clone?.destroy();item.clone=null;
         if(item.texture){item.texture.opacity=item.opacity;item.texture=null;}
@@ -214,6 +251,7 @@ export class DockMagnification {
                 const bounds=[x+shift-w*(item.scale-1)/2,y-h*(item.scale-1),w*item.scale,h*item.scale];
                 item.clone.set_position(bounds[0],bounds[1]);
                 icon._fmMagnifiedBounds=bounds;
+                this.updateBadge(icon,item,texture,bounds);
 
             }
         }

@@ -138,3 +138,32 @@ assert.equal([...renderer.items.values()][0].scale,downloadsScale,'Downloads pop
 live.Main.overview.visible=true;renderer.update();
 assert([...renderer.items.values()].every(item=>!item.clone),'overview still clears overlays');
 console.log('Context menus: frozen size/position/background, close resumes, Downloads and overview PASS');
+
+// Notification badges are independent siblings of the icon texture. Their
+// offsets and dimensions must share the icon's magnification transform.
+let badgeDestroyed,stack=[];
+class BadgeClone extends RenderIcon {
+ constructor(p){super(p);this.source=p.source;}
+ get_parent(){return {set_child_above_sibling:(_a,b)=>stack.push(b)};}
+}
+live.Clutter.Clone=BadgeClone;
+const badgeSource={visible:true,opacity:255,text:'8',has_style_class_name:n=>n==='notification-badge',
+ get_transformed_position:()=>[126,98],get_transformed_size:()=>[14,14],
+ connect:(_s,f)=>{badgeDestroyed=f;return 9},disconnect:id=>assert.equal(id,9)};
+const badgeIcon={_iconContainer:{get_children:()=>[{child:badgeSource}]}};
+const badgeItem={scale:2,clone:{}};
+const badgeTexture={get_transformed_position:()=>[100,100]};
+renderer.updateBadge(badgeIcon,badgeItem,badgeTexture,[84,68,64,64]);
+assert.deepEqual(badgeItem.badge.clone.position,[136,64]);
+assert.deepEqual(badgeItem.badge.clone.scale,[2,2]);
+assert.equal(stack.at(-1),badgeItem.clone);assert.equal(badgeSource.opacity,0);
+badgeSource.text='99';assert.equal(badgeItem.badge.clone.source.text,'99','count stays live');
+const oldBadgeClone=badgeItem.badge.clone;
+badgeItem.scale=1.5;renderer.updateBadge(badgeIcon,badgeItem,badgeTexture,[92,84,48,48]);
+assert.equal(badgeItem.badge.clone,oldBadgeClone,'reuse live source throughout wave');
+assert.deepEqual(oldBadgeClone.position,[131,81]);
+badgeSource.visible=false;renderer.updateBadge(badgeIcon,badgeItem,badgeTexture,[92,84,48,48]);
+assert.equal(badgeItem.badge,null);assert.equal(badgeSource.opacity,255);assert(oldBadgeClone.destroyed);
+badgeSource.visible=true;renderer.updateBadge(badgeIcon,badgeItem,badgeTexture,[92,84,48,48]);
+const removedClone=badgeItem.badge.clone;badgeDestroyed();assert.equal(badgeItem.badge,null);assert(removedClone.destroyed);
+console.log('Notification badge: matching geometry, stacking, live count, hidden/reset and destruction cleanup PASS');
