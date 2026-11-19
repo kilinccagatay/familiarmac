@@ -12,6 +12,13 @@ install -m644 "$root/vendor/familiarmac-magic-mouse/licenses/"*.txt /usr/local/s
 install -Dm644 "$root/native/mouse-shortcuts/gesture_actions.py" /usr/local/libexec/gesture_actions.py
 install -Dm644 "$root/native/mouse-shortcuts/daemon.py" /usr/local/libexec/familiarmac-mouse.py
 install -Dm644 "$root/native/mouse-shortcuts/familiarmac-mouse.service" /etc/systemd/system/familiarmac-mouse.service
+install -Dm644 "$root/native/mouse-shortcuts/familiarmac-magic-mouse.conf" /etc/modprobe.d/familiarmac-magic-mouse.conf
+# Apply to an already loaded driver without disconnecting the mouse or
+# restarting the desktop. The modprobe setting covers subsequent loads.
+magic_buttons=/sys/module/hid_magicmouse/parameters/emulate_3button
+if [[ -e "$magic_buttons" ]]; then
+ printf 'N\n' > "$magic_buttons"
+fi
 systemctl daemon-reload
 systemctl enable --now familiarmac-mouse.service
 systemctl restart familiarmac-mouse.service
