@@ -13,3 +13,15 @@ enabled=false;b.start(app);assert.equal(b.pending.size,0,'System motion preferen
 enabled=true;b.start(app);app.state=0;appSystem.signals.get('app-state-changed')(appSystem,app);assert.equal(b.pending.size,0);b.update();
 b.destroy();assert.equal(appSystem.signals.size,0);assert.equal(layout.signals.size,0);
 console.log('Dock bounce: bounded launch feedback, mapped-window stop, repeat-click coalescing, failed startup, motion preference and cleanup PASS');
+
+// A drag begins with a left press but never emits St.Button::clicked.
+const icon=Object.assign(emitter(),{app,icon:{icon:{}},animateLaunch(){},get_children:()=>[]});
+c.Main.uiGroup.get_children=()=>[{name:'dashtodockContainer',get_children:()=>[icon]}];
+const clicks=new c.Bounce();
+assert(!icon.signals.has('button-press-event'),'Press alone must not register a pending launch');
+assert.equal(clicks.pending.size,0,'Dragging/removing an unopened app must not keep it in the Dock');
+icon.signals.get('clicked')(icon,3);assert.equal(clicks.pending.size,0,'Context menu is not a launch');
+icon.signals.get('clicked')(icon,1);assert.equal(clicks.pending.size,1,'Completed left click retains launch feedback');
+clicks.cancel();icon.animateLaunch();assert.equal(clicks.pending.size,1,'Native launch feedback still works');
+clicks.destroy();assert.equal(icon.signals.size,0,'Click handler is disconnected on teardown');
+console.log('Dock launch intent: drag/unpin and context menus excluded, completed clicks and native launch retained PASS');

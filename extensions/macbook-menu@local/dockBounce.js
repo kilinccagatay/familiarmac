@@ -67,11 +67,12 @@ export class DockBounce {
                 const original = actor.animateLaunch;
                 const wrapper = () => this.start(actor.app);
                 actor.animateLaunch = wrapper;
-                const pressed = actor.connect('button-press-event', (_a,event) => {
-                    if (event.get_button() === 1) this.start(actor.app);
-                    return Clutter.EVENT_PROPAGATE;
+                // A press may become a drag/unpin. Only a completed click is a
+                // launch request; St.Button cancels clicked when dragging.
+                const clicked = actor.connect('clicked', (_a,button) => {
+                    if (button === 1) this.start(actor.app);
                 });
-                const item = {original,wrapper,pressed,clone:null,texture:null};
+                const item = {original,wrapper,clicked,clone:null,texture:null};
                 item.signal = actor.connect('destroy', () => { this.reset(actor,item);this.icons.delete(actor); });
                 this.icons.set(actor,item);
             }
@@ -123,7 +124,7 @@ export class DockBounce {
         if (global[Symbol.for("familiarmac.dockBounce")] === this) delete global[Symbol.for("familiarmac.dockBounce")];
         this.cancel();
         for(const [object,id] of this.signals)object.disconnect(id);
-        for(const [icon,item] of this.icons){icon.disconnect(item.pressed);icon.disconnect(item.signal);if(icon.animateLaunch===item.wrapper)icon.animateLaunch=item.original;}
+        for(const [icon,item] of this.icons){icon.disconnect(item.clicked);icon.disconnect(item.signal);if(icon.animateLaunch===item.wrapper)icon.animateLaunch=item.original;}
         for(const [dash,item] of this.dashes){item.actor.disconnect(item.signal);if(dash._redisplay===item.wrapper)dash._redisplay=item.original;}
         this.icons.clear();this.dashes.clear();
     }
