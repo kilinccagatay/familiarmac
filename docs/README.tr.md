@@ -8,9 +8,11 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değiştirmesini istemememle başladı. macOS kullanırken bildiği günlük işlemleri Linux'ta da tanıdık bir şekilde yapabilmesini hedefledim. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
-## Son sürüm: 1.2.7
+## Son sürüm: 1.2.8
 
-[Sürüm notları](releases/v1.2.7.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.7)
+[Sürüm notları](releases/v1.2.8.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.8)
+
+Güncelleme bilgisini Ayarlar’dan yeniden kontrol edebilir, eski sürüm teklifinde takılmadan devam edebilirsiniz. Dock pencere önizlemelerinin kapatma düğmeleri küçültüldü ve pencere adları menü eylemleriyle hizalandı.
 
 Ayarlar’daki **Dock & Window** bölümünden Dock boyutunu, büyütmeyi, otomatik
 gizlemeyi ve pencere animasyonlarını düzenleyebilir; uygulama menülerini
