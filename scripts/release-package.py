@@ -26,7 +26,7 @@ def build(output):
     with tarfile.open(archive,'w:gz') as tar:
         for file in sorted(filter(None,files)):
             path=Path(file)
-            if path.parts[0] in ('.github','tests') or path.name in MANUAL: continue
+            if path.parts[0] in ('.github','tests','experimental') or path.name in MANUAL: continue
             if path.parts[0]=='docs' and path.suffix!='.md': continue
             if path.is_absolute() or '..' in path.parts: raise ValueError(file)
             source=ROOT/path

@@ -1,0 +1,173 @@
+[
+  {
+    "phase": "resize-small",
+    "fullscreen": false,
+    "rect": [
+      120,
+      140,
+      500,
+      340
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      545,
+      369,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "resize-large",
+    "fullscreen": false,
+    "rect": [
+      100,
+      100,
+      900,
+      600
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      945,
+      629,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "fullscreen",
+    "fullscreen": true,
+    "rect": [
+      0,
+      0,
+      1280,
+      800
+    ],
+    "offscreen": false
+  },
+  {
+    "phase": "fullscreen-exit",
+    "fullscreen": false,
+    "rect": [
+      100,
+      100,
+      900,
+      600
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      945,
+      629,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "maximize",
+    "fullscreen": false,
+    "rect": [
+      0,
+      28,
+      1280,
+      692
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      0,
+      0,
+      1280,
+      692,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "unmaximize",
+    "fullscreen": false,
+    "rect": [
+      100,
+      100,
+      900,
+      600
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      945,
+      629,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "overview",
+    "fullscreen": false,
+    "rect": [
+      100,
+      100,
+      900,
+      600
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      945,
+      629,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "overview-exit",
+    "fullscreen": false,
+    "rect": [
+      100,
+      100,
+      900,
+      600
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      945,
+      629,
+      24,
+      4
+    ]
+  },
+  {
+    "phase": "restore",
+    "fullscreen": false,
+    "rect": [
+      230,
+      107,
+      820,
+      533
+    ],
+    "enabled": true,
+    "offscreen": false,
+    "values": [
+      46,
+      30,
+      865,
+      562,
+      24,
+      4
+    ]
+  }
+]

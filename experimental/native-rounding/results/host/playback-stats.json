@@ -1,0 +1,202 @@
+[
+  {
+    "Size": "0x0",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "vaapi-copy (?)",
+    "Frame drop count": "0",
+    "Time": "694.00 / 1138.85 (60.94%)",
+    "State": "paused waiting seeking"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "694.12 / 1138.85 (60.95%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "709.00 / 1138.85 (62.26%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "724.02 / 1138.85 (63.57%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "739.03 / 1138.85 (64.89%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "754.05 / 1138.85 (66.21%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "769.06 / 1138.85 (67.53%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "784.08 / 1138.85 (68.85%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "799.09 / 1138.85 (70.17%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "814.11 / 1138.85 (71.49%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "829.12 / 1138.85 (72.80%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "844.14 / 1138.85 (74.12%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "859.15 / 1138.85 (75.44%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "874.17 / 1138.85 (76.76%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "889.18 / 1138.85 (78.08%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "904.20 / 1138.85 (79.40%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "919.21 / 1138.85 (80.71%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "934.23 / 1138.85 (82.03%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "949.25 / 1138.85 (83.35%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "964.26 / 1138.85 (84.67%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "979.27 / 1138.85 (85.99%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "994.29 / 1138.85 (87.31%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "1009.30 / 1138.85 (88.62%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "1024.32 / 1138.85 (89.94%)",
+    "State": "playing"
+  },
+  {
+    "Size": "1920x1080",
+    "FPS (container)": "23.98",
+    "Hardware Decoding": "no (?)",
+    "Frame drop count": "2",
+    "Time": "1039.34 / 1138.85 (91.26%)",
+    "State": "playing"
+  }
+]

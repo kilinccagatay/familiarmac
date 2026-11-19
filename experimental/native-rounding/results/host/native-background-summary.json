@@ -1,0 +1,88 @@
+{
+  "old": {
+    "x": 0,
+    "y": 56,
+    "width": 2880,
+    "height": 1584,
+    "max": 3
+  },
+  "api": "function",
+  "results": [
+    {
+      "name": "rounded-window",
+      "start": 1795116151205,
+      "rect": [
+        100,
+        85,
+        2400,
+        1400
+      ],
+      "effect": {
+        "enabled": true,
+        "attached": true,
+        "offscreen": false
+      },
+      "end": 1795116171251,
+      "count": 343,
+      "mean_ms": 58.29662682215952,
+      "median_ms": 56.659000001847744,
+      "p95_ms": 77.39499999582767
+    },
+    {
+      "name": "rounding-disabled",
+      "start": 1795116174263,
+      "rect": [
+        100,
+        85,
+        2400,
+        1400
+      ],
+      "effect": {
+        "enabled": false,
+        "attached": true,
+        "offscreen": false
+      },
+      "end": 1795116194284,
+      "count": 555,
+      "mean_ms": 36.02337297297813,
+      "median_ms": 34.16099999845028,
+      "p95_ms": 52.6059999987483
+    },
+    {
+      "name": "rounded-restored",
+      "start": 1795116197323,
+      "rect": [
+        100,
+        85,
+        2400,
+        1400
+      ],
+      "effect": {
+        "enabled": true,
+        "attached": true,
+        "offscreen": false
+      },
+      "end": 1795116217341,
+      "count": 339,
+      "mean_ms": 58.91323008849821,
+      "median_ms": 58.130999997258186,
+      "p95_ms": 77.37600000202656
+    },
+    {
+      "name": "fullscreen",
+      "start": 1795116220395,
+      "rect": [
+        0,
+        0,
+        2880,
+        1800
+      ],
+      "effect": null,
+      "end": 1795116240396,
+      "count": 479,
+      "mean_ms": 41.70847807933493,
+      "median_ms": 41.72300000488758,
+      "p95_ms": 43.12799999862909
+    }
+  ]
+}
