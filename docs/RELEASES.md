@@ -29,3 +29,9 @@ The distribution excludes the reference-machine repair scripts, and rejects `--f
 5. The Release workflow tests, packages, creates a draft with assets, then publishes. If it fails, fix the failure before publication; never move an already published version tag.
 
 The package builder uses Git-tracked paths only and skips screenshots, tests and hardware repair scripts. Personal configurations, credentials and the live machine's state are never collected. No GitHub credentials are needed by users for public update checks.
+
+## Refreshing and skipping releases
+
+The update row has an independent refresh button that bypasses the six-hour metadata cache. Download Update also rechecks before confirmation. An install still rejects a release that changed after confirmation rather than silently installing an unconfirmed version; the controls then allow a fresh check.
+
+Bundles are complete, not incremental patches. Users can skip intermediate releases (for example, 1.2.5 → 1.2.8); the installer and preference-preservation step run from the selected bundle. An older panel stuck on a stale offer can use `python3 ~/.local/share/familiarmac/updater/release-update.py --check --force`, then reopen Settings. This only refreshes metadata.

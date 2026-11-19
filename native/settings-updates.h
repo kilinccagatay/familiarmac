@@ -9,15 +9,15 @@ extern void g_object_add_weak_pointer(P,P*),g_object_remove_weak_pointer(P,P*);
 extern P adw_message_dialog_new(P,const char*,const char*);
 extern void adw_message_dialog_add_response(P,const char*,const char*),adw_message_dialog_set_response_appearance(P,const char*,int),adw_message_dialog_set_default_response(P,const char*),adw_message_dialog_set_close_response(P,const char*);
 enum { FM_STDOUT_PIPE=4, FM_STDERR_PIPE=16, FM_STDERR_MERGE=64 };
-typedef struct {int refs,busy,ask;P window,row,button,progress,process,stream;char*version;} Updates;
+typedef struct {int refs,busy,ask;P window,row,button,refresh,progress,process,stream;char*version;} Updates;
 static Updates*updates_ref(Updates*u){u->refs++;return u;}
 static void updates_unref(P data){
  Updates*u=data;if(--u->refs)return;
  if(u->window)g_object_remove_weak_pointer(u->window,&u->window);
- g_object_unref(u->row);g_object_unref(u->button);g_object_unref(u->progress);free(u->version);free(u);
+ g_object_unref(u->row);g_object_unref(u->button);g_object_unref(u->refresh);g_object_unref(u->progress);free(u->version);free(u);
 }
 static void updates_closure_free(P data,P closure){(void)closure;updates_unref(data);}
-static void updates_ready(Updates*u){u->busy=0;gtk_widget_set_sensitive(u->button,1);gtk_button_set_label(u->button,u->version?"Download Update…":"Check for Updates");}
+static void updates_ready(Updates*u){u->busy=0;gtk_widget_set_sensitive(u->button,1);gtk_widget_set_sensitive(u->refresh,1);gtk_button_set_label(u->button,u->version?"Download Update…":"Check for Updates");}
 static void updates_logout(P dialog,const char*response,Updates*u){
  (void)u;
  if(!strcmp(response,"logout")){
@@ -40,7 +40,7 @@ static void updates_installed(P process,P result,Updates*u){
    adw_message_dialog_set_default_response(dialog,"later");adw_message_dialog_set_close_response(dialog,"later");
    g_signal_connect_data(dialog,"response",updates_logout,updates_ref(u),updates_closure_free,0);gtk_window_present(dialog);
   }
- }else{gtk_progress_bar_set_text(u->progress,"Update incomplete — retry when ready");}
+ }else{free(u->version);u->version=NULL;gtk_progress_bar_set_text(u->progress,"Update incomplete — check again to retry");}
  updates_ready(u);updates_unref(u);
 }
 static void updates_line(P stream,P result,Updates*u){
@@ -54,18 +54,20 @@ static void updates_line(P stream,P result,Updates*u){
 }
 static void updates_download_response(P dialog,const char*response,Updates*u){
  (void)dialog; /* AdwMessageDialog closes itself after response. */
+ updates_ready(u); /* Keep the offered version fixed while confirmation is open. */
  if(strcmp(response,"install"))return;
  const char*worker=getenv("FAMILIARMAC_UPDATER");if(!worker||u->busy||!u->version)return;
  const char*argv[]={"/usr/bin/python3",worker,"--install",u->version,"--progress",NULL};P error=NULL;
  u->process=g_subprocess_newv(argv,FM_STDOUT_PIPE|FM_STDERR_MERGE,&error); /* stdout pipe, stderr merged */
  if(!u->process){adw_action_row_set_subtitle(u->row,"Could not start the update.");if(error)g_error_free(error);return;}
- u->busy=1;gtk_widget_set_sensitive(u->button,0);gtk_widget_set_visible(u->progress,1);
+ u->busy=1;gtk_widget_set_sensitive(u->button,0);gtk_widget_set_sensitive(u->refresh,0);gtk_widget_set_visible(u->progress,1);
  gtk_progress_bar_set_fraction(u->progress,0);gtk_progress_bar_set_text(u->progress,"Preparing download…");
  u->stream=g_data_input_stream_new(g_subprocess_get_stdout_pipe(u->process));
  g_data_input_stream_read_line_async(u->stream,0,NULL,updates_line,updates_ref(u));
 }
 static void updates_confirm(Updates*u){
  if(!u->window||!gtk_widget_get_visible(u->window)||!u->version)return;
+ u->busy=1;gtk_widget_set_sensitive(u->button,0);gtk_widget_set_sensitive(u->refresh,0);
  char title[128];snprintf(title,sizeof(title),"Download FamiliarMac %s?",u->version);
  P dialog=adw_message_dialog_new(u->window,title,"The update will install automatically after downloading. Administrator authentication is needed for shared themes. Your desktop preferences are preserved; hardware repairs are excluded.");
  adw_message_dialog_add_response(dialog,"cancel","Not Now");adw_message_dialog_add_response(dialog,"install","Download & Install");
@@ -95,16 +97,19 @@ static void updates_check(Updates*u,int force,int ask){
  const char*worker=getenv("FAMILIARMAC_UPDATER");if(!worker||u->busy)return;
  const char*argv[]={"/usr/bin/python3",worker,"--check","--panel",force?"--force":NULL,NULL};P error=NULL;
  P process=g_subprocess_newv(argv,FM_STDOUT_PIPE|FM_STDERR_PIPE,&error);
- if(process){u->busy=1;u->ask=ask;gtk_widget_set_sensitive(u->button,0);adw_action_row_set_subtitle(u->row,"Checking for updates…");g_subprocess_communicate_utf8_async(process,NULL,NULL,updates_checked,updates_ref(u));}
+ if(process){free(u->version);u->version=NULL;gtk_widget_set_visible(u->progress,0);u->busy=1;u->ask=ask;gtk_widget_set_sensitive(u->button,0);gtk_widget_set_sensitive(u->refresh,0);adw_action_row_set_subtitle(u->row,"Checking for updates…");g_subprocess_communicate_utf8_async(process,NULL,NULL,updates_checked,updates_ref(u));}
  else adw_action_row_set_subtitle(u->row,"Update checker unavailable.");
  if(error)g_error_free(error);
 }
-static void updates_clicked(P button,Updates*u){(void)button;if(u->version)updates_confirm(u);else updates_check(u,1,1);}
+static void updates_clicked(P button,Updates*u){(void)button;updates_check(u,1,1);}
+static void updates_refresh_clicked(P button,Updates*u){(void)button;updates_check(u,1,0);}
 static void check_updates(P window){Updates*u=g_object_get_data(window,"fm-updates");if(u)updates_check(u,0,0);}
 static void updates_attach(P window,P builder,P page){
  P row=gtk_builder_get_object(builder,"release_status"),progress=gtk_builder_get_object(builder,"release_progress"),button=find(page,"GtkButton","fm-check-updates");
- if(!row||!progress||!button)return;
- Updates*u=calloc(1,sizeof(*u));u->refs=1;u->window=window;u->row=g_object_ref(row);u->button=g_object_ref(button);u->progress=g_object_ref(progress);
+ P refresh=gtk_builder_get_object(builder,"release_refresh");
+ if(!row||!progress||!button||!refresh)return;
+ Updates*u=calloc(1,sizeof(*u));u->refs=1;u->window=window;u->row=g_object_ref(row);u->button=g_object_ref(button);u->refresh=g_object_ref(refresh);u->progress=g_object_ref(progress);
  g_object_add_weak_pointer(window,&u->window);g_object_set_data_full(window,"fm-updates",u,updates_unref);
+ g_signal_connect_data(refresh,"clicked",updates_refresh_clicked,u,NULL,0);
  g_signal_connect_data(button,"clicked",updates_clicked,u,NULL,0);updates_check(u,0,0);
 }

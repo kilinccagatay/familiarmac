@@ -88,3 +88,26 @@ assert "disabled-extensions=['legacy']" in merged
 assert "favorite-apps=['personal.desktop']" in merged
 assert 'enable-animations=false' in merged
 print('Update retains extension migrations without resetting favorites or motion PASS')
+
+# A stale offer is refreshed without installing a different, unconfirmed release.
+with tempfile.TemporaryDirectory() as tmp:
+    u.STATE=Path(tmp)/'state';u.DATA=Path(tmp)/'data'
+    u.save(u.STATE/'installed.json',{'version':'1.2.5'})
+    u.save(u.STATE/'available.json',{'latest':'1.2.6','checked_at':u.time.time()})
+    payload=bundle('1.2.8');digest=hashlib.sha256(payload).hexdigest()
+    release={'tag_name':'v1.2.8','assets':[{'name':'familiarmac-1.2.8.tar.gz'},{'name':'SHA256SUMS'}]}
+    def jumped_fetch(url,limit,progress=None):
+        if url.endswith('/latest'):return json.dumps(release).encode()
+        if url.endswith('SHA256SUMS'):return f'{digest}  familiarmac-1.2.8.tar.gz\n'.encode()
+        assert url.endswith('/v1.2.8/familiarmac-1.2.8.tar.gz'),url
+        return payload
+    with patch.object(u,'fetch',side_effect=jumped_fetch),patch.object(u,'run_system_update') as system,patch.object(u.subprocess,'check_output',return_value=b''),patch.object(u.subprocess,'run',return_value=subprocess.CompletedProcess([],0)):
+        assert u.check()['latest']=='1.2.6'
+        try:u.install('1.2.6');raise AssertionError('Stale offer installed')
+        except ValueError as e:assert 'Release changed' in str(e)
+        system.assert_not_called()
+        assert u.check(True)['latest']=='1.2.8'
+        u.install('1.2.8')
+        assert u.read(u.STATE/'installed.json')['version']=='1.2.8'
+        assert u.read(u.STATE/'transaction.json')['status']=='complete'
+print('Stale offer refusal, forced refresh and direct 1.2.5 → 1.2.8 update PASS')

@@ -29,7 +29,7 @@
     <child><object class="AdwPreferencesGroup">
      <property name="title">FamiliarMac</property>
      <property name="description">Desktop updates. Device-specific drivers and repairs are managed separately.</property>
-     <child><object class="AdwActionRow" id="release_status"><property name="title">Version</property><property name="subtitle">Checking for updates…</property><child type="suffix"><object class="GtkButton"><property name="name">fm-check-updates</property><property name="label">Check for Updates</property><property name="valign">center</property></object></child></object></child>
+     <child><object class="AdwActionRow" id="release_status"><property name="title">Version</property><property name="subtitle">Checking for updates…</property><child type="suffix"><object class="GtkButton" id="release_refresh"><property name="icon-name">view-refresh-symbolic</property><property name="tooltip-text">Check for updates again</property><property name="valign">center</property></object></child><child type="suffix"><object class="GtkButton"><property name="name">fm-check-updates</property><property name="label">Check for Updates</property><property name="valign">center</property></object></child></object></child>
      <child><object class="GtkProgressBar" id="release_progress"><property name="visible">False</property><property name="show-text">True</property><property name="margin-top">8</property><property name="margin-bottom">8</property></object></child>
     </object></child>
    </object></property>
