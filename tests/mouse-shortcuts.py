@@ -80,3 +80,44 @@ reader.last_contact_at=20
 service.maintain_swipe(20.5);assert service.swipe is not None
 service.magic_devices={};service.maintain_swipe(20.6);assert service.swipe is None
 print('Stale physical touch cancels despite live heartbeat/discoverable device; fresh input and missing reader PASS')
+
+# Discovery must never open keyboards, touchpads or already bridged mice.
+import tempfile
+from pathlib import Path as RealPath
+with tempfile.TemporaryDirectory() as tmp:
+ root=RealPath(tmp);(root/'dev/input').mkdir(parents=True)
+ for name in ('event0','event1','event2','event3','event4'):(root/'dev/input'/name).touch()
+ metadata={
+  'event0':'E:ID_INPUT_KEYBOARD=1',
+  'event1':'E:ID_INPUT_MOUSE=1\nE:ID_INPUT_TOUCHPAD=1',
+  'event2':'E:ID_INPUT_MOUSE=1',
+  'event3':'E:ID_INPUT_MOUSE=1',
+  'event4':'E:ID_INPUT_MOUSE=1',
+ }
+ # Each fake node needs its own udev property path despite regular-file st_rdev.
+ class Node:
+  def __init__(self,name):self.name=name
+  def __str__(self):return '/dev/input/'+self.name
+  def stat(self):return types.SimpleNamespace(st_ino=1,st_rdev=int(self.name[-1])+1)
+ class InputDir:
+  def glob(self,pattern):return [Node(n) for n in metadata]
+ for name,props in metadata.items():
+  target=root/'run/udev/data'/('c0:'+str(int(name[-1])+1));target.parent.mkdir(parents=True,exist_ok=True);target.write_text(props)
+ original_path=m.Path
+ m.Path=lambda p:InputDir() if p=='/dev/input' else root/str(p).lstrip('/')
+ opened=[];closed=[]
+ class Device:
+  def __init__(self,path):self.name='USB Mouse';self.info=types.SimpleNamespace(vendor=1,product=1);opened.append(path);self.path=path
+  def capabilities(self,absinfo=False):return c if self.path.endswith('2') else {1:[272],2:[0,1]}
+  def active_keys(self):return []
+  def close(self):closed.append(self.path)
+ original_input=m.InputDevice;original_bridge=m.Bridge
+ m.InputDevice=Device;m.Bridge=lambda d:types.SimpleNamespace(device=d)
+ probe=m.Service.__new__(m.Service);probe.magic=True;probe.devices={};probe.magic_pointers={'/dev/input/event4':object()}
+ probe.scan(274);probe.scan(274)
+ assert opened==['/dev/input/event2','/dev/input/event3'],opened
+ assert closed==['/dev/input/event3'],closed
+ # Changing the requested button rechecks a previously unsupported device.
+ probe.scan(275);assert opened[-1]=='/dev/input/event3' and len(opened)==3
+ m.Path=original_path;m.InputDevice=original_input;m.Bridge=original_bridge
+print('Discovery: keyboard/touchpad exclusion before open, existing bridge skip, unsupported-device cache and choice change PASS')

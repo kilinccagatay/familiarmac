@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "vendor/familiarmac
 from magic_mouse_support.devices import Reader, discover
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gesture_actions import MagicOptions, action_for
-from evdev import InputDevice, UInput, list_devices, ecodes as E
+from evdev import InputDevice, UInput, ecodes as E
 from gi.repository import Gio
 
 SOCKET='/run/familiarmac-mouse/control.sock'
@@ -130,28 +130,38 @@ class Service:
         for reader in self.magic_devices.values():reader.close()
         self.magic_devices.clear()
     def scan(self,button):
-        for path in list_devices():
-            if path in self.devices:continue
+        # evdev.list_devices() opens/closes EVERY input device to enumerate it.
+        # Some kernel close paths wait tens of milliseconds. Never put that
+        # enumeration in the grabbed-pointer forwarding loop.
+        ignored=getattr(self,'_scan_ignored',{})
+        present=set()
+        for node in Path('/dev/input').glob('event*'):
+            path=str(node);present.add(path)
+            if path in self.devices or path in self.magic_pointers:continue
             device=None
             try:
+                info=node.stat();dev=info.st_rdev
+                identity=(info.st_ino,dev,button,self.magic)
+                if ignored.get(path)==identity:continue
+                props=Path('/run/udev/data/c%d:%d'%(os.major(dev),os.minor(dev)))
+                # Missing udev metadata is retried after device initialization.
+                if not props.exists():continue
+                text=props.read_text()
+                seat=next((line[10:] for line in text.splitlines() if line.startswith('E:ID_SEAT=')),'seat0')
+                if (seat!='seat0' or 'E:ID_INPUT_MOUSE=1' not in text
+                    or 'E:ID_INPUT_KEYBOARD=1' in text or 'E:ID_INPUT_TOUCHPAD=1' in text):continue
+                name=Path('/sys/class/input')/node.name/'device/name'
+                if name.exists() and name.read_text().startswith(PREFIX):continue
                 device=InputDevice(path)
-                if path in self.magic_pointers:continue
-                if self.magic and device.info.vendor in (0x05ac,0x004c) and device.info.product in (0x030d,0x0269,0x0323):continue
-                # Honor udev seat assignment; never capture another seat.
-                dev=os.stat(path).st_rdev
-                props='/run/udev/data/c%d:%d'%(os.major(dev),os.minor(dev))
-                text=''
-                try:
-                    text=open(props).read()
-                    seat=next((line[10:] for line in text.splitlines() if line.startswith('E:ID_SEAT=')),'seat0')
-                    if seat!='seat0':continue
-                except FileNotFoundError:pass
-                if not compatible(device.capabilities(absinfo=False),device.name,button,text):continue
+                if (self.magic and device.info.vendor in (0x05ac,0x004c) and device.info.product in (0x030d,0x0269,0x0323)
+                    or not compatible(device.capabilities(absinfo=False),device.name,button,text)):
+                    ignored[path]=identity;continue
                 if any(k>=E.BTN_MOUSE for k in device.active_keys()):continue
                 self.devices[path]=Bridge(device);device=None
             except OSError:pass
             finally:
                 if device:device.close()
+        self._scan_ignored={p:key for p,key in ignored.items() if p in present}
     def scan_magic(self):
         found=set()
         for path,(_,product),entry in discover():
