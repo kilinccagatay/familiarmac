@@ -29,7 +29,7 @@ assert.equal(browser.COLUMNS,5);
 const mk=id=>({get_id:()=>id});
 const apps=['a','b','c','d','e','f'].map(mk);
 const suggested=browser.suggestedApps(apps,{a:1000000,b:999999,c:0},[mk('a'),mk('c'),mk('d'),mk('e'),mk('f')],1000001);
-assert.deepEqual(Array.from(suggested,a=>a.get_id()),['a','b','c','d','e']);
+assert.deepEqual(Array.from(suggested,a=>a.get_id()),['a','c','d','e','f']);
 assert.equal(browser.suggestedApps(apps,{a:1},[],2000000).length,0);
 let hidden=0,shown=0,disconnected=0;
 const signals=new Map();let nextSignal=0;
@@ -231,3 +231,12 @@ let trashWatched=false;
 fixedMotion.watch([{child:{_delegate:{app:{get_app_info:()=>({location:{get_uri:()=> 'trash:///'}})}}},connect(){trashWatched=true;}}]);
 assert.equal(trashWatched,false,'trash must not slide beyond the Dock clip on drag exit');
 fixedMotion.destroy();
+
+const dockSettingsEntry=fs.readFileSync("config/familiarmac-genie-preferences.desktop","utf8");
+assert.match(dockSettingsEntry,/^NoDisplay=true$/m);
+assert.match(dockSettingsEntry,/^Exec=familiarmac-settings --dock-window$/m);
+
+assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:1000,b:999},[mk('c'),mk('a'),mk('d'),mk('e'),mk('f')],1599),a=>a.get_id()),['a','c','d','e','f']);
+assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:1000,b:999},[mk('c'),mk('a'),mk('d'),mk('e'),mk('f')],1600),a=>a.get_id()),['c','a','d','e','f']);
+assert.deepEqual(Array.from(browser.suggestedApps(apps,{a:2000},[mk('c')],1600),a=>a.get_id()),['c']);
+console.log('Newest install occupies one slot for ten minutes; expiry restores usage order PASS');

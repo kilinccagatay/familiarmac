@@ -8,3 +8,4 @@ Icon=familiarmac-dock-window-symbolic
 Categories=Settings;DesktopSettings;
 Keywords=Dock;Genie;Animation;Motion;FamiliarMac;
 StartupNotify=false
+NoDisplay=true

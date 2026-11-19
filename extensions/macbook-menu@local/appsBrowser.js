@@ -11,9 +11,9 @@ import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 export const COLUMNS = 5;
 export function suggestedApps(apps, added, frequent, now) {
     const available = new Map(apps.map(app => [app.get_id(), app]));
-    const recent = apps.filter(app => added[app.get_id()] > now - 14*86400)
+    const recent = apps.filter(app => added[app.get_id()] > now - 600 && added[app.get_id()] <= now)
         .sort((a,b) => added[b.get_id()] - added[a.get_id()]);
-    const ids = [...recent.slice(0,2).map(a=>a.get_id()), ...frequent.map(a=>a.get_id()), ...recent.map(a=>a.get_id())];
+    const ids = [...recent.slice(0,1).map(a=>a.get_id()), ...frequent.map(a=>a.get_id())];
     return [...new Set(ids)].filter(id=>available.has(id)).slice(0,COLUMNS).map(id=>available.get(id));
 }
 
@@ -96,7 +96,17 @@ const AppsDialog = GObject.registerClass(class FamiliarMacAppsDialog extends Mod
             }
             return Clutter.EVENT_PROPAGATE;
         });
-        this.connect('destroy', () => {if (this._timer) GLib.source_remove(this._timer);this._timer=0;});
+        const now = Date.now()/1000;
+        const newest = Math.max(0, ...this._apps.map(app => added[app.get_id()] ?? 0).filter(time => time <= now));
+        this._recentExpiry = newest > now-600 ? GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+            Math.max(1, Math.ceil((newest+600-now)*1000)), () => {
+                this._recentExpiry=0; this._render(); return GLib.SOURCE_REMOVE;
+            }) : 0;
+        this.connect('destroy', () => {
+            if (this._timer) GLib.source_remove(this._timer);
+            if (this._recentExpiry) GLib.source_remove(this._recentExpiry);
+            this._timer=0; this._recentExpiry=0;
+        });
         this._render();
     }
     _render() {
