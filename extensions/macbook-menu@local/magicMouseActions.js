@@ -14,6 +14,12 @@ export class MagicMouseActions {
         this.zoomed=new WeakSet();
         this.keyboard=null;
     }
+    swipeAllowed() {
+        // Streaming bypasses SwipeTracker's event filter. Apply the same
+        // action-mode policy here, including while a gesture is in progress.
+        const mode=Main.overview.visible?Shell.ActionMode.OVERVIEW:Shell.ActionMode.NORMAL;
+        return !Main.sessionMode.isLocked&&Main.sessionMode.hasWorkspaces&&Boolean(Main.actionMode&mode);
+    }
     workspace(direction) {
         if(Main.sessionMode.isLocked||!Main.sessionMode.hasWorkspaces)return;
         const manager=global.workspace_manager;
@@ -36,7 +42,7 @@ export class MagicMouseActions {
         this.edgeTimeline.connect('new-frame',()=>{
             const s=this.edgeState;if(!s)return;
             const now=GLib.get_monotonic_time();
-            if(Main.overview.visible||Main.sessionMode.isLocked||now-s.last>1500000){this.finishEdge();return;}
+            if(!this.swipeAllowed()||Main.overview.visible||now-s.last>1500000){this.finishEdge();return;}
             const dt=Math.min(50,Math.max(0,(now-s.frame)/1000));s.frame=now;
             s.rendered+=(s.target-s.rendered)*(1-Math.exp(-dt/16));
             s.actor.translation_x=s.origin+s.rendered;
@@ -58,6 +64,7 @@ export class MagicMouseActions {
     }
     swipe(packet) {
         if(packet?.type!=='workspace-swipe'||!['begin','update','end','cancel'].includes(packet.phase)||!Number.isFinite(packet.dx)||Math.abs(packet.dx)>8192||!Number.isInteger(packet.id))return;
+        if(!this.swipeAllowed()){this.cancelSwipe();return;}
         if(packet.phase==='begin'){
             this.finishEdge();this.clearEdgeReturn();
         }
@@ -97,6 +104,7 @@ export class MagicMouseActions {
             this.swipeTimeline.connect('new-frame',()=>{
                 const state=this.swipeState;
                 if(!state)return;
+                if(!this.swipeAllowed()){this.cancelSwipe();return;}
                 if(!this.swipeValid(state)){this.finishSwipe(false);return;}
                 const time=GLib.get_monotonic_time();
                 const dt=Math.min(50,Math.max(0,(time-state.frameTime)/1000));state.frameTime=time;

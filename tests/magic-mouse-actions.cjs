@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
-let mask=0,identity='firefox.desktop',overview=false,index=0,moved=[],keys=[],window={get_wm_class:()=>'',get_gtk_application_id:()=>''};
-const ctx={Clutter:{ModifierType:{SHIFT_MASK:1,CONTROL_MASK:4,MOD1_MASK:8,SUPER_MASK:16,BUTTON1_MASK:256,BUTTON2_MASK:512,BUTTON3_MASK:1024},KEY_Control_L:10,KEY_KP_Add:11,KEY_KP_Subtract:12,KeyState:{PRESSED:1,RELEASED:0},InputDeviceType:{KEYBOARD_DEVICE:1},get_default_backend:()=>({get_default_seat:()=>({create_virtual_device:()=>({notify_keyval(_t,k,s){keys.push([k,s])}})})})},GLib:{get_monotonic_time:()=>100},Shell:{WindowTracker:{get_default:()=>({get_window_app:()=>({get_id:()=>identity})})}},Main:{sessionMode:{isLocked:false,hasWorkspaces:true},overview:{get visible(){return overview}},wm:{actionMoveWorkspace(w){moved.push(w)}}},global:{display:{get focus_window(){return window}},get_pointer:()=>[0,0,mask],workspace_manager:{n_workspaces:3,get_active_workspace:()=>({index:()=>index}),get_workspace_by_index:i=>i}}};
+let actionModeOverride=null,mask=0,identity='firefox.desktop',overview=false,index=0,moved=[],keys=[],window={get_wm_class:()=>'',get_gtk_application_id:()=>''};
+const ctx={Clutter:{ModifierType:{SHIFT_MASK:1,CONTROL_MASK:4,MOD1_MASK:8,SUPER_MASK:16,BUTTON1_MASK:256,BUTTON2_MASK:512,BUTTON3_MASK:1024},KEY_Control_L:10,KEY_KP_Add:11,KEY_KP_Subtract:12,KeyState:{PRESSED:1,RELEASED:0},InputDeviceType:{KEYBOARD_DEVICE:1},get_default_backend:()=>({get_default_seat:()=>({create_virtual_device:()=>({notify_keyval(_t,k,s){keys.push([k,s])}})})})},GLib:{get_monotonic_time:()=>100},Shell:{ActionMode:{NORMAL:1,OVERVIEW:2,SYSTEM_MODAL:4},WindowTracker:{get_default:()=>({get_window_app:()=>({get_id:()=>identity})})}},Main:{get actionMode(){return actionModeOverride??(overview?2:1)},sessionMode:{isLocked:false,hasWorkspaces:true},overview:{get visible(){return overview}},wm:{actionMoveWorkspace(w){moved.push(w)}}},global:{display:{get focus_window(){return window}},get_pointer:()=>[0,0,mask],workspace_manager:{n_workspaces:3,get_active_workspace:()=>({index:()=>index}),get_workspace_by_index:i=>i}}};
 vm.runInNewContext(fs.readFileSync('extensions/macbook-menu@local/magicMouseActions.js','utf8').replace(/^import .*;$/gm,'').replace('export class MagicMouseActions','this.MagicMouseActions=class MagicMouseActions').replace(/^export /gm,''),ctx);
 const a=new ctx.MagicMouseActions();
 a.workspace('previous-space');assert.deepEqual(moved,[]);
@@ -64,3 +64,24 @@ index=0;a.swipe(packet('begin',150,22));now+=16000;a.swipe(packet('update',-150,
 a.swipe(packet('begin',150,23));now+=16000;a.swipe(packet('update',400,23));frame();ctx.Main.sessionMode.isLocked=true;frame();assert.equal(ctx.global.window_group.translation_x,0);assert.equal(a.edgeState,null);ctx.Main.sessionMode.isLocked=false;
 assert(bounce.length>0);console.log('Boundary bounce: no native clones, left/right limits, restore, reversal and lock cleanup PASS');
 index=0;a.swipe(packet('begin',160,24));a.swipe(packet('update',150,24));assert.ok(a.edgeState,'Small reversal remains at edge');assert.equal(a.swipeState,null);a.cancelSwipe();
+
+// Streamed events obey the native action-mode gate, even without new packets.
+index=1;overview=false;controller._switchData=null;
+actionModeOverride=4;
+a.swipe(packet('begin',-150,30));assert.equal(a.swipeState,null);
+assert.equal(controller._switchData,null,'System modal must not start a native switch');
+actionModeOverride=null;
+a.swipe(packet('begin',-150,31));assert.ok(a.swipeState);
+actionModeOverride=4;frame();assert.equal(a.swipeState,null);
+assert.equal(controller._switchData,null);assert.equal(ends.at(-1),1);
+assert.equal(controller._swipeTracker.enabled,true);
+actionModeOverride=null;overview=true;
+a.swipe(packet('begin',-150,32));assert.ok(a.swipeState,'Overview swipes stay supported');
+actionModeOverride=4;frame();assert.equal(a.swipeState,null);
+assert.equal(overviewController._gestureActive,false);
+actionModeOverride=null;overview=false;index=0;
+a.swipe(packet('begin',150,33));a.swipe(packet('update',400,33));frame();
+actionModeOverride=4;frame();assert.equal(a.edgeState,null);
+assert.equal(ctx.global.window_group.translation_x,0);
+actionModeOverride=null;
+console.log('Modal guards: blocked begin, mid-swipe cancellation, overview and edge recovery PASS');
