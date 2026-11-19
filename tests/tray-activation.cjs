@@ -12,7 +12,8 @@ function setup(version='46.0') {
  return {control,indicator,original,cleared,jobs,focus,display};
 }
 const s=setup();s.control.track(s.indicator);assert.equal(s.indicator._getActivationToken()[1],'token');assert.equal(s.cleared.length,0);
-s.focus('unrelated.desktop');assert.equal(s.cleared.length,0);s.focus('test.desktop');assert.deepEqual(s.cleared,['token']);assert.equal(s.jobs.size,0);s.focus('test.desktop');assert.equal(s.cleared.length,1);
+assert(s.control.hasApp('test.desktop'));assert(!s.control.hasApp('other.desktop'));
+s.focus('unrelated.desktop');assert.equal(s.cleared.length,0);s.focus('test.desktop');assert.deepEqual(s.cleared,['token']);assert(!s.control.hasApp('test.desktop'));assert.equal(s.jobs.size,0);s.focus('test.desktop');assert.equal(s.cleared.length,1);
 s.control.untrack(s.indicator);assert.equal(s.indicator._getActivationToken,s.original);s.control.destroy();assert.equal(s.display.signals.size,0);
 const expired=setup();expired.control.track(expired.indicator);expired.indicator._getActivationToken();const job=[...expired.jobs.values()][0];job();expired.focus('test.desktop');assert.equal(expired.cleared.length,0);expired.control.destroy();
 const unknown=setup();delete unknown.indicator._appInfo;unknown.control.track(unknown.indicator);unknown.indicator._getActivationToken();assert.equal(unknown.jobs.size,0);unknown.control.destroy();

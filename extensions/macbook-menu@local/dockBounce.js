@@ -21,6 +21,7 @@ export class DockBounce {
         this.magnification = magnification;
         this.pending = new Map(); this.icons = new Map(); this.dashes = new Map();
         this.timeline = null;
+        this.startupChecks = new Map();
         const dir = GLib.build_filenamev([GLib.get_user_data_dir(), 'gnome-shell/extensions/familiarmac-genie@local/schemas']);
         const source = Gio.SettingsSchemaSource.new_from_directory(dir, Gio.SettingsSchemaSource.get_default(), false);
         this.settings = new Gio.Settings({settings_schema: source.lookup('org.gnome.shell.extensions.familiarmac-genie', true)});
@@ -28,7 +29,7 @@ export class DockBounce {
         this.appSystem = Shell.AppSystem.get_default();
         this.signals = [
             [this.appSystem, this.appSystem.connect('app-state-changed', (_s, app) => {
-                if (app.state === Shell.AppState.STARTING) this.start(app);
+                if (app.state === Shell.AppState.STARTING) this.queueStartup(app);
                 else if (app.state === Shell.AppState.STOPPED && this.pending.delete(app.get_id())) this.redisplay();
             })],
             [this.settings, this.settings.connect('changed::dock-launch-animation', () => this.cancel())],
@@ -36,6 +37,20 @@ export class DockBounce {
             [Main.layoutManager, Main.layoutManager.connect('monitors-changed', () => this.cancel())],
         ];
         this.scan();
+    }
+    queueStartup(app) {
+        const id = app.get_id();
+        if (this.startupChecks.has(id)) return;
+        // Tray menu actions also generate startup tokens (including Quit).
+        // Wait until token creation returns so the tray controller can identify
+        // its own token; explicit Dock launches still call start() directly.
+        this.startupChecks.set(id, GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            this.startupChecks.delete(id);
+            if (app.state === Shell.AppState.STARTING &&
+                !global[Symbol.for("familiarmac.trayActivation")]?.hasApp(id))
+                this.start(app);
+            return GLib.SOURCE_REMOVE;
+        }));
     }
     allowed() { return this.settings.get_boolean('dock-launch-animation') && this.desktop.get_boolean('enable-animations'); }
     start(app) {
@@ -114,6 +129,8 @@ export class DockBounce {
         if(!this.pending.size){this.timeline?.stop();this.timeline=null;}
     }
     cancel() {
+        for (const source of this.startupChecks.values()) GLib.source_remove(source);
+        this.startupChecks.clear();
         this.pending.clear();this.timeline?.stop();this.timeline=null;
         for(const [icon,item] of this.icons)this.reset(icon,item);
         this.redisplay();

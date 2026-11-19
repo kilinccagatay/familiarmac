@@ -10,8 +10,10 @@ export class TrayActivation {
     constructor() {
         this.records = new Map();
         this.pending = new Map();
+        this.requestingApp = null;
         this.active = Number.parseInt(Config.PACKAGE_VERSION) < 49;
         if (!this.active) return;
+        global[Symbol.for("familiarmac.trayActivation")] = this;
         this.tracker = Shell.WindowTracker.get_default();
         this.focusSignal = global.display.connect('notify::focus-window', () => this.queue());
         this.trackerSignal = this.tracker.connect('tracked-windows-changed', () => this.queue());
@@ -22,9 +24,12 @@ export class TrayActivation {
         const original = indicator._getActivationToken;
         const controller = this;
         const wrapper = function (...args) {
-            const result = original.apply(this, args);
-            const [context, token] = result;
             const appId = this._appInfo?.get_id?.();
+            let result;
+            controller.requestingApp = appId;
+            try { result = original.apply(this, args); }
+            finally { controller.requestingApp = null; }
+            const [context, token] = result;
             // No guessing from titles, fake AppInfos or process names.
             if (context && token && appId) {
                 const entry = {context, appId, timer: 0};
@@ -38,6 +43,10 @@ export class TrayActivation {
         };
         indicator._getActivationToken = wrapper;
         this.records.set(indicator, {original, wrapper});
+    }
+    hasApp(appId) {
+        return this.requestingApp === appId ||
+            [...this.pending.values()].some(entry => entry.appId === appId);
     }
     untrack(indicator) {
         const saved = this.records.get(indicator);
@@ -66,6 +75,8 @@ export class TrayActivation {
     }
     destroy() {
         if (!this.active) return;
+        if (global[Symbol.for("familiarmac.trayActivation")] === this)
+            delete global[Symbol.for("familiarmac.trayActivation")];
         if (this.idle) GLib.source_remove(this.idle);
         global.display.disconnect(this.focusSignal);
         this.tracker.disconnect(this.trackerSignal);
