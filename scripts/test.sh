@@ -33,5 +33,17 @@ matches=[b for pattern,_,bindings in config if fnmatch.fnmatch('gnome-terminal-s
 assert 'command.c = C-S-c' in matches
 assert 'command.v = C-S-v' in matches
 assert not any('control.c' in b for b in matches)
-print('Terminal class match and Ctrl+C preservation: PASS')
+def effective(cls,title):
+    result={}
+    for pattern,title_pattern,bindings in config:
+        if fnmatch.fnmatch(cls,pattern) and fnmatch.fnmatch(title,title_pattern):
+            for binding in bindings:
+                key,value=binding.split('=',1);result[key.strip()]=value.strip()
+    return result
+for cls,title in [('gjs','desktop-icons-1'),('gjs','desktop-icons-2'),('com-rastersoft-ding','desktop-icons-1'),('org-gnome-nautilus','home')]:
+    assert effective(cls,title)['command.backspace']=='C-A-S-backspace', (cls,title)
+for cls,title in [('gjs','extension-preferences'),('other-app','desktop-icons-1')]:
+    assert effective(cls,title)['command.backspace']=='macro(S-home backspace)'
+assert effective('gnome-terminal-server','terminal')['command.backspace']=='C-u'
+print('Application matching: desktop WM_CLASS/title, Finder, unrelated GJS, terminal and Ctrl+C preservation PASS')
 PY
