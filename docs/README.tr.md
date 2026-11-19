@@ -8,11 +8,11 @@ Apple'ın işletim sistemi desteği sona erdiğinde bir MacBook hâlâ kullanıl
 
 Bu proje, babamın MacBook'una Linux kurduğumda onun alışkanlıklarını değiştirmesini istemememle başladı. macOS kullanırken bildiği günlük işlemleri Linux'ta da tanıdık bir şekilde yapabilmesini hedefledim. Amacım Linux'u macOS yapmak değil; günlük kullanım deneyimini mümkün olduğunca tanıdık hale getirmek. Tema, kısayollar, menüler ve düzeltmeler hem başkalarının kullanabilmesi hem de kendi bilgisayarıma format attığımda tekrar kurabilmem için bu depoda toplanıyor.
 
-## Son sürüm: 1.2.11
+## Son sürüm: 1.2.12
 
-[Sürüm notları](releases/v1.2.11.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.11)
+[Sürüm notları](releases/v1.2.12.md) · [İndir](https://github.com/kilinccagatay/familiarmac/releases/tag/v1.2.12)
 
-Cmd+Q gerçek uygulama çıkış eylemlerini kullanır. Tepsiden çıkış, Dock açılış animasyonunu tetiklemez. Apps, yeni yüklenen uygulamayı kısa süre öne çıkarır; ardından kullanım sıklığına göre sıralanır.
+Apps görünümü Tahoe oranlarına göre düzenlendi; Grid/List seçimi hatırlanır, kaydırma ve ayırıcı çizgiler tutarlı davranır. Ek [Mac tarzı klavye kısayolları](MAC-KEYBOARD.md) ve köşe çizimi performans iyileştirmeleri eklendi.
 
 Ayarlar’daki **Dock & Window** bölümünden Dock boyutunu, büyütmeyi, otomatik
 gizlemeyi ve pencere animasyonlarını düzenleyebilir; uygulama menülerini
